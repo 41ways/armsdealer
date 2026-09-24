@@ -1583,15 +1583,13 @@ WS.UI = (() => {
   // 칼·활·전투도끼처럼 종류 하나가 칸 하나. 9번 칸은 뒤로가기.
   const THEME = { ore: 'material', goods: 'material' };
   function containerGrid(place) {
-    // 넓은 화면은 5열×3행 = 15칸(물건 14 + 뒤로), 좁은(폰 세로) 화면은 3×3 = 9칸 (CSS 가 .w15 / .n9 로 가른다)
+    // 어느 화면이든 3×3 = 9칸 (물건 최대 9종). 뒤로가기는 칸 밖 아래 한 줄
     const ids = shelfItems(place);
     const leaf = i => (ids[i] ? (WS.sys.Inventory.discovered(ids[i]) ? cellLeaf(ids[i], false) : cellUnknown()) : cellBlank());
     const cells = [];
-    for (let i = 0; i < 8; i++) cells.push(leaf(i));
-    cells.push(cellBack().replace('class="cell back"', 'class="cell back n9"'));
-    for (let i = 8; i < 14; i++) cells.push(leaf(i).replace(/class="cell /, 'class="cell w15 '));
-    cells.push(cellBack().replace('class="cell back"', 'class="cell back w15"'));
-    return `<div class="grid9 g15 theme-${THEME[place] || place}">${cells.join('')}</div>`;
+    for (let i = 0; i < 9; i++) cells.push(leaf(i));
+    return `<div class="grid-wrap"><div class="grid9 theme-${THEME[place] || place}">${cells.join('')}</div>
+      <button class="pbtn grid-back" data-act="nav-back">◀ 뒤로</button></div>`;
   }
 
   // 보석함 — 뚜껑을 연 벨벳 칸에 보석이 하나씩 놓여 있다. 끌어서 테이블로.
