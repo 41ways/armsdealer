@@ -237,3 +237,5 @@
   .lt-paper-page { flex: 1 1 0; }
   .lt-paper-page .letter { padding: 18px 20px 16px; transform: none; }
 }
+/* 넓은 화면: 하루 시작은 다음 화살표와 같은 자리(무대 오른쪽 아래) — #ui 자식의 660px 제한을 푼다 */
+#stage:not([data-phase="shop"]) #ui > .street-start { width: 100%; max-width: none; padding-right: 22px; }
