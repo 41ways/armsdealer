@@ -1,5 +1,6 @@
 // 게임 전역 설정과 세계 상태 변수 정의 (데이터)
 WS.data.config = {
+  version: 'v0.9.0',   // 우상단에 항상 표시 — 배포할 때 올린다
   title: 'Next!',
   startGold: 300,
   rent: 20,
