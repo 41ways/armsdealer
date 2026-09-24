@@ -115,35 +115,10 @@
 .wi-cell b { font-family: var(--btn-font); font-size: calc(28px * var(--ui, 1)); line-height: 1.1; color: var(--bk-ink); }
 .wi-cell .wl-d { font-size: 16px; }
 
-/* ── 책 속 붓 화살표 (크고 굽은 붉은 화살) ── */
-.bk-arw { width: 112px !important; height: 72px !important; bottom: 4px !important; filter: drop-shadow(0 2px 1px rgba(60, 30, 10, .55)) !important; transition: transform .16s; }
-.bk-arw::before { display: none !important; }
-.bk-arw .brush-arw { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.bk-arw.prev { left: 14px !important; } .bk-arw.next { right: 14px !important; }
-.bk-arw.prev .brush-arw { transform: scaleX(-1); }
-.bk-arw:hover { transform: translateY(-2px) scale(1.07); } .bk-arw:active { transform: translateY(1px) scale(.97); }
-.bk-arw:focus-visible { outline: 2px solid #ffe08a; outline-offset: 2px; border-radius: 6px; }
+/* ── 장부 쪽 아래 여백: 화살표는 책 밖 아래 막대(.pg-bar)에 있으니 책 안은 비워 두지 않는다 ── */
 @media (min-width: 760px) and (min-aspect-ratio: 1/1) {
-  .bk-page.l .bk-in, .bk-page.r .bk-in { margin-bottom: 64px !important; }
-  .bk-no { bottom: 22px !important; }
-  .bk-arw.prev { left: 22px !important; } .bk-arw.next { right: 22px !important; }
+  .bk-no { bottom: 12px !important; }
 }
-@media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) {
-  .bk-no { min-height: 52px; display: flex; align-items: flex-end; justify-content: center; }
-  .bk-arw { width: 92px !important; height: 60px !important; }
-}
-
-/* ── 아래 막대: 신문 · 서신 · 장부 아이콘 버튼 ── */
-.page-ico.pbtn { min-width: 108px !important; width: 108px; min-height: 68px !important; padding: 4px 8px; display: inline-flex; align-items: center; justify-content: center; }
-.page-ico .pg-svg { width: 54px; height: 54px; color: #3a250c; filter: drop-shadow(0 1px 0 rgba(255, 236, 190, .55)); }
-.page-ico.pbtn.has-arw .brush-arw { width: 64px; height: 42px; }
-.page-ico.pbtn.prev.has-arw .n-only .brush-arw { transform: scaleX(-1); }
-.page-ico.ghost { visibility: hidden; width: 108px; }
-.page-ico .w-only, .page-ico .n-only { display: inline-flex; align-items: center; justify-content: center; }
-.page-bar.in-book .page-dots { flex: 1 1 auto; }
-.page-bar.in-book { justify-content: center; }
-@media (min-width: 760px) and (min-aspect-ratio: 1/1) { .page-ico .n-only { display: none !important; } .page-ico .w-only { display: inline-flex !important; } }
-@media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) { .page-ico .w-only { display: none !important; } }
 
 /* ── 첫날 밤 까마귀 튜토리얼 ── */
 .closing-note { margin: 8px 0 0; padding: 6px 10px; border-left: 3px solid #4b6a2a; background: rgba(120, 150, 80, .14); font-size: calc(14px * var(--ui, 1)); line-height: 1.45; }
@@ -177,14 +152,105 @@
 .ct-btns .pbtn b { margin-left: 6px; }
 .crow-tut .pbtn.ghost { color: #3a250c; border-color: #6a4a22; background: rgba(255, 246, 214, .4); }
 @media (max-width: 520px) { .stk2-tiles { grid-template-columns: 1fr; } .stk2-tile .t-name { white-space: normal; } }
-@media (max-width: 480px) {
-  .page-ico.pbtn, .page-ico.ghost { min-width: 84px !important; width: 84px; min-height: 60px !important; }
-  .page-ico .pg-svg { width: 46px; height: 46px; }
-  .page-ico.pbtn.has-arw .brush-arw { width: 58px; height: 38px; }
-  .page-bar .page-dots span:not(.on), .page-bar .page-dots i { display: none; }
-  .page-bar.in-book .page-dots span:not(.on) { display: inline; }
-  .page-bar.in-book .page-dots i { display: inline; }
-}
-.page-bar.in-book { min-height: 82px; box-sizing: border-box; align-items: center; }
 /* 주문 취소 안내는 레이아웃에 자리를 차지하지 않고 책 위에 뜬다 (장부가 늘었다 줄었다 하지 않게) */
-#stage[data-phase] #ui > .cart-warn { position: absolute; left: 50%; bottom: 88px; transform: translateX(-50%); margin: 0; z-index: 6; white-space: nowrap; }
+#stage[data-phase] #ui > .cart-warn { position: absolute; left: 50%; bottom: 100px; transform: translateX(-50%); margin: 0; z-index: 6; white-space: nowrap; }
+
+/* ============================================================
+   아침 내비게이션 — 서신 · 신문 · 장부 · 도매상은 모두 같은 자리의 붓 화살표로 넘긴다 (버튼 · 쪽 표시줄 없음)
+   UIManager pageBar() · pageSlide() · streetPage() · morningLetters()
+   ============================================================ */
+/* 아래 막대: 높이 고정 — 쪽이 바뀌어도 책이 늘었다 줄었다 하지 않는다 */
+.bottom-bar.page-bar.pg-bar { flex: none; position: relative; height: 94px; min-height: 94px; box-sizing: border-box; padding: 0; gap: 0; }
+.pg-arw { position: absolute; z-index: 4; bottom: 6px; width: 132px; height: 85px; padding: 0; border: 0; background: none; cursor: pointer;
+  filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .6)); transition: transform .16s; }
+.pg-arw.prev { left: 22px; } .pg-arw.next { right: 22px; }
+.pg-arw .brush-arw { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.pg-arw.prev .brush-arw { transform: scaleX(-1); }
+.pg-arw:hover { transform: translateY(-2px) scale(1.07); } .pg-arw:active { transform: translateY(1px) scale(.97); }
+.pg-arw:focus-visible { outline: 2px solid #ffe08a; outline-offset: 2px; border-radius: 6px; }
+@media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) {
+  .bottom-bar.page-bar.pg-bar { height: 80px; min-height: 80px; }
+  .pg-arw { width: 108px; height: 70px; bottom: 5px; }
+  .pg-arw.prev { left: 14px; } .pg-arw.next { right: 14px; }
+  #stage[data-phase] #ui > .cart-warn { bottom: 86px; }
+}
+
+/* 거리의 '하루 시작' 버튼 — 거리에서 유일한 버튼 (놋쇠 테두리 · 밀랍 도장 · 큰 세리프 글씨) */
+.street-start { position: absolute; left: 0; right: 0; bottom: max(30px, 9vh); z-index: 2; display: flex; justify-content: center; pointer-events: none; }
+.street-scene:not(.go) ~ .street-start { opacity: 0; visibility: hidden; }
+.street-scene.go ~ .street-start { transition: opacity 450ms ease 800ms, visibility 0s linear 800ms; }
+.day-start { pointer-events: auto; position: relative; min-width: min(360px, 86vw); min-height: 92px; padding: 10px 34px 10px 22px; display: flex; align-items: center; justify-content: center; gap: 16px; cursor: pointer;
+  border: 3px solid #d8a94d; border-radius: 6px; color: #f6e4bb; font-family: var(--serif);
+  background: linear-gradient(180deg, rgba(90, 52, 26, .96), rgba(38, 20, 11, .97)), url(../assets/ui/kit/leather_tile.png) 0 0 / 200px 200px, #3a2214; background-blend-mode: normal, multiply;
+  box-shadow: inset 0 0 0 2px #1a0f08, inset 0 0 0 4px rgba(216, 169, 77, .55), 0 10px 26px rgba(0, 0, 0, .65), 0 0 24px rgba(240, 190, 100, .28);
+  transition: transform .16s, box-shadow .2s, filter .2s; animation: dayStartGlow 2.6s ease-in-out infinite; }
+.day-start:hover { transform: translateY(-2px) scale(1.03); filter: brightness(1.12); }
+.day-start:active { transform: translateY(1px) scale(.98); }
+.day-start:focus-visible { outline: 3px solid #ffe08a; outline-offset: 3px; }
+.day-start .ds-seal { flex: none; width: 60px; height: 60px; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .6)); transform: rotate(-8deg); }
+.day-start .ds-seal svg { display: block; width: 100%; height: 100%; }
+.day-start .ds-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.day-start .ds-text small { font-family: var(--btn-font); font-size: calc(13px * var(--ui, 1)); font-weight: 700; letter-spacing: .14em; color: #e0b866; }
+.day-start .ds-text b { font-size: calc(34px * var(--ui, 1)); font-weight: 800; letter-spacing: .28em; padding-left: .1em; color: #fff0c8; text-shadow: 0 2px 0 #1a0f08, 0 0 14px rgba(240, 190, 100, .55); }
+.day-start .ds-rivet { position: absolute; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f6d688, #8a5c1c); box-shadow: 0 1px 1px rgba(0, 0, 0, .7); }
+.day-start .ds-rivet.l { left: 8px; } .day-start .ds-rivet.r { right: 8px; }
+@keyframes dayStartGlow { 0%, 100% { box-shadow: inset 0 0 0 2px #1a0f08, inset 0 0 0 4px rgba(216, 169, 77, .55), 0 10px 26px rgba(0, 0, 0, .65), 0 0 14px rgba(240, 190, 100, .18); }
+  50% { box-shadow: inset 0 0 0 2px #1a0f08, inset 0 0 0 4px rgba(216, 169, 77, .55), 0 10px 26px rgba(0, 0, 0, .65), 0 0 34px rgba(240, 190, 100, .5); } }
+
+/* 문 열기 — 장부를 끝까지 넘겨 책이 닫힌 뒤에만 나온다. 아래 막대 가운데에 얹혀 자리를 차지하지 않는다 */
+.open-door { position: absolute; z-index: 5; left: 50%; bottom: 12px; translate: -50% 0; min-width: 250px; width: max-content; white-space: nowrap; min-height: 68px; padding: 6px 28px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer;
+  border: 3px solid #d8a94d; border-radius: 6px; color: #2a1808; font-family: var(--serif);
+  background: linear-gradient(180deg, #f0cf83, #c08a34); box-shadow: inset 0 0 0 2px rgba(255, 240, 190, .55), inset 0 -3px 0 rgba(90, 52, 16, .45), 0 8px 20px rgba(0, 0, 0, .6), 0 0 22px rgba(240, 190, 100, .4);
+  animation: openDoorIn .45s cubic-bezier(.2, .8, .3, 1) both, dayStartGlow 2.6s ease-in-out .5s infinite; transition: filter .15s; }
+.open-door:hover { filter: brightness(1.1); } .open-door:active { translate: -50% 2px; }
+.open-door:focus-visible { outline: 3px solid #fff2b8; outline-offset: 3px; }
+.open-door .od-key { width: 38px; height: 38px; } .open-door .od-key svg { display: block; width: 100%; height: 100%; }
+.open-door b { font-size: calc(26px * var(--ui, 1)); font-weight: 800; letter-spacing: .22em; padding-left: .1em; text-shadow: 0 1px 0 rgba(255, 240, 190, .6); }
+@keyframes openDoorIn { from { opacity: 0; transform: translateY(16px) scale(.94); } }
+@media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) {
+  /* 좁은 화면: 왼쪽 아래 이전 화살표와 겹치지 않게 오른쪽 아래(다음 화살표 자리)에 */
+  .open-door { left: auto; right: 14px; translate: 0 0; min-width: 0; min-height: 60px; padding: 6px 20px; gap: 8px; }
+  .open-door:active { translate: 0 2px; }
+  .open-door b { font-size: 22px; } .open-door .od-key { width: 30px; height: 30px; }
+}
+@media (prefers-reduced-motion: reduce) { .day-start, .open-door { animation: none; } }
+
+/* ── 서신: 두 쪽 펼침 — 왼쪽 뜯어 연 봉투, 오른쪽 편지 전문 ── */
+.lt-spread { flex: 1 1 auto; min-height: 0; display: flex; gap: 26px; align-items: stretch; margin: 0 auto; padding: 8px 10px 6px; box-sizing: border-box; width: 100%; }
+@media (min-width: 760px) and (min-aspect-ratio: 1/1) { #stage[data-phase="morning"] #ui > .lt-spread { width: calc(100% - 56px); max-width: none; padding: 8px 0 12px; } }
+.lt-page { min-width: 0; min-height: 0; }
+.lt-env-page { flex: 1 1 0; display: flex; align-items: center; justify-content: center; }
+.lt-paper-page { flex: 1.2 1 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding: 4px 6px 6px; scrollbar-width: thin; scrollbar-color: rgba(106, 74, 34, .6) transparent; }
+.lt-paper-page .letter { min-height: calc(100% - 4px); padding: 26px 30px 22px; box-sizing: border-box; transform: rotate(.35deg); box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 2px 0 rgba(0, 0, 0, .35); }
+.lt-paper-page .letter h4 { font-size: calc(21px * var(--ui, 1)); margin: 8px 0 12px; }
+.lt-paper-page .letter > p { font-size: calc(16.5px * var(--ui, 1)); }
+.lt-paper-page .mail-flash { margin: 0 0 8px; }
+.env-wrap { width: min(100%, 400px, 56vh); display: flex; flex-direction: column; align-items: center; gap: 16px; padding-top: 32%; }
+.env { position: relative; width: 100%; aspect-ratio: 10 / 6.6; border: 2px solid #7a5a2e; border-radius: 3px; transform: rotate(-1.4deg);
+  background: linear-gradient(180deg, rgba(255, 246, 214, .18), transparent 50%), url(../assets/ui/kit/paper_tile.png) 0 0 / 256px 256px, #d6c08c; background-blend-mode: normal, multiply;
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .55)); }
+.env::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 34%; background: linear-gradient(180deg, rgba(70, 44, 16, .55), transparent); pointer-events: none; }
+.env-flap { position: absolute; left: -2px; right: -2px; bottom: calc(100% - 1px); height: 48%; clip-path: polygon(0 100%, 50% 0, 100% 100%);
+  background: linear-gradient(180deg, rgba(60, 38, 14, .25), transparent 70%), url(../assets/ui/kit/paper_tile.png) 0 0 / 256px 256px, #b89a62; background-blend-mode: normal, multiply; }
+.env-front { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.env-front path { stroke: rgba(90, 58, 24, .5); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+.env-seal { position: absolute; left: 50%; top: -40%; width: 20%; aspect-ratio: 5 / 4; translate: -50% 0; rotate: 8deg; z-index: 2; background: url(../assets/ui/kit/seal_broken.png) center / contain no-repeat; image-rendering: pixelated; filter: drop-shadow(0 2px 1px rgba(0, 0, 0, .5)); }
+.env-addr { position: absolute; left: 9%; right: 9%; top: 40%; display: flex; flex-direction: column; gap: 3px; font-family: var(--serif); color: #2b1808; }
+.env-addr small { font-family: var(--btn-font); font-size: calc(11px * var(--ui, 1)); font-weight: 700; letter-spacing: .14em; color: #6a4a22; }
+.env-addr b { font-size: calc(21px * var(--ui, 1)); letter-spacing: .06em; }
+.env-from { margin-top: 8px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.env-from em { font-style: normal; font-size: calc(15px * var(--ui, 1)); font-weight: 700; color: #5a3a1e; }
+.env-post { position: absolute; right: 7%; top: 9%; width: 22%; aspect-ratio: 1; min-width: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid rgba(120, 32, 22, .6); border-radius: 50%; rotate: -12deg; color: rgba(120, 32, 22, .78); font-family: var(--btn-font); line-height: 1.2; text-align: center; }
+.env-post b { font-size: 9.5px; letter-spacing: .04em; } .env-post i { font-style: normal; font-size: 12px; font-weight: 800; }
+.env.blank .env-addr { top: 44%; }
+.env-count { margin: 0; padding: 4px 14px; border-radius: 3px; background: rgba(14, 9, 6, .78); border: 1px solid rgba(220, 174, 77, .5); font-family: var(--serif); font-size: calc(15px * var(--ui, 1)); letter-spacing: .06em; color: #f1e5cc; }
+.env-count b { color: var(--brass-hi); font-family: var(--btn-font); }
+@media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) {
+  .lt-spread { flex-direction: column; gap: 8px; padding: 6px 12px 4px; }
+  .lt-env-page { flex: none; }
+  .env-wrap { width: min(62%, 220px); gap: 8px; padding-top: 26%; }
+  .env-addr { top: 36%; } .env-addr b { font-size: 15px; } .env-from { margin-top: 3px; } .env-from em { font-size: 12px; }
+  .env-post { display: none; }
+  .lt-paper-page { flex: 1 1 0; }
+  .lt-paper-page .letter { padding: 18px 20px 16px; transform: none; }
+}

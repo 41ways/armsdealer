@@ -203,10 +203,18 @@ WS.UI = (() => {
 
   // 아침 거리 — 새벽빛이 걷히고 아침이 오면 신문 → 도매상 순으로 넘긴다
   function streetPage() {
-    endReached = false; // 새 아침 — 장부 끝까지 넘겨야 문이 열린다
+    endReached = false; doorReady = false; ltIdx = 0; // 새 아침 — 장부 끝까지 넘겨 책이 닫혀야 문이 열린다
+    const first = S().day === 1;
+    // 하루를 시작하는 버튼 — 거리에서 유일한 버튼. 1일째는 곧바로 문을 열고, 그다음부터는 간밤의 소식(서신 · 신문 · 장부)을 넘겨 보러 간다
+    const start = `<div class="street-start pg-main">
+      <button class="day-start" data-act="${first ? 'open' : 'page-next'}" aria-label="하루 시작 — ${S().day}일째 아침" title="하루 시작">
+        <span class="ds-seal" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#7d1a17" stroke="#3a0a08" stroke-width="2"/><circle cx="24" cy="24" r="15.5" fill="none" stroke="#c9463d" stroke-width="1.6" stroke-dasharray="2 3"/><circle cx="20" cy="19" r="5" fill="none" stroke="#f3dcae" stroke-width="2.4"/><path d="M23.5 22.5 L32 31 M28 27 l3-3 M31 30 l3-3" fill="none" stroke="#f3dcae" stroke-width="2.4" stroke-linecap="round"/></svg></span>
+        <span class="ds-text"><small>${S().day}일째 아침</small><b>하루 시작</b></span>
+        <i class="ds-rivet l" aria-hidden="true"></i><i class="ds-rivet r" aria-hidden="true"></i>
+      </button></div>`;
     return `${hud()}<div class="street-scene ${dawnPending ? '' : 'go'}" aria-hidden="true"><i class="street-dawn"></i></div>
     <div class="street-gap"></div>
-    ${pageBar('street')}`;
+    ${start}`;
   }
 
   function morning() {
@@ -287,11 +295,11 @@ WS.UI = (() => {
       <span class="gz-folio">— 2면 —</span>`;
     const turn = npTurn; npTurn = '';
     return `${hud()}
-    <div class="gz-spread" data-side="${npSide}">
+    <div class="gz-spread pg-main" data-side="${npSide}">
       <article class="gz-sheet p1 ${npSide === 1 ? turn : ''}">${p1}</article>
       <article class="gz-sheet p2 ${npSide === 2 ? turn : ''}">${p2}</article>
     </div>
-    ${pageBar('news')}`;
+    ${pageBar()}`;
   }
 
   // ───────── 장부 — 가죽 장부가 펼쳐진다 ─────────
@@ -344,7 +352,7 @@ WS.UI = (() => {
     else { l = stockParts.left(); r = stockParts.right(); lc = rc = 'bk-stock'; } // 창고 펼침 — flowBook 이 실제 높이를 재서 쪽마다 나눈다
     return `${hud()}
     ${book('ledger', l, r, lc, rc)}
-    ${pageBar('ledger')}`;
+    ${pageBar()}`;
   }
 
   // 걸려 있는 약속·계약 — [아이콘, 내용, 기한]. 있는 것만
@@ -486,10 +494,11 @@ WS.UI = (() => {
           <button class="pbtn primary buy-btn ${pending ? 'hot' : ''}" data-act="buy-cart" ${pending ? '' : 'disabled'}>거래 진행</button>
         </div>
       </div>`;
+    if (doorReady) return `${hud()}<div class="street-gap"></div>${pageBar()}`; // 책이 닫혔다 — 문 열기만
     return `${hud()}
     ${book('prep', left, right)}
     <div class="cart-warn" role="note" ${pending ? '' : 'style="visibility:hidden"'}>거래 진행을 누르지 않은 주문은 취소된다</div>
-    ${pageBar('prep')}`;
+    ${pageBar()}`;
   }
   // 주문서 확정 — 산 것 · 판 것을 한 줄로 남기고 동전 소리
   function buyCart() {
@@ -546,6 +555,22 @@ WS.UI = (() => {
   function turnPage(dir) {
     const pages = morningPages();
     const cur = curPage();
+    // 책이 닫혀 문 열기만 남았다: 뒤로 = 책을 다시 펼친다, 앞으로 = 문을 연다
+    if (cur === 'prep' && doorReady) {
+      if (dir > 0) return 'door';
+      doorReady = false; bkSpread = Infinity; bkSide = 'r'; turnDir = 'from-left';
+      WS.Sfx.play('page', 0.5);
+      return true;
+    }
+    // 서신: 편지가 여러 통이면 한 통씩
+    if (cur === 'letters') {
+      const n = lettersToday().length;
+      if ((dir > 0 && ltIdx < n - 1) || (dir < 0 && ltIdx > 0)) {
+        ltIdx += dir; turnDir = dir > 0 ? 'from-right' : 'from-left';
+        WS.Sfx.play('page', 0.5);
+        return true;
+      }
+    }
     // 세로 화면의 신문: 1면 ↔ 2면
     if (cur === 'news' && narrow() && ((dir > 0 && npSide === 1) || (dir < 0 && npSide === 2))) {
       npSide += dir; npTurn = dir > 0 ? 'from-right' : 'from-left';
@@ -567,74 +592,73 @@ WS.UI = (() => {
     turnDir = dir > 0 ? 'from-right' : 'from-left';
     const to = pages[j];
     if (to === 'news') npSide = dir > 0 || !narrow() ? 1 : 2;
+    if (to === 'letters') ltIdx = dir > 0 ? 0 : Math.max(0, lettersToday().length - 1);
     if (to === 'ledger' || to === 'prep') { bkSpread = dir > 0 ? 0 : Infinity; bkSide = dir > 0 || !narrow() ? 'l' : 'r'; }
     if (to === 'prep') WS.sys.Day.toPrep();
     else { S().phase = 'morning'; morningSub = to; }
     WS.Sfx.play('page', 0.5);
     return true;
   }
-  // 아래 막대 (거리 · 서신 · 신문): 다음/이전 쪽 = 그 쪽을 그린 아이콘 버튼 (글자 없음 — 신문 아이콘을 누르면 신문이 나온다).
-  // 장부 · 도매상 안에서는 책 속의 붓 화살표로만 넘기고, 아래 막대에는 쪽 표시와 (도매상 끝에서) 문 열기만 둔다.
-  const PAGE_LABEL = { street: '거리로', letters: '서신 — 간밤에 온 편지', news: '신문 보기', ledger: '장부 펼치기' };
-  const ic = (body, vb = '0 0 48 48') => `<svg class="pg-svg" viewBox="${vb}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
-  const PAGE_ICON = {
-    // 신문: 접힌 귀퉁이 종이, 제호 · 그림 · 단
-    news: ic('<path d="M9 8 H35 V38 a4 4 0 0 0 4 4 H12 a3 3 0 0 1-3-3Z" fill="rgba(255,246,214,.55)"/><path d="M35 15 H41 V38 a4 4 0 0 1-4 4"/><path d="M14 15 H30" stroke-width="3.6"/><rect x="14" y="20" width="9" height="8" fill="currentColor" stroke="none" opacity=".75"/><path d="M26 21 H31 M26 25 H31 M26 29 H31 M14 33 H31 M14 37 H27" stroke-width="2"/>'),
-    // 서신: 밀랍 도장이 찍힌 편지
-    letters: ic('<rect x="6" y="12" width="36" height="25" rx="2" fill="rgba(255,246,214,.55)"/><path d="M6 14 L24 28 L42 14"/><circle cx="24" cy="29" r="5.5" fill="currentColor" stroke="none" opacity=".85"/><path d="M22 29 h4 M24 27 v4" stroke="#f3dcae" stroke-width="1.6"/>'),
-    // 장부: 가죽 표지 책과 책갈피
-    ledger: ic('<path d="M8 10 H22 a4 4 0 0 1 2 .6 a4 4 0 0 1 2-.6 H40 V37 H26 a3 3 0 0 0-2 .9 a3 3 0 0 0-2-.9 H8Z" fill="rgba(255,246,214,.55)"/><path d="M24 11 V38"/><path d="M12 16 H20 M12 21 H20 M12 26 H20 M28 16 H36 M28 21 H36 M28 26 H36" stroke-width="2"/><path d="M33 37 V44 L36 41.5 L39 44 V37" fill="currentColor" stroke="none" opacity=".8"/>'),
-    // 거리: 문 달린 집
-    street: ic('<path d="M6 25 L24 9 L42 25"/><path d="M11 22 V41 H37 V22" fill="rgba(255,246,214,.55)"/><path d="M20 41 V29 a4 4 0 0 1 8 0 V41"/><path d="M31 16 V11 H35 V19"/><path d="M5 41 H43"/>'),
-  };
-  // 굽은 초승달 모양의 굵은 화살표 (책 속 이전·다음 쪽 · 신문 1면↔2면). 오른쪽을 가리키게 그려 두고 이전 쪽은 CSS 로 뒤집는다.
+  // 굽은 초승달 모양의 굵은 화살표 (모든 아침 쪽의 이전·다음). 오른쪽을 가리키게 그려 두고 이전 쪽은 CSS 로 뒤집는다.
   const BRUSH_ARROW = dir => `<svg class="brush-arw" viewBox="0 0 124 80" aria-hidden="true">
       <path d="M4 44 C34 70 78 68 101 43 L105 54 L121 5 L74 25 L90 32 C66 54 34 54 4 44Z" fill="#1c130d" stroke="#f0d9a0" stroke-width="2.2" stroke-linejoin="round" paint-order="stroke"/>
       <path d="M14 46 C40 58 68 56 88 38" fill="none" stroke="#6b4a2a" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
     </svg>`;
-  function pageBar(page) {
-    const pages = morningPages();
-    const i = pages.indexOf(page);
-    const prev = pages[i - 1], next = pages[i + 1];
-    const isNews = page === 'news';
-    const inBook = page === 'ledger' || page === 'prep';
-    const dots = `<div class="page-dots">${pages.map(p => `<span class="${p === page ? 'on' : ''}">${PAGE_NAME[p]}</span>`).join('<i>·</i>')}</div>`;
-    // 도매상 끝(장부 끝)에 닿아야 문 열기가 켜진다 (flowBook 이 켠다)
-    const ready = S().day === 1 || endReached;
-    const openBtn = `<button class="pbtn primary page-next" data-act="open" ${page === 'prep' && !ready ? 'disabled' : ''} title="장부 끝까지 넘겨 주세요">문 열기<small>장부 끝까지 넘겨 주세요</small></button>`;
-    if (inBook) {
-      return `<div class="bottom-bar page-bar in-book">${dots}${page === 'prep' ? openBtn : ''}</div>`;
+  // 아래 막대 — 서신 · 신문 · 장부 · 도매상이 모두 같은 자리(왼쪽 아래 이전 · 오른쪽 아래 다음)에 같은 화살표를 둔다. 글자 버튼 · 아이콘 버튼 · 쪽 표시줄은 없다.
+  // 막대 높이는 고정 — 장부가 늘었다 줄었다 하지 않는다. 책을 끝까지 넘겨 덮으면 (doorReady) 문 열기가 막대 위에 얹혀 뜬다 (자리를 차지하지 않는다).
+  function pageBar() {
+    const prev = `<button class="pg-arw prev" data-act="page-prev" aria-label="이전" title="이전 (←)">${BRUSH_ARROW('bp')}</button>`;
+    if (S().phase === 'prep' && doorReady) {
+      return `<div class="bottom-bar page-bar pg-bar">${prev}
+        <button class="open-door" data-act="open" aria-label="문 열기" title="문 열기 (→)"><span class="od-key" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="15" cy="24" r="9" fill="none" stroke="#3a250c" stroke-width="4"/><circle cx="15" cy="24" r="3" fill="#3a250c"/><path d="M24 24 H44 M36 24 v8 M42 24 v6" fill="none" stroke="#3a250c" stroke-width="4" stroke-linecap="round"/></svg></span><b>문 열기</b></button></div>`;
     }
-    // 신문(세로 화면): 1면 ↔ 2면은 붓 화살표 — 넓은 화면은 두 장이 펼쳐져 있으니 옆 쪽 아이콘
-    const btn = (dir, target) => {
-      const arrowOnly = isNews && ((dir === 'prev' && npSide === 2) || (dir === 'next' && npSide === 1));
-      const wide = `<span class="w-only">${PAGE_ICON[target]}</span>`;
-      const body = arrowOnly ? `${wide}<span class="n-only">${BRUSH_ARROW(dir === 'prev' ? 'p' : 'n')}</span>` : PAGE_ICON[target];
-      const label = arrowOnly && narrow() ? (dir === 'prev' ? '신문 1면' : '신문 2면') : PAGE_LABEL[target];
-      return `<button class="pbtn primary page-ico ${dir} ${arrowOnly ? 'has-arw' : ''}" data-act="page-${dir}" aria-label="${label}" title="${label}">${body}</button>`;
-    };
-    const prevOn = !!prev || (isNews && npSide === 2);
-    const prevBtn = prevOn ? btn('prev', isNews && npSide === 2 && !prev ? 'news' : prev) : '<span class="page-ico ghost"></span>';
-    return `<div class="bottom-bar page-bar">
-      ${prevBtn}
-      ${dots}
-      ${next ? btn('next', next) : openBtn}
-    </div>`;
+    return `<div class="bottom-bar page-bar pg-bar">${prev}<button class="pg-arw next" data-act="page-next" aria-label="다음" title="다음 (→)">${BRUSH_ARROW('bn')}</button></div>`;
+  }
+  // 책을 끝까지 넘겼다 — 뒤표지를 덮고 나서야 문 열기가 나온다
+  function closeBookForDoor() {
+    if (bookClosing || transitioning) return;
+    bookClose(() => { if (cartOn()) S().cart = {}; buyNote = null; doorReady = true; endReached = true; render(); });
+  }
+  // 화살표 · 키보드 공통: 한 쪽 넘기고 다시 그린다
+  function stepMorning(dir) {
+    if (transitioning || bookClosing) return;
+    const r = turnPage(dir);
+    if (r === 'open') {
+      if (morningPages().length === 1) document.querySelector('[data-act="open"]')?.click(); // 1일째: 거리의 하루 시작이 곧 문 열기
+      else closeBookForDoor();
+    } else if (r === 'door') document.querySelector('.open-door')?.click();
+    else if (r) render();
   }
 
-  // 간밤에 까마귀가 물고 온 편지 — 책이 아니라 거리 위에 편지지 몇 장. 읽고, 필요하면 여기서 바로 답한다
+  // 간밤에 까마귀가 물고 온 편지 — 두 쪽 펼침: 왼쪽엔 뜯어 연 봉투(보낸 이 · 받는 이 · 깨진 밀랍), 오른쪽엔 편지 전문. 읽고, 필요하면 여기서 바로 답한다.
+  // 편지가 여러 통이면 화살표로 한 통씩 넘긴다 (turnPage). 서신이 없는 날에도 빈 봉투와 '오늘 서신은 없습니다.'
+  function envelopeSide(x, n) {
+    const emb = x ? ((x.fromKey && WS.ui.emblemOfSender(x.fromKey)) || x.fromIcon || '') : '';
+    return `<div class="env-wrap"><div class="env ${x ? '' : 'blank'}">
+        <i class="env-flap" aria-hidden="true"></i>
+        <svg class="env-front" viewBox="0 0 100 64" preserveAspectRatio="none" aria-hidden="true"><path d="M0 64 L50 26 L100 64" fill="none"/><path d="M0 0 L50 30 L100 0" fill="none"/></svg>
+        ${x ? '<i class="env-seal" aria-hidden="true"></i>' : ''}
+        <div class="env-addr"><small>받는 이</small><b>무기점 주인 귀하</b>${x ? `<span class="env-from"><small>보낸 이</small><em>${emb} ${U.esc(x.from)}</em></span>` : ''}</div>
+        ${x ? `<span class="env-post" aria-hidden="true"><b>까마귀 우편</b><i>${x.day}일째</i></span>` : ''}
+      </div>
+      <p class="env-count">${x ? `간밤에 온 편지 <b>${ltIdx + 1}</b> / ${n}` : '간밤에 온 편지 없음'}</p></div>`;
+  }
   function morningLetters() {
     const list = lettersToday();
-    const fresh = list.some(x => !x.read);
-    list.forEach(x => { if (!x.read) WS.sys.Letters.markRead(x.id); });
+    ltIdx = Math.max(0, Math.min(ltIdx, list.length - 1));
+    const x = list[ltIdx];
+    const fresh = list.some(l => !l.read);
+    list.forEach(l => { if (!l.read) WS.sys.Letters.markRead(l.id); });
     if (fresh) setTimeout(() => crowFly('in'), 250);
     return `${hud()}
-    <div class="loose-wrap">
-      <h2 class="loose-title">간밤에 온 편지 <small>${list.length ? list.length + '통' : '없음'}</small></h2>
-      ${mail.flash ? `<div class="mail-flash">${U.esc(mail.flash)}</div>` : ''}
-      <div class="mm-list loose">${list.length ? list.map(x => readPane(x)).join('') : '<div class="letter lt-none"><p>오늘 서신은 없습니다.</p><i class="lt-crow" aria-hidden="true"></i></div>'}</div>
+    <div class="lt-spread pg-main" data-n="${list.length}">
+      <section class="lt-page lt-env-page">${envelopeSide(x, list.length)}</section>
+      <section class="lt-page lt-paper-page">
+        ${mail.flash ? `<div class="mail-flash">${U.esc(mail.flash)}</div>` : ''}
+        ${x ? readPane(x) : '<div class="letter lt-none"><p>오늘 서신은 없습니다.</p><i class="lt-crow" aria-hidden="true"></i></div>'}
+      </section>
     </div>
-    ${pageBar('letters')}`;
+    ${pageBar()}`;
   }
 
   // ───────── 펼친 책 (장부 · 도매상) ─────────
@@ -643,16 +667,16 @@ WS.UI = (() => {
   let bkSpread = 0;    // 장부 · 도매상 안의 몇 번째 펼침 (0부터. Infinity = 마지막)
   const bkCount = { ledger: 1, prep: 1 }; // 각 책의 펼침 수 (flowBook 이 잰다)
   let endReached = false; // 도매상 마지막 쪽에 한 번이라도 닿았다
+  let doorReady = false;  // 장부를 끝까지 넘겨 책이 닫혔다 — 이제야 '문 열기'가 나온다
+  let ltIdx = 0;          // 서신 쪽에서 지금 펼친 편지 (0부터)
   function book(kind, left, right, lc = '', rc = '') {
     const base = kind === 'prep' ? bkCount.ledger * 2 : 0;
     const no = base + (Number.isFinite(bkSpread) ? bkSpread : 0) * 2 + 1;
-    return `<div class="book-wrap"><div class="book" data-kind="${kind}">
+    return `<div class="book-wrap pg-main"><div class="book" data-kind="${kind}">
       <div class="bk-sheets" data-side="${bkSide}">
         <section class="bk-page l bk-${kind} ${lc}"><div class="bk-in">${left}</div><span class="bk-no">${no}</span></section>
         <section class="bk-page r bk-${kind} ${rc}"><div class="bk-in">${right}</div><span class="bk-no">${no + 1}</span></section>
       </div>
-      <button class="bk-arw prev" data-act="page-prev" aria-label="이전 쪽" title="이전 쪽">${BRUSH_ARROW('bp')}</button>
-      <button class="bk-arw next" data-act="page-next" aria-label="다음 쪽" title="다음 쪽">${BRUSH_ARROW('bn')}</button>
       <i class="bk-ribbon" aria-hidden="true"></i>
     </div></div>`;
   }
@@ -817,10 +841,7 @@ WS.UI = (() => {
       const base = kind === 'prep' ? bkCount.ledger * 2 : 0;
       if (pn) pn.textContent = base + s0 * 2 + 1;
       if (qn) qn.textContent = base + s0 * 2 + 2;
-      const nx = nb.querySelector('.bk-arw.next'); if (nx) nx.hidden = kind === 'prep' && atLast;
       if (kind === 'prep' && atLast) endReached = true;
-      const ob = $ui().querySelector('.page-bar [data-act="open"]');
-      if (ob) { ob.disabled = !(endReached || S().day === 1); ob.classList.toggle('ready', !ob.disabled); }
     }
   }
   const BK_ALL = 'polygon(-5% -20%, 105% -20%, 105% 120%, -5% 120%)';
@@ -2583,6 +2604,42 @@ WS.UI = (() => {
     });
   }
 
+  // 쪽 넘김 (거리 · 서신 · 신문 · 장부 사이): 옛 쪽은 왼쪽으로 밀려 나가고 새 쪽은 오른쪽에서 밀려 들어온다. 뒤로 갈 때는 반대.
+  // 신문(두 장)에서 앞으로 나갈 때는 오른쪽 장이 왼쪽 장 위로 겹쳐 포개진 뒤 한 덩이로 밀려 나간다. 움직임 줄이기: 페이드.
+  function pageSlide(o) {
+    const ui = $ui(), nm = ui.querySelector('.pg-main');
+    const g = o.el;
+    if (!nm || !g.animate || !nm.animate) return;
+    const fwd = o.dir === 'from-right';
+    if (!nm.matches('.gz-spread')) ui.classList.remove('fresh'); // 목록이 차례로 올라오는 등장 대신 넘김
+    const nbook = nm.querySelector('.book'); if (nbook) nbook.classList.add('bk-turning');
+    g.inert = true; g.setAttribute('aria-hidden', 'true');
+    Object.assign(g.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px', width: o.w + 'px', height: o.h + 'px', margin: '0', zIndex: '3', pointerEvents: 'none', boxSizing: 'border-box' });
+    ui.appendChild(g);
+    let done = false;
+    const end = () => { if (done) return; done = true; g.remove(); };
+    if (reduceMotion()) {
+      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 240, fill: 'forwards' }).onfinish = end;
+      nm.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, fill: 'backwards' });
+      setTimeout(end, 500);
+      return;
+    }
+    const W = ui.clientWidth || 800, dx = fwd ? -W : W;
+    const EASE = 'cubic-bezier(.45, .05, .2, 1)';
+    let T = 640, lead = 0;
+    const sheets = [...g.querySelectorAll('.gz-sheet')].filter(n => getComputedStyle(n).display !== 'none');
+    if (fwd && sheets.length === 2) {
+      // 두 장이 왼쪽으로 겹쳐 포개진 다음 함께 밀려 나간다
+      const ox = sheets[1].getBoundingClientRect().left - sheets[0].getBoundingClientRect().left - 14;
+      lead = 260; T = 900;
+      sheets[1].animate([{ translate: '0 0', rotate: '.5deg' }, { translate: `${-ox}px 4px`, rotate: '-.9deg' }], { duration: lead, easing: 'ease-in-out', fill: 'forwards' });
+    }
+    const gk = [{ transform: 'translateX(0)' }, { transform: 'translateX(0)', offset: lead / T, easing: EASE }, { transform: `translateX(${dx}px)` }];
+    g.animate(gk, { duration: T, fill: 'forwards' }).onfinish = end;
+    nm.animate([{ transform: `translateX(${-dx}px)` }, { transform: 'translateX(0)' }], { duration: T - lead * .6, delay: lead * .6, easing: EASE, fill: 'backwards' });
+    setTimeout(end, T + 400); // 창이 가려져 애니메이션이 멈춰도 옛 쪽이 남지 않게
+  }
+
   function render() {
     // 아침에 넘길 쪽이 도매상뿐이면(신문이 오기 전) 바로 도매상으로
     if (!booting && S().phase === 'morning' && morningPages()[0] === 'prep') WS.sys.Day.toPrep();
@@ -2602,6 +2659,11 @@ WS.UI = (() => {
         ob.querySelectorAll('.bk-sheets, .bk-in').forEach(n => { if (n.scrollTop) oldBook.scroll.push([n, n.scrollTop]); });
       }
     }
+    let oldMain = null; // 넘기기 직전의 쪽 본체 — 책끼리가 아니면 옆으로 밀려 나가는 종이가 된다 (pageSlide)
+    if (turnDir) {
+      const om = $ui().querySelector('.pg-main');
+      if (om) oldMain = { el: om, dir: turnDir, pg: $ui().dataset.pg, book: om.classList.contains('book-wrap'), x: om.offsetLeft, y: om.offsetTop, w: om.offsetWidth, h: om.offsetHeight };
+    }
     if (!sealOpen && !magnifyOpen) overlayShown = false; // 확대경 창이 닫혔다 — 다음에 열 때는 다시 여는 애니메이션
     if (!drawer) drawerShown = false;
     const keep = {};
@@ -2612,7 +2674,12 @@ WS.UI = (() => {
     $ui().dataset.page = String(phase === 'morning' ? morningSub : '');
     flowBook();
     KEEP.forEach(sel => { const el = keep[sel] !== undefined && $ui().querySelector(sel); if (el) el.scrollTop = keep[sel]; });
-    if (oldBook) bookFlip(oldBook);
+    const pg = String(phase === 'morning' || phase === 'prep' ? (phase === 'prep' ? 'prep' : morningSub) : '');
+    const nbk = $ui().querySelector('.book');
+    if (oldBook && oldMain && oldMain.book && nbk) bookFlip(oldBook); // 장부 ↔ 도매상: 책장이 넘어간다
+    else if (oldMain && (oldMain.pg !== pg || pg === 'letters')) pageSlide(oldMain); // 그 밖: 오른쪽 → 왼쪽으로 밀려 들어오고 (뒤로는 반대) 옛 쪽은 밀려 나간다
+    else if (oldBook && nbk) nbk.classList.add('bk-arrive'); // 닫힌 책을 다시 펼칠 때
+    $ui().dataset.pg = pg;
     turnDir = ''; // 쪽 넘김 애니메이션은 넘긴 직후 한 번만
     $ui().dataset.phase = phase;
     document.getElementById('stage').dataset.phase = phase;
@@ -3060,12 +3127,12 @@ WS.UI = (() => {
     const before = c && c.result;
     if (act !== 'choice') confirmChoice = null;
     // 장면이 크게 바뀌는 행동은 검은 막으로 덮고 넘어간다 (중간 상태가 보이지 않게)
-    const toMorning = () => { paperNote = ''; crowTutStep = 0; D.nextDay(); resetDealState(); morningSub = null; turnDir = ''; mail.flash = ''; dawnPending = true; };
+    const toMorning = () => { paperNote = ''; crowTutStep = 0; D.nextDay(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = true; };
     const morningCard = () => ({ day: S().day });
     const curtained = {
-      new: [() => { WS.Scene.reset(); WS.Game.newGame(); resetDealState(); morningSub = null; turnDir = ''; mail.flash = ''; visited = {}; nav = { place: null, sub: null }; dawnPending = true; },
+      new: [() => { WS.Scene.reset(); WS.Game.newGame(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; visited = {}; nav = { place: null, sub: null }; dawnPending = true; },
         () => ({ day: 1 }), 0, 'kd'],
-      continue: [() => { WS.Scene.reset(); if (!WS.Game.continueGame()) WS.Game.newGame(); resetDealState(); morningSub = null; turnDir = ''; mail.flash = ''; dawnPending = S().phase === 'morning'; },
+      continue: [() => { WS.Scene.reset(); if (!WS.Game.continueGame()) WS.Game.newGame(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = S().phase === 'morning'; },
         () => ({ day: S().day }), 0, 'kd'],
       open: [() => { D.openShop(); resetDealState(); visited = {}; nav = { place: null, sub: null }; },
         () => ({ sub: '영업 시작' }), 0, 'kd-plain'],
@@ -3102,8 +3169,8 @@ WS.UI = (() => {
     switch (act) {
       case 'prep': turnDir = 'from-right'; D.toPrep(); break;
       case 'back-morning': S().phase = 'morning'; morningSub = 'news'; break;
-      case 'page-prev': turnPage(-1); render(); return;
-      case 'page-next': turnPage(1); render(); return;
+      case 'page-prev': stepMorning(-1); return;
+      case 'page-next': stepMorning(1); return;
       case 'cart': D.cartAdjust(id, Number(b.dataset.n)); buyNote = null; break;
       case 'buy-cart': buyCart(); break;
       case 'repay-guild': D.repayGuild(Number(b.dataset.n)); break;
@@ -3318,9 +3385,7 @@ WS.UI = (() => {
         const dir = ['>', '.', 'ArrowRight'].includes(e.key) ? 1 : ['<', ',', 'ArrowLeft'].includes(e.key) ? -1 : 0;
         if (dir) {
           e.preventDefault();
-          const r = turnPage(dir);
-          if (r === 'open') document.querySelector('[data-act="open"]')?.click();
-          else if (r) render();
+          stepMorning(dir);
           return;
         }
       }
@@ -3346,7 +3411,7 @@ WS.UI = (() => {
   const trayOffer = () => { const c = WS.sys.Day.current(); return c && c.kind === 'buy' && c.request ? tableDeal(c).got : 0; };
 
   // 개발 패널(dev.html)이 장면을 바꿀 때 — 테이블·서랍·쪽 넘김 상태를 비운다
-  const devReset = () => { resetDealState(); drawer = null; magnifyOpen = false; sealOpen = false; nav = { place: null, sub: null }; morningSub = null; };
+  const devReset = () => { resetDealState(); drawer = null; magnifyOpen = false; sealOpen = false; nav = { place: null, sub: null }; morningSub = null; doorReady = false; };
 
   // ───────── Esc 메뉴: 계속하기 · 저장하기 · 불러오기 · 소리 · 처음으로 ─────────
   let menu = null; // { page: 'main'|'save'|'load', arm: 한 번 더 눌러야 하는 버튼, flash: 알림 한 줄 }
@@ -3420,7 +3485,7 @@ WS.UI = (() => {
       WS.Game.continueGame(data);
       resetDealState();
       drawer = null; magnifyOpen = false; sealOpen = false; nav = { place: null, sub: null }; visited = {};
-      morningSub = null; turnDir = ''; mail.flash = '';
+      morningSub = null; doorReady = false; turnDir = ''; mail.flash = '';
       dawnPending = S().phase === 'morning';
       WS.sys.Save.autosave();
     }, () => ({ day: S().day }), 0, 'kd');
@@ -3453,7 +3518,7 @@ WS.UI = (() => {
       closeMenu();
       WS.Scene.reset();
       resetDealState();
-      drawer = null; magnifyOpen = false; sealOpen = false; nav = { place: null, sub: null }; morningSub = null;
+      drawer = null; magnifyOpen = false; sealOpen = false; nav = { place: null, sub: null }; morningSub = null; doorReady = false;
       WS.Game.toTitle();
       render();
     }

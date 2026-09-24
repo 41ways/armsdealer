@@ -2,29 +2,76 @@
 WS.data.endingArt = {
   "balance_keeper": {
     "title": "균형의 수호자",
+    "album": [
+      {
+        "file": "assets/ending/hires/balance_keeper_album_1.png",
+        "caption": "어느 편이냐고 묻는 행상"
+      },
+      {
+        "file": "assets/ending/hires/balance_keeper_album_2.png",
+        "caption": "거간꾼의 300골드를 거절한다"
+      },
+      {
+        "file": "assets/ending/hires/balance_keeper_album_3.png",
+        "caption": "천칭단원이 건네는 소라껍데기"
+      },
+      {
+        "file": "assets/ending/hires/balance_keeper_album_4.png",
+        "caption": "양쪽과 동시에 악수한다"
+      }
+    ],
     "thumb": "assets/ending/hires/balance_keeper_thumb.png"
   },
   "bankrupt": {
     "title": "문 닫힌 가게",
+    "album": [
+      {
+        "file": "assets/ending/hires/bankrupt_album_1.png",
+        "caption": "텅 빈 진열대와 밀린 독촉장"
+      },
+      {
+        "file": "assets/ending/hires/bankrupt_album_2.png",
+        "caption": "수금원이 동전 주머니를 쓸어 간다"
+      },
+      {
+        "file": "assets/ending/hires/bankrupt_album_3.png",
+        "caption": "열쇠 꾸러미를 넘기는 손"
+      },
+      {
+        "file": "assets/ending/hires/bankrupt_album_4.png",
+        "caption": "간판이 내려간 새벽 거리"
+      }
+    ],
     "thumb": "assets/ending/hires/bankrupt_thumb.png"
   },
   "candle_queen": {
     "title": "베일을 걷은 여왕",
+    "album": [
+      {
+        "file": "assets/ending/hires/candle_queen_album_1.png",
+        "caption": "물약 여섯 병을 안고 나서는 수녀"
+      }
+    ],
     "thumb": "assets/ending/hires/candle_queen_thumb.png"
   },
   "demonlord_dominion": {
+    "title": "검은 깃발 아래",
     "thumb": "assets/ending/hires/demonlord_dominion_thumb.png"
   },
   "double_dealer": {
+    "title": "박쥐",
     "thumb": "assets/ending/hires/double_dealer_thumb.png"
   },
   "dragon_ash": {
+    "title": "재의 도시",
     "thumb": "assets/ending/hires/dragon_ash_thumb.png"
   },
   "dragon_nest": {
+    "title": "용의 금고지기",
     "thumb": "assets/ending/hires/dragon_nest_thumb.png"
   },
   "dragonfall": {
+    "title": "드래곤 슬레이어",
     "thumb": "assets/ending/hires/dragonfall_thumb.png"
   },
   "fairy_friend": {
@@ -65,9 +112,11 @@ WS.data.endingArt = {
     "thumb": "assets/ending/hires/goblin_nation_thumb.png"
   },
   "golem_age": {
+    "title": "톱니의 시대",
     "thumb": "assets/ending/hires/golem_age_thumb.png"
   },
   "grey_march": {
+    "title": "잿빛 행진",
     "thumb": "assets/ending/hires/grey_march_thumb.png"
   },
   "informant": {
@@ -101,7 +150,29 @@ WS.data.endingArt = {
   },
   "iron_king": {
     "title": "두건을 벗은 왕",
+    "album": [
+      {
+        "file": "assets/ending/hires/iron_king_album_1.png",
+        "caption": "활 다섯 자루를 훑어보는 두건 청년"
+      },
+      {
+        "file": "assets/ending/hires/iron_king_album_2.png",
+        "caption": "궁을 나서는 지친 궁정 의사"
+      },
+      {
+        "file": "assets/ending/hires/iron_king_album_3.png",
+        "caption": "대관식 길을 에워싼 궁수들"
+      },
+      {
+        "file": "assets/ending/hires/iron_king_album_4.png",
+        "caption": "왕좌에 앉은 알드릭"
+      }
+    ],
     "thumb": "assets/ending/hires/iron_king_thumb.png"
+  },
+  "kingdom_armory": {
+    "title": "왕실 공식 무기상",
+    "thumb": "assets/ending/hires/kingdom_armory_thumb.png"
   },
   "knight_commander": {
     "title": "기사단장의 친구",
@@ -134,9 +205,11 @@ WS.data.endingArt = {
     }
   },
   "moonlit_market": {
+    "title": "안개가 드리운 마을",
     "thumb": "assets/ending/hires/moonlit_market_thumb.png"
   },
   "neutral": {
+    "title": "중립 상인",
     "thumb": "assets/ending/hires/neutral_thumb.png"
   },
   "night_court": {
@@ -144,10 +217,29 @@ WS.data.endingArt = {
     "thumb": "assets/ending/hires/night_court_thumb.png"
   },
   "opportunist": {
+    "title": "기회주의자",
     "thumb": "assets/ending/hires/opportunist_thumb.png"
   },
   "perfect_ledger": {
     "title": "완벽한 장부",
+    "album": [
+      {
+        "file": "assets/ending/hires/perfect_ledger_album_1.png",
+        "caption": "인상서를 대조하는 주인"
+      },
+      {
+        "file": "assets/ending/hires/perfect_ledger_album_2.png",
+        "caption": "장부를 넘겨 보는 감찰관"
+      },
+      {
+        "file": "assets/ending/hires/perfect_ledger_album_3.png",
+        "caption": "서류 없는 손님을 돌려보낸다"
+      },
+      {
+        "file": "assets/ending/hires/perfect_ledger_album_4.png",
+        "caption": "닉스의 돈 자루를 물리친다"
+      }
+    ],
     "thumb": "assets/ending/hires/perfect_ledger_thumb.png"
   },
   "pin_heir": {
@@ -156,6 +248,24 @@ WS.data.endingArt = {
   },
   "red_ford_again": {
     "title": "두 번째 붉은여울",
+    "album": [
+      {
+        "file": "assets/ending/hires/red_ford_again_album_1.png",
+        "caption": "서랍 밑에서 나온 낡은 장부"
+      },
+      {
+        "file": "assets/ending/hires/red_ford_again_album_2.png",
+        "caption": "가렛과 맞잡은 손"
+      },
+      {
+        "file": "assets/ending/hires/red_ford_again_album_3.png",
+        "caption": "칼 상자를 실은 마차, 붉은 동쪽 하늘"
+      },
+      {
+        "file": "assets/ending/hires/red_ford_again_album_4.png",
+        "caption": "문턱에 선 재투성이 에다"
+      }
+    ],
     "thumb": "assets/ending/hires/red_ford_again_thumb.png"
   },
   "smuggle_king": {
@@ -188,8 +298,8 @@ WS.data.endingArt = {
     "title": "별에서 온 그대",
     "thumb": "assets/ending/hires/star_guests_thumb.png",
     "intro": {
-      "speaker": "대성당의 젊은 사제",
-      "line": "하늘이 대답했소. 당신이 보낸 별이 닿았소이다.",
+      "speaker": "얼굴 없는 밤손님",
+      "line": "…반짝이는 것 백 닢. 하늘에 물을 수 있다.",
       "frames": [
         "assets/ending/hires/star_guests_intro_1.png"
       ]
