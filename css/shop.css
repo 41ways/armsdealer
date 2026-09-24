@@ -185,3 +185,6 @@
   .page-bar.in-book .page-dots span:not(.on) { display: inline; }
   .page-bar.in-book .page-dots i { display: inline; }
 }
+.page-bar.in-book { min-height: 82px; box-sizing: border-box; align-items: center; }
+/* 주문 취소 안내는 레이아웃에 자리를 차지하지 않고 책 위에 뜬다 (장부가 늘었다 줄었다 하지 않게) */
+#stage[data-phase] #ui > .cart-warn { position: absolute; left: 50%; bottom: 88px; transform: translateX(-50%); margin: 0; z-index: 6; white-space: nowrap; }
