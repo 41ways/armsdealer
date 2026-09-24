@@ -1256,18 +1256,10 @@ tr.key td:first-child, li.key { font-weight: 800; }
 #hold-toast { position: fixed; z-index: 9000; transform: translate(-50%, -100%); padding: 5px 12px; font-size: 14px; font-weight: 700; color: #ffe9dc; background: #4a1710; border: 2px solid #a3261a; border-radius: 4px; box-shadow: 0 3px 0 rgba(0, 0, 0, .5); pointer-events: none; opacity: 0; transition: opacity .12s; white-space: nowrap; }
 #hold-toast.on { opacity: 1; }
 
-/* ── 창고: 넓은 화면은 5열×3행 = 15칸 (물건 14 + 마지막 칸 뒤로), 폰 세로는 3×3 ── */
-.grid9.g15 .cell.w15 { display: none; }
-@media (min-width: 701px) and (min-aspect-ratio: 1/1) {
-  .grid9.g15 { grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(76px, 1fr)); gap: 6px; }
-  .grid9.g15 .cell.w15 { display: flex; }
-  .grid9.g15 .cell.n9 { display: none; }
-  .grid9.g15 .cell { padding: 4px 2px; gap: 2px; }
-  .grid9.g15 .cell b { font-size: 13px; }
-  .grid9.g15 .cell small { font-size: 13px; }
-  .grid9.g15 .cell-art { width: 70%; max-width: 72px; }
-  .grid9.g15 .cell-ic { font-size: 26px; }
-}
+/* ── 창고 세부 칸: 3×3 + 아래 뒤로 한 줄 ── */
+.grid-wrap { display: flex; flex-direction: column; gap: 6px; height: 100%; }
+.grid-wrap .grid9 { flex: 1 1 auto; min-height: 0; height: auto; }
+.grid-back { flex: none; min-height: 40px; font-size: 15px; }
 
 /* 신문 덜어내기: 1면 광고는 한 칸, 남는 자리는 억지로 채우지 않고 안내 문구만 가운데에 */
 .gz-notices.one { grid-template-columns: minmax(0, 1fr); }
