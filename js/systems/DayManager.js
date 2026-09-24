@@ -17,8 +17,9 @@ WS.sys.Day = (() => {
     st.queue = WS.sys.Customers.buildQueue();
     st.current = null;
     st.time = cfg().openTime;
-    st.today = { income: 0, spend: 0, wholesale: 0, sold: 0, refused: 0, rent: 0, guard: 0, startGold: st.gold };
+    st.today = { income: 0, spend: 0, wholesale: 0, sold: 0, refused: 0, rent: 0, guard: 0, paper: 0, startGold: st.gold };
     st.cart = {};
+    if (WS.sys.Shop) WS.sys.Shop.notePaper(); // 오늘 신문이 왔는가 (구독 중일 때만)
     st.phase = 'morning';
     WS.sys.Save.autosave();
   }
@@ -138,7 +139,9 @@ WS.sys.Day = (() => {
     st.gold -= r;
     st.today.rent = r;
     st.today.rescue = 0;
-    if (WS.sys.Shop) WS.sys.Shop.settleWage(); // 밤 경비 일당 — 금고가 모자라면 그날 해고
+    if (WS.sys.Shop) { WS.sys.Shop.settleWage(); WS.sys.Shop.settlePaper(); } // 밤 경비 일당 · 신문 구독료 — 금고가 모자라면 그날 해고 · 구독 중단
+    // 첫날 영업이 끝나면 까마귀가 창틀에 앉는다 — 둥지지기의 안내장(까마귀 서신 튜토리얼)이 편지함에 꽂힌다 (UIManager 영업 종료 화면이 안내한다)
+    if (st.day === 1 && WS.sys.Progress && !WS.sys.Progress.isUnlocked('crow')) { WS.sys.Progress.unlock('crow'); if (WS.sys.Letters) WS.sys.Letters.crowArrived(); }
     // 상인회 구제 대출 — 기한(14일)이 지났는데 아직 다 못 갚았으면 오늘 밤으로 끝
     const loan = st.guildLoan;
     if (loan && loan.left > 0 && st.day >= loan.due) {

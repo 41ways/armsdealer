@@ -11,7 +11,7 @@ WS.Game = {
     for (const [id, n] of Object.entries(cfg.startInventory)) {
       if (startPlaces.includes(WS.sys.Items.shelf(id))) startInventory[WS.sys.Items.canon(id)] = n;
     }
-    return {
+    const st = {
       version: 1,
       day: 0,
       phase: 'title',
@@ -53,6 +53,8 @@ WS.Game = {
       rumors: { list: [], seq: 0 },
       intelHist: {},
     };
+    WS.sys.Shop.newGameState(st); // 신문 구독 · 가게 물품은 처음엔 아무것도 없다
+    return st;
   },
 
   newGame() {
@@ -99,6 +101,8 @@ WS.Game = {
     (s.ledger || []).forEach(fix);
     (s.receivables || []).forEach(fix);
     if (s.met && s.met.syndicate !== undefined) { s.met.bandit = s.met.bandit ?? s.met.syndicate; delete s.met.syndicate; }
+    WS.sys.Shop.migrate(s); // 옛 저장본: 지도·정세·신문은 있던 그대로
+    if (s.day >= 2 && s.progress && s.progress.unlocked && s.progress.unlocked.crow === undefined) s.progress.unlocked.crow = s.day; // 까마귀는 이제 첫날 밤에 온다
     this.state = s;
     return true;
   },

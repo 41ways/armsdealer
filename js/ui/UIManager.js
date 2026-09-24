@@ -295,8 +295,13 @@ WS.UI = (() => {
   }
 
   // ───────── 장부 — 가죽 장부가 펼쳐진다 ─────────
-  // 왼쪽 쪽: 어제 장사 + 걸려 있는 약속·계약 / 오른쪽 쪽: 창고에 있는 것 (자리별)
-  function ledgerPage() {
+  // 쪽 순서: 1쪽 장부(어제 장사 · 약속·계약) | 2쪽 달력(산 판만, 아니면 빈 자리)과 최근 사건 | 3쪽 대륙 지도(산 판만) | 4쪽 대륙 정세(평판지) |
+  //   창고 (한 펼침, 넘치면 다음 펼침) | — 이어서 도매상(언제나 왼쪽 쪽부터). 지도·정세를 하나도 안 샀으면 3·4쪽 펼침은 건너뛴다.
+  let ledgerN = 1;       // 창고 앞의 고정 펼침 수 (ledgerPage 가 센다)
+  let stockParts = null; // 창고 펼침의 재료 (ledgerPage 가 만들고 flowBook 이 쪽에 나눈다)
+  const bkEmpty = { ledger: {}, prep: {} }; // 비어 있는 쪽 — '펼침번호+l|r' (세로 화면에서 건너뛴다)
+
+  function ledgerLeft() {
     const st = S();
     const y = st.day - 1;
     const label = { sell: '판매', refuse: '거절', left: '결렬', buy: '매입', trade: '교환' };
@@ -308,19 +313,37 @@ WS.UI = (() => {
     const line = e => {
       const it = e.item ? item(e.item) : null;
       const what = e.action === 'trade' ? tradeText(e) : it ? `${U.esc(it.name)}×${e.qty}` : '—';
-      const f = fac(e.faction);
       return `<li class="${e.action}"><span class="lg-who">${WS.ui.emblem(e.faction)}${U.esc(e.name)}</span><span class="lg-what">${label[e.action]} · ${what}</span><b class="lg-g ${e.price > 0 ? 'pos' : e.price < 0 ? 'neg' : ''}">${e.price ? (e.price > 0 ? '+' : '') + e.price + 'G' : '—'}</b></li>`;
     };
     const ps = pledges();
-    const left = `<h2 class="bk-title">장부 <small>${st.day}일째 아침</small></h2>
+    return `<h2 class="bk-title">장부 <small>${st.day}일째 아침</small></h2>
       <h3 class="bk-h">어제 장사 <small>${y}일째</small></h3>
       ${deal.length ? `<ul class="lg-list">${deal.map(line).join('')}</ul>
         <div class="lg-sum"><span>판매 ${sold}건</span><span>받은 돈 <b class="pos">+${income}G</b></span>${spend ? `<span>치른 돈 <b class="neg">−${spend}G</b></span>` : ''}</div>`
         : '<p class="bk-empty">어제는 장사가 없었다.</p>'}
       <h3 class="bk-h">약속 · 계약</h3>
       ${ps.length ? `<ul class="lg-pledges">${ps.map(([ic, t, d]) => `<li><i>${ic}</i><span>${t}</span>${d ? `<small>${d}</small>` : ''}</li>`).join('')}</ul>` : '<p class="bk-empty">걸려 있는 약속이 없다.</p>'}`;
+  }
+
+  // 창고 앞의 고정 펼침들: [{ l, r, lc, rc }] (l · r 이 비면 빈 쪽)
+  function ledgerFixed() {
+    const W = WS.WorldView.pages();
+    const sp = [{ l: ledgerLeft(), r: W.logR, lc: 'bk-log', rc: 'bk-log' }];
+    if (W.map || W.intel) sp.push({ l: W.map || '', r: W.intel || '', lc: 'bk-map', rc: 'bk-intel' });
+    return sp;
+  }
+
+  function ledgerPage() {
+    const sp = ledgerFixed();
+    ledgerN = sp.length;
+    stockParts = stockModel();
+    bkEmpty.ledger = {};
+    sp.forEach((s, i) => { if (!s.l) bkEmpty.ledger[i + 'l'] = 1; if (!s.r) bkEmpty.ledger[i + 'r'] = 1; });
+    let l, r, lc = '', rc = '';
+    if (Number.isFinite(bkSpread) && bkSpread < ledgerN) ({ l, r, lc, rc } = sp[bkSpread]);
+    else { l = stockParts.left(); r = stockParts.right(); lc = rc = 'bk-stock'; } // 창고 펼침 — flowBook 이 실제 높이를 재서 쪽마다 나눈다
     return `${hud()}
-    ${book('ledger', left, stockPage())}
+    ${book('ledger', l, r, lc, rc)}
     ${pageBar('ledger')}`;
   }
 
@@ -355,29 +378,58 @@ WS.UI = (() => {
     return out;
   }
 
-  // 창고에 있는 것 — 창고 자리(무기 거치대 · 갑옷걸이 …)별로 물건 · 개수 · 칸
-  function stockPage() {
-    const st = S();
-    const cap = WS.sys.Inventory.capacity(), used = WS.sys.Inventory.usedSlots();
+  // 창고 현황 — 자리(무기 거치대 · 갑옷걸이 …)별 칸으로 한눈에: 위에 큰 용량 게이지, 아래에 물건 타일(큰 그림 · 이름 · 개수 · 부피 몫)
+  const STK_ICON = { weapon: '⚔️', defense: '🛡️', potion: '🧪', ore: '⛏️', goods: '🌿', gem: '💎', special: '🗝️', docs: '📜', stash: '🎒', etc: '📦' };
+  const STK_CHUNK = 6; // 한 덩이에 담는 물건 수 — 자리가 크면 여러 덩이로 나눠 쪽을 넘긴다
+  function stockModel() {
+    const st = S(), Inv = WS.sys.Inventory;
+    const cap = Inv.capacity(), used = Inv.usedSlots();
+    const pct = cap ? Math.min(100, used / cap * 100) : 0;
     const groups = {};
     Object.entries(st.inventory).filter(([, n]) => n > 0).forEach(([id, n]) => {
       const pl = WS.sys.Items.shelf(id) || 'etc';
       (groups[pl] = groups[pl] || []).push([id, n]);
     });
     const order = [...ROOM_SPOTS.map(r => r[0]), ...Object.keys(groups).filter(pl => !ROOM_SPOTS.some(r => r[0] === pl))];
-    const slots = (id, n) => WS.sys.Inventory.slotsFor(id, n);
-    const body = order.filter(pl => groups[pl]).map(pl => `<div class="stk-group"><h4>${U.esc(PLACE_NAME[pl] || '그 밖')}</h4>
-      <ul>${groups[pl].map(([id, n]) => `<li>${ico(id)}<span class="stk-name">${U.esc(item(id).name)}${heldTag(id)}</span><b>${n}개</b><small>부피 ${slots(id, n)}</small></li>`).join('')}</ul></div>`).join('');
+    const kinds = Object.values(groups).reduce((s, g) => s + g.length, 0), total = Object.values(groups).reduce((s, g) => s + g.reduce((a, [, n]) => a + n, 0), 0);
+    const tile = ([id, n]) => {
+      const v = Inv.slotsFor(id, n), share = used ? Math.max(4, Math.round(v / used * 100)) : 0;
+      return `<li class="stk2-tile ${n <= 2 ? 'low' : ''}">${ico(id, 'lg')}<span class="t-name">${U.esc(item(id).name)}${heldTag(id)}</span><b class="t-n">${n}<small>개</small></b>
+        <span class="t-v"><i style="width:${share}%"></i><small>부피 ${v}</small></span></li>`;
+    };
+    const units = [];
+    order.filter(pl => groups[pl]).forEach(pl => {
+      const list = groups[pl].slice().sort((a, b) => Inv.slotsFor(b[0], b[1]) - Inv.slotsFor(a[0], a[1]));
+      for (let i = 0; i < list.length; i += STK_CHUNK) {
+        const part = list.slice(i, i + STK_CHUNK);
+        const v = list.reduce((s, [id, n]) => s + Inv.slotsFor(id, n), 0);
+        units.push(`<section class="stk2-grp"><h4><i aria-hidden="true">${STK_ICON[pl] || STK_ICON.etc}</i>${U.esc(PLACE_NAME[pl] || '그 밖')}${i ? ' <em>(이어서)</em>' : ''}<small>${list.length}종 · 부피 ${v}</small></h4>
+          <ul class="stk2-tiles">${part.map(tile).join('')}</ul></section>`);
+      }
+    });
+    if (!units.length) units.push('<p class="bk-empty stk2-empty">창고가 텅 비었다. 도매상에서 물건을 들여 오자.</p>');
+    // 끝 덩이: 증축 안내 · 장물함
     const stash = stashOn() ? Object.entries((st.stash && st.stash.items) || {}).filter(([, n]) => n > 0) : [];
-    return `<div class="bk-run"><span>창고</span><span>${st.day}일째 아침</span></div>
-      <div class="stk-cap"><span>쓴 부피</span><i class="stk-bar"><i style="width:${Math.min(100, used / cap * 100)}%"></i></i><b class="${used > cap ? 'neg' : ''}">${used}/${cap}</b></div>
-      <div class="stk-groups">${body || '<p class="bk-empty">창고가 텅 비었다.</p>'}</div>
-      ${(() => { const Inv = WS.sys.Inventory, lv = Inv.level(), mx = Inv.maxLevel(), X = Inv.nextStep();
-        if (lv >= mx) return `<div class="stk-expand"><span class="stk-done">창고 확장 완료(${lv}/${mx})</span></div>`;
-        if (!(WS.sys.Letters && WS.sys.Letters.crowReady())) return '';
+    const foot = [];
+    { const lv = Inv.level(), mx = Inv.maxLevel(), X = Inv.nextStep();
+      if (lv >= mx) foot.push(`<p class="stk2-note done">창고 확장 완료 (${lv}/${mx})</p>`);
+      else if (WS.sys.Letters && WS.sys.Letters.crowReady()) {
         const busy = st.letters && st.letters.expandOrder;
-        return `<div class="stk-expand"><small class="stk-need">${busy ? `창고 확장 ${lv}/${mx} · 증축 공사 중 — 곧 목수의 답장이 온다` : `창고 확장 ${lv}/${mx} · 다음 ${X.cost}G — 까마귀로 목수에게 의뢰`}</small></div>`; })()}
-      ${stashOn() ? `<div class="stk-stash"><b>장물함</b> ${stash.length ? stash.map(([id, n]) => `${U.esc(item(id).name)}×${n}`).join(' · ') : '비었다'}</div>` : ''}`;
+        foot.push(`<p class="stk2-note">${busy ? `창고 확장 ${lv}/${mx} · 증축 공사 중 — 곧 목수의 답장이 온다` : `창고 확장 ${lv}/${mx} · 다음 ${X.cost}G — 까마귀 서신으로 목수에게 의뢰`}</p>`);
+      } }
+    if (stashOn()) foot.push(`<p class="stk2-stash"><b>장물함</b> ${stash.length ? stash.map(([id, n]) => `${U.esc(item(id).name)}×${n}`).join(' · ') : '비었다'}</p>`);
+    if (foot.length) units.push(`<div class="stk2-foot">${foot.join('')}</div>`);
+    const gauge = `<div class="stk2-gauge ${pct >= 100 ? 'full' : pct >= 80 ? 'high' : ''}">
+        <div class="sg-top"><span>쓴 부피</span><b>${used}<small> / ${cap}</small></b><em>${used > cap ? `${used - cap} 넘침` : `${cap - used} 남음`}</em></div>
+        <div class="sg-bar" role="img" aria-label="창고 ${Math.round(pct)}% 참"><i style="width:${pct}%"></i></div>
+        <div class="sg-sub"><span>물건 ${kinds}종</span><span>모두 ${total}개</span><span>${Math.round(pct)}% 참</span></div>
+      </div>`;
+    const run = t => `<div class="bk-run"><span>${t}</span><span>${st.day}일째 아침</span></div>`;
+    return {
+      left: () => `<h2 class="bk-title">창고 <small>${st.day}일째 아침</small></h2>${gauge}<div class="stk-groups">${units.join('')}</div>`,
+      right: () => `${run('창고 (이어서)')}<div class="stk-groups"></div>`,
+      run,
+    };
   }
 
   // ───────── 상점 준비 (장부의 다음 펼침) ─────────
@@ -417,7 +469,7 @@ WS.UI = (() => {
     const pending = cartOn();
     const left = `<h2 class="bk-title">도매상 <small>${st.day}일째 주문서</small></h2>
       <p class="bk-note">+ 매입 · − 도매상에 처분(매입가의 ${Math.round(WS.data.config.wholesaleSellRate * 100)}%, 보석·귀한 물건은 ${Math.round(Math.max(...Object.values(WS.data.config.wholesaleSellRateByShelf || {}), WS.data.config.wholesaleSellRate) * 100)}%). 담은 뒤 '거래 진행'을 눌러야 거래된다.<br>창고 용량은 ${cap} — 물건마다 개당 부피가 다르다(큰 물건일수록 큼).</p>
-      <div class="shop-list">${ids.map(rowOf).join('')}${goodsBlock()}</div>`;
+      <div class="shop-list">${ids.map(rowOf).join('')}</div>`;
     const right = `<div class="bk-run"><span>도매상</span><span>${st.day}일째 주문서</span></div>
       <div class="shop-list"></div>
       <div class="bk-sum">
@@ -439,25 +491,6 @@ WS.UI = (() => {
     ${pending ? '<div class="cart-warn" role="note">거래 진행을 누르지 않은 주문은 취소된다</div>' : ''}
     ${pageBar('prep')}`;
   }
-  // 가게 물품 — 도매상 맨 끝 구역. 한 번만 살 수 있고, 거래 진행과 별개로 곧바로 결제된다 (WS.sys.Shop)
-  let goodsFresh = null; // 방금 산 물품 id — 도장 연출
-  function goodsBlock() {
-    const cards = WS.sys.Shop.goods().map(g => `<div class="sg-card ${g.owned ? 'owned' : ''} ${goodsFresh === g.id ? 'fresh' : ''}" data-good="${g.id}">
-        <i class="sg-ico" aria-hidden="true">${g.icon}</i>
-        <div class="sg-main"><b>${U.esc(g.name)}</b><span class="sg-tag">${U.esc(g.tag)}</span><small>${U.esc(g.desc)}</small></div>
-        <div class="sg-buy">${g.owned ? '<i class="buy-stamp sg-done">구매 완료</i>'
-          : `<button class="pbtn primary" data-act="shop-buy" data-id="${g.id}" ${g.ok ? '' : 'disabled'} ${g.why ? `title="${U.esc(g.why)}"` : ''}>사들인다 <b>${g.cost}G</b></button>${g.why ? `<small class="sg-why">${U.esc(g.why)}</small>` : ''}`}</div>
-      </div>`).join('');
-    return `<section class="shop-goods"><h3 class="bk-h">가게 물품 <small>한 번만 산다 · 바로 결제</small></h3>${cards}</section>`;
-  }
-  function buyGood(id) {
-    const r = WS.sys.Shop.buy(id);
-    if (!r.ok) return;
-    goodsFresh = id;
-    WS.Sfx.play('coins', 0.6);
-    WS.sys.Save.autosave && WS.sys.Save.autosave();
-  }
-
   // 주문서 확정 — 산 것 · 판 것을 한 줄로 남기고 동전 소리
   function buyCart() {
     const st = S();
@@ -483,8 +516,8 @@ WS.UI = (() => {
     if (!L || (P() && !P().isUnlocked('crow'))) return [];
     return L.inbox().filter(x => x.day === S().day);
   }
-  // 신문은 2일째 아침부터 문틈에 끼워져 온다
-  const paperComes = () => S().day >= 2;
+  // 신문은 구독한 다음 날 아침부터 문틈에 끼워져 온다 (구독하기 전엔 없다 — WS.sys.Shop.paperComes)
+  const paperComes = () => !!WS.sys.Shop && WS.sys.Shop.paperComes();
   // 1일째는 도매상 없이 거리에서 곧바로 문을 연다 (시작 물건은 config.startInventory)
   // 서신 쪽은 까마귀가 온 뒤로는 편지가 없는 날에도 있다 ('오늘 서신은 없습니다.')
   const crowOpen = () => !!WS.sys.Letters && !(P() && !P().isUnlocked('crow'));
@@ -497,6 +530,18 @@ WS.UI = (() => {
     return morningSub;
   }
   const narrow = () => !matchMedia(BOOK_WIDE).matches;
+  // 세로 화면: 책 안에서 한 쪽씩 — 비어 있는 쪽(bkEmpty)은 건너뛴다. 움직였으면 true
+  function stepPage(kind, dir) {
+    const K = bkCount[kind] || 1, E = bkEmpty[kind] || {};
+    let s = Number.isFinite(bkSpread) ? bkSpread : K - 1, side = bkSide;
+    for (let g = 0; g < 300; g++) {
+      if (dir > 0) { if (side === 'l') side = 'r'; else { s++; side = 'l'; } }
+      else if (side === 'r') side = 'l'; else { s--; side = 'r'; }
+      if (s < 0 || s > K - 1) return false;
+      if (!E[s + side]) { bkSpread = s; bkSide = side; return true; }
+    }
+    return false;
+  }
   // 쪽을 옮긴다. 마지막 쪽에서 앞으로 넘기면 문을 연다 (true 를 돌려주면 호출한 쪽이 'open' 을 처리)
   function turnPage(dir) {
     const pages = morningPages();
@@ -512,8 +557,7 @@ WS.UI = (() => {
       const K = bkCount[cur] || 1;
       let moved = false;
       if (narrow()) {
-        if (dir > 0) { if (bkSide === 'l') { bkSide = 'r'; moved = true; } else if (bkSpread < K - 1) { bkSpread++; bkSide = 'l'; moved = true; } }
-        else if (bkSide === 'r') { bkSide = 'l'; moved = true; } else if (bkSpread > 0) { bkSpread--; bkSide = 'r'; moved = true; }
+        moved = stepPage(cur, dir);
       } else if (dir > 0 && bkSpread < K - 1) { bkSpread++; moved = true; } else if (dir < 0 && bkSpread > 0) { bkSpread--; moved = true; }
       if (moved) { turnDir = dir > 0 ? 'from-right' : 'from-left'; WS.Sfx.play('page', 0.5); return true; }
     }
@@ -529,26 +573,80 @@ WS.UI = (() => {
     WS.Sfx.play('page', 0.5);
     return true;
   }
+  // 아래 막대 (거리 · 서신 · 신문): 다음/이전 쪽 = 그 쪽을 그린 아이콘 버튼 (글자 없음 — 신문 아이콘을 누르면 신문이 나온다).
+  // 장부 · 도매상 안에서는 책 속의 붓 화살표로만 넘기고, 아래 막대에는 쪽 표시와 (도매상 끝에서) 문 열기만 둔다.
+  const PAGE_LABEL = { street: '거리로', letters: '서신 — 간밤에 온 편지', news: '신문 보기', ledger: '장부 펼치기' };
+  const ic = (body, vb = '0 0 48 48') => `<svg class="pg-svg" viewBox="${vb}" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
+  const PAGE_ICON = {
+    // 신문: 접힌 귀퉁이 종이, 제호 · 그림 · 단
+    news: ic('<path d="M9 8 H35 V38 a4 4 0 0 0 4 4 H12 a3 3 0 0 1-3-3Z" fill="rgba(255,246,214,.55)"/><path d="M35 15 H41 V38 a4 4 0 0 1-4 4"/><path d="M14 15 H30" stroke-width="3.6"/><rect x="14" y="20" width="9" height="8" fill="currentColor" stroke="none" opacity=".75"/><path d="M26 21 H31 M26 25 H31 M26 29 H31 M14 33 H31 M14 37 H27" stroke-width="2"/>'),
+    // 서신: 밀랍 도장이 찍힌 편지
+    letters: ic('<rect x="6" y="12" width="36" height="25" rx="2" fill="rgba(255,246,214,.55)"/><path d="M6 14 L24 28 L42 14"/><circle cx="24" cy="29" r="5.5" fill="currentColor" stroke="none" opacity=".85"/><path d="M22 29 h4 M24 27 v4" stroke="#f3dcae" stroke-width="1.6"/>'),
+    // 장부: 가죽 표지 책과 책갈피
+    ledger: ic('<path d="M8 10 H22 a4 4 0 0 1 2 .6 a4 4 0 0 1 2-.6 H40 V37 H26 a3 3 0 0 0-2 .9 a3 3 0 0 0-2-.9 H8Z" fill="rgba(255,246,214,.55)"/><path d="M24 11 V38"/><path d="M12 16 H20 M12 21 H20 M12 26 H20 M28 16 H36 M28 21 H36 M28 26 H36" stroke-width="2"/><path d="M33 37 V44 L36 41.5 L39 44 V37" fill="currentColor" stroke="none" opacity=".8"/>'),
+    // 거리: 문 달린 집
+    street: ic('<path d="M6 25 L24 9 L42 25"/><path d="M11 22 V41 H37 V22" fill="rgba(255,246,214,.55)"/><path d="M20 41 V29 a4 4 0 0 1 8 0 V41"/><path d="M31 16 V11 H35 V19"/><path d="M5 41 H43"/>'),
+  };
+  // 붓으로 거칠게 그린 굽은 붉은 화살표 (책 속 이전·다음 쪽 · 신문 1면↔2면). 오른쪽을 가리키게 그려 두고 이전 쪽은 CSS 로 뒤집는다.
+  // 굽은 중심선(3차 Bézier)을 따라 굵기가 변하는 붓획 덩어리를 만들고, 거친 가장자리(feTurbulence 변위) · 마른 붓 자국 · 꼬리의 옅어짐을 얹는다.
+  const BRUSH_ARROW = (() => {
+    const P = [[7, 52], [34, 70], [74, 63], [102, 31]];
+    const bez = t => { const u = 1 - t; return [0, 1].map(k => u * u * u * P[0][k] + 3 * u * u * t * P[1][k] + 3 * u * t * t * P[2][k] + t * t * t * P[3][k]); };
+    const tan = t => { const u = 1 - t; const d = [0, 1].map(k => 3 * u * u * (P[1][k] - P[0][k]) + 6 * u * t * (P[2][k] - P[1][k]) + 3 * t * t * (P[3][k] - P[2][k])); const L = Math.hypot(d[0], d[1]); return [d[0] / L, d[1] / L]; };
+    const N = 28, up = [], dn = [], mid = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N, c = bez(t), d = tan(t), n = [-d[1], d[0]];
+      const w = 1.4 + 6.4 * Math.min(1, t / 0.4) * (1 - 0.3 * t) + Math.sin(t * 19) * 0.45; // 굵기: 붓끝에서 시작해 부풀었다가 머리 쪽에서 조금 잦아든다 (살짝 울퉁불퉁)
+      up.push([c[0] + n[0] * w, c[1] + n[1] * w]); dn.push([c[0] - n[0] * w, c[1] - n[1] * w]); mid.push(c);
+    }
+    const f = p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+    const shaft = `M${f(up[0])} ${up.slice(1).map(p => 'L' + f(p)).join(' ')} ${dn.slice().reverse().map(p => 'L' + f(p)).join(' ')}Z`;
+    const e = bez(1), d = tan(1), n = [-d[1], d[0]];
+    const pt = (a, b) => [e[0] + d[0] * a + n[0] * b, e[1] + d[1] * a + n[1] * b];
+    const head = `M${f(pt(-3, 14))} L${f(pt(24, 1))} L${f(pt(-4, -14))} L${f(pt(-9, 0))}Z`;
+    const streak = (off, dash, w, col, op) => `<path d="M${mid.map((c, i) => { const dd = tan(i / N), nn = [-dd[1], dd[0]]; return f([c[0] + nn[0] * off, c[1] + nn[1] * off]); }).join(' L')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-dasharray="${dash}" stroke-linecap="round" opacity="${op}"/>`;
+    return dir => `<svg class="brush-arw" viewBox="0 0 124 80" aria-hidden="true">
+      <defs>
+        <filter id="ba-r-${dir}" x="-8%" y="-15%" width="118%" height="135%"><feTurbulence type="fractalNoise" baseFrequency="0.07 0.12" numOctaves="2" seed="${dir.length + 4}" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4.2"/></filter>
+        <linearGradient id="ba-f-${dir}" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="46" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff"/></linearGradient>
+        <mask id="ba-m-${dir}" maskUnits="userSpaceOnUse" x="0" y="0" width="124" height="80"><rect width="124" height="80" fill="url(#ba-f-${dir})"/></mask>
+      </defs>
+      <g filter="url(#ba-r-${dir})" stroke-linejoin="round">
+        <g mask="url(#ba-m-${dir})">
+          <path d="${shaft}" fill="#a91f14" stroke="#4a0f08" stroke-width="2.4"/>
+          ${streak(-3.6, '16 5 9 4 26 7', 1.2, '#e2705a', .42)}${streak(-0.6, '10 4 22 8 12 5', 1.1, '#e58a70', .34)}${streak(2.6, '20 6 8 5 18 6', 1.3, '#3c0a05', .3)}${streak(4.6, '9 7 15 5 12 9', 1, '#f0a890', .25)}
+        </g>
+        <path d="${head}" fill="#b8271a" stroke="#4a0f08" stroke-width="2.4"/>
+        <path d="M${f(pt(-2, 8))} L${f(pt(15, 1.5))} L${f(pt(-1, -2))}" fill="none" stroke="#e58a70" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>
+      </g></svg>`;
+  })();
   function pageBar(page) {
     const pages = morningPages();
     const i = pages.indexOf(page);
     const prev = pages[i - 1], next = pages[i + 1];
-    // 신문 쪽은 세로 화면에서 1면 ↔ 2면을 먼저 넘긴다 — 두 이름을 다 넣어 두고 CSS(.n-only/.w-only)가 고른다
-    const two = (w, n) => (w === n ? w : `<span class="w-only">${w}</span><span class="n-only">${n}</span>`);
-    const prevL = prev ? '← ' + PAGE_NAME[prev] : '';
-    const nextL = next ? PAGE_NAME[next] + ' →' : '문 열기';
     const isNews = page === 'news';
     const inBook = page === 'ledger' || page === 'prep';
-    const pL = isNews && npSide === 2 ? two(prevL, '← 1면') : inBook ? '← 이전 쪽' : prevL;
-    const nL = isNews && npSide === 1 ? two(nextL, '2면 →') : page === 'ledger' ? '다음 쪽 →' : nextL;
-    const prevOn = !!prev || (isNews && npSide === 2);
-    // 도매상에서는 장부 끝(마지막 펼침)에 닿아야 문 열기가 켜진다 (flowBook 이 켠다)
+    const dots = `<div class="page-dots">${pages.map(p => `<span class="${p === page ? 'on' : ''}">${PAGE_NAME[p]}</span>`).join('<i>·</i>')}</div>`;
+    // 도매상 끝(장부 끝)에 닿아야 문 열기가 켜진다 (flowBook 이 켠다)
     const ready = S().day === 1 || endReached;
     const openBtn = `<button class="pbtn primary page-next" data-act="open" ${page === 'prep' && !ready ? 'disabled' : ''} title="장부 끝까지 넘겨 주세요">문 열기<small>장부 끝까지 넘겨 주세요</small></button>`;
+    if (inBook) {
+      return `<div class="bottom-bar page-bar in-book">${dots}${page === 'prep' ? openBtn : ''}</div>`;
+    }
+    // 신문(세로 화면): 1면 ↔ 2면은 붓 화살표 — 넓은 화면은 두 장이 펼쳐져 있으니 옆 쪽 아이콘
+    const btn = (dir, target) => {
+      const arrowOnly = isNews && ((dir === 'prev' && npSide === 2) || (dir === 'next' && npSide === 1));
+      const wide = `<span class="w-only">${PAGE_ICON[target]}</span>`;
+      const body = arrowOnly ? `${wide}<span class="n-only">${BRUSH_ARROW(dir === 'prev' ? 'p' : 'n')}</span>` : PAGE_ICON[target];
+      const label = arrowOnly && narrow() ? (dir === 'prev' ? '신문 1면' : '신문 2면') : PAGE_LABEL[target];
+      return `<button class="pbtn primary page-ico ${dir} ${arrowOnly ? 'has-arw' : ''}" data-act="page-${dir}" aria-label="${label}" title="${label}">${body}</button>`;
+    };
+    const prevOn = !!prev || (isNews && npSide === 2);
+    const prevBtn = prevOn ? btn('prev', isNews && npSide === 2 && !prev ? 'news' : prev) : '<span class="page-ico ghost"></span>';
     return `<div class="bottom-bar page-bar">
-      <button class="pbtn primary page-prev" data-act="page-prev" ${prevOn ? '' : 'disabled'} aria-label="앞 쪽">${pL}</button>
-      <div class="page-dots">${pages.map(p => `<span class="${p === page ? 'on' : ''}">${PAGE_NAME[p]}</span>`).join('<i>·</i>')}</div>
-      ${next ? `<button class="pbtn primary page-next" data-act="page-next">${nL}</button>` : openBtn}
+      ${prevBtn}
+      ${dots}
+      ${next ? btn('next', next) : openBtn}
     </div>`;
   }
 
@@ -573,16 +671,16 @@ WS.UI = (() => {
   let bkSpread = 0;    // 장부 · 도매상 안의 몇 번째 펼침 (0부터. Infinity = 마지막)
   const bkCount = { ledger: 1, prep: 1 }; // 각 책의 펼침 수 (flowBook 이 잰다)
   let endReached = false; // 도매상 마지막 쪽에 한 번이라도 닿았다
-  function book(kind, left, right) {
+  function book(kind, left, right, lc = '', rc = '') {
     const base = kind === 'prep' ? bkCount.ledger * 2 : 0;
     const no = base + (Number.isFinite(bkSpread) ? bkSpread : 0) * 2 + 1;
     return `<div class="book-wrap"><div class="book" data-kind="${kind}">
       <div class="bk-sheets" data-side="${bkSide}">
-        <section class="bk-page l bk-${kind}"><div class="bk-in">${left}</div><span class="bk-no">${no}</span></section>
-        <section class="bk-page r bk-${kind}"><div class="bk-in">${right}</div><span class="bk-no">${no + 1}</span></section>
+        <section class="bk-page l bk-${kind} ${lc}"><div class="bk-in">${left}</div><span class="bk-no">${no}</span></section>
+        <section class="bk-page r bk-${kind} ${rc}"><div class="bk-in">${right}</div><span class="bk-no">${no + 1}</span></section>
       </div>
-      <button class="bk-arw prev" data-act="page-prev" aria-label="이전 쪽"></button>
-      <button class="bk-arw next" data-act="page-next" aria-label="다음 쪽"></button>
+      <button class="bk-arw prev" data-act="page-prev" aria-label="이전 쪽" title="이전 쪽">${BRUSH_ARROW('bp')}</button>
+      <button class="bk-arw next" data-act="page-next" aria-label="다음 쪽" title="다음 쪽">${BRUSH_ARROW('bn')}</button>
       <i class="bk-ribbon" aria-hidden="true"></i>
     </div></div>`;
   }
@@ -698,93 +796,51 @@ WS.UI = (() => {
         if (s0 > 0) { [...bl.children].forEach(c => { if (c !== contL) c.remove(); }); bl.prepend(runHead('도매상')); }
       };
     } else if (kind === 'ledger') {
-      // 대륙 정세 펼침 — 창고 다음의 마지막 펼침(들). 세력 줄(왼쪽) · 오른쪽 덩어리를 실제 높이로 재서 쪽마다 채운다 (재고 쪽을 재기 전에: 잰 뒤엔 원래 쪽 그대로 되돌린다)
+      // 창고 펼침(들) — 고정 펼침(장부 · 달력 · 지도 · 정세) 다음. 물건 덩이를 실제 높이로 재서 쪽마다 채운다 (고정 펼침을 보는 중이면 잠깐 창고를 끼워 재고 되돌린다)
+      const nF = ledgerN;
+      const onStock = !Number.isFinite(bkSpread) || bkSpread >= nF;
       const savedL = [...bl.childNodes], savedR = [...br.childNodes];
-      const wput = () => { const v = WS.WorldView.build(); bl.innerHTML = v.left; br.innerHTML = v.right; return [bl.querySelector('.wl-list'), br.querySelector('.wr-blocks')]; };
-      const [wl0, wr0] = wput();
+      if (!onStock) { bl.innerHTML = stockParts.left(); br.innerHTML = stockParts.right(); }
+      const contL = bl.querySelector('.stk-groups'), contR = br.querySelector('.stk-groups');
+      const items = [...contL.children];
       sh.dataset.side = 'l';
-      const wHs = [...wl0.children].map(e => e.offsetHeight);
-      const wCapL = bl.clientHeight - fixedOf(bl, wl0) - SAFE, wCapLn = bl.clientHeight - 44 - SAFE;
+      const mb = e => parseFloat(getComputedStyle(e).marginBottom) || 0;
+      const hs = items.map(e => e.offsetHeight + mb(e));
+      const capL0 = bl.clientHeight - fixedOf(bl, contL) - SAFE;
       sh.dataset.side = 'r';
-      const rKids = [...wr0.children], rMain = rKids.filter(e => !e.dataset.float);
-      const bHs = rMain.map(e => e.offsetHeight + 4);
-      const fH = {}; rKids.filter(e => e.dataset.float).forEach(e => { fH[e.dataset.float] = e.offsetHeight + 4; });
-      const wCapR = br.clientHeight - fixedOf(br, wr0) - SAFE;
-      bl.replaceChildren(...savedL); br.replaceChildren(...savedR);
-      // 쪽 나누기: 세력 줄은 왼쪽 쪽들에, 지도 · 사건은 오른쪽 쪽들에 차례로. 소문 장부는 자리가 남는 첫 쪽(왼 → 오른, 펼침 순서)에,
-      // 안내는 비는 쪽이 있을 때만 거기에
-      const mk = (hs, cap) => { const pgs = [{ items: [], used: 0 }]; hs.forEach((h, i) => { let p = pgs[pgs.length - 1]; if (p.items.length && p.used + h > cap(pgs.length - 1)) { p = { items: [], used: 0 }; pgs.push(p); } p.items.push(i); p.used += h; }); return pgs; };
-      const wPL = mk(wHs, k => (k === 0 ? wCapL : wCapLn)), wPR = mk(bHs, () => wCapR);
-      const capAt = (s, k) => (s === 'l' ? (k === 0 ? wCapL : wCapLn) : wCapR);
-      const wpg = (s, k) => { const A = s === 'l' ? wPL : wPR; while (A.length <= k) A.push({ items: [], used: 0 }); return A[k]; };
-      const spare = (s, k) => capAt(s, k) - (wpg(s, k).used);
-      if (fH.rumor != null) {
-        const n = Math.max(wPL.length, wPR.length);
-        let at = null;
-        for (let k = 0; k < n && !at; k++) for (const s of ['l', 'r']) if (!at && spare(s, k) >= fH.rumor) at = [s, k];
-        at = at || ['l', n];
-        const p = wpg(...at); p.items.push('rumor'); p.used += fH.rumor;
-      }
-      const KW = Math.max(1, wPL.length, wPR.length);
-      for (let k = 0; k < KW; k++) { wpg('l', k); wpg('r', k); }
-      if (fH.guide != null) {
-        let at = null;
-        for (let k = 0; k < KW && !at; k++) for (const s of ['l', 'r']) if (!at && !wpg(s, k).items.length && spare(s, k) >= fH.guide) at = [s, k];
-        if (at) { const p = wpg(...at); p.items.push('guide'); p.used += fH.guide; }
-      }
-      const contR = br.querySelector('.stk-groups');
-      sh.dataset.side = 'l';
-      // 왼쪽 쪽(어제 장사 · 약속)이 넘치면 목록 끝을 덜어 낸다 — 스크롤 대신
-      const lists = [...bl.querySelectorAll('.lg-list'), ...bl.querySelectorAll('.lg-pledges')];
-      while (bl.scrollHeight > bl.clientHeight + 1) {
-        const ul = lists.filter(u => [...u.children].filter(li => !li.classList.contains('more')).length > 2).sort((a, b) => b.children.length - a.children.length)[0];
-        if (!ul) break;
-        const rows = [...ul.children].filter(li => !li.classList.contains('more'));
-        rows[rows.length - 1].remove();
-        let more = ul.querySelector('li.more');
-        if (!more) { more = document.createElement('li'); more.className = 'more'; more.textContent = '…그 밖에 더 있다'; }
-        ul.appendChild(more);
-      }
-      const capLn = bl.clientHeight - 60;
-      const items = [...contR.children];
-      sh.dataset.side = 'r';
-      const hs = items.map(e => e.offsetHeight + 8);
       const capR = br.clientHeight - fixedOf(br, contR) - SAFE;
-      const pages = pack(hs, k => (k === 0 ? capR : k % 2 === 1 ? capLn : capR + 40));
-      const KS = 1 + Math.ceil(Math.max(0, pages.length - 1) / 2);
-      K = KS + KW;
-      bkCount.ledger = K; if (!Number.isFinite(bkSpread) || bkSpread > K - 1) bkSpread = K - 1;
-      const s0 = bkSpread;
-      place = () => {
-        if (s0 >= KS) { // 대륙 정세 펼침 (w번째)
-          const w = s0 - KS;
-          const [cl, cr] = wput();
-          const lRows = [...cl.children], rAll = [...cr.children];
-          const rMainE = rAll.filter(e => !e.dataset.float), fl = {};
-          rAll.filter(e => e.dataset.float).forEach(e => { fl[e.dataset.float] = e; });
-          const pl = wPL[w].items, pr = wPR[w].items;
-          cl.replaceChildren(...pl.filter(i => typeof i === 'number').map(i => lRows[i]));
-          pl.filter(i => typeof i === 'string').forEach(nm => { const li = document.createElement('li'); li.className = 'wl-blk'; li.append(fl[nm]); cl.append(li); });
-          cr.replaceChildren(...pr.map(i => (typeof i === 'number' ? rMainE[i] : fl[i])));
-          if (w > 0) { [...bl.children].forEach(c => { if (c !== cl) c.remove(); }); bl.prepend(runHead('대륙 정세 (이어서)')); }
-          if (!pl.length) bl.insertAdjacentHTML('beforeend', '<p class="bk-empty">이 쪽은 비어 있다.</p>');
-          if (!pr.length) br.insertAdjacentHTML('beforeend', '<p class="bk-empty">이 쪽은 비어 있다.</p>');
-          return;
-        }
-        const seqL = s0 === 0 ? null : pages[2 * s0 - 1] || [], seqR = s0 === 0 ? pages[0] : pages[2 * s0] || [];
-        contR.replaceChildren(...seqR.map(i => items[i]));
-        if (s0 > 0) {
-          const cont = document.createElement('div'); cont.className = 'stk-groups'; cont.append(...seqL.map(i => items[i]));
+      const pages = pack(hs, k => (k === 0 ? capL0 : capR)); // 왼쪽 이어지는 쪽은 머리줄만 있어 오른쪽과 같은 높이
+      const KS = Math.max(1, Math.ceil(pages.length / 2));
+      K = nF + KS;
+      bkCount.ledger = K;
+      bkEmpty.ledger[(K - 1) + 'r'] = pages.length % 2 === 1 ? 1 : undefined; // 마지막 펼침의 오른쪽이 비면 세로 화면은 건너뛴다
+      if (!onStock) {
+        bl.replaceChildren(...savedL); br.replaceChildren(...savedR);
+        if (!Number.isFinite(bkSpread)) bkSpread = K - 1;
+      } else {
+        if (!Number.isFinite(bkSpread) || bkSpread > K - 1) bkSpread = K - 1;
+        const k = Math.max(0, bkSpread - nF);
+        const put = (cont, idx) => cont.replaceChildren(...(pages[idx] || []).map(i => items[i]));
+        put(contR, 2 * k + 1);
+        if (k === 0) put(contL, 0);
+        else {
+          const cont = document.createElement('div'); cont.className = 'stk-groups';
+          put(cont, 2 * k);
           bl.replaceChildren(runHead('창고 (이어서)'), cont);
-          const cap = br.querySelector('.stk-cap'); if (cap) cap.remove();
         }
-      };
+      }
     }
     if (place) place();
-    sh.dataset.side = side0;
+    // 세로 화면: 비어 있는 쪽에 서 있으면 옆 쪽으로
+    if (kind === 'prep' || kind === 'ledger') {
+      const E = bkEmpty[kind] || {};
+      if (narrow() && Number.isFinite(bkSpread) && E[bkSpread + side0]) bkSide = side0 === 'l' ? 'r' : 'l';
+      else bkSide = side0;
+    }
+    sh.dataset.side = kind === 'prep' || kind === 'ledger' ? bkSide : side0;
     if (kind === 'prep' || kind === 'ledger') {
       const s0 = bkSpread, wide = !narrow();
-      const atLast = s0 >= K - 1 && (wide || side0 === 'r');
+      const atLast = s0 >= K - 1 && (wide || bkSide === 'r' || !!(bkEmpty[kind] || {})[(K - 1) + 'r']);
       const pn = nb.querySelector('.bk-page.l .bk-no'), qn = nb.querySelector('.bk-page.r .bk-no');
       const base = kind === 'prep' ? bkCount.ledger * 2 : 0;
       if (pn) pn.textContent = base + s0 * 2 + 1;
@@ -1907,7 +1963,7 @@ WS.UI = (() => {
       }).join('')}</ul>`;
     }
     if (drawer === 'news') {
-      return Object.keys(st.newsArchive).map(Number).sort((a, b) => b - a).map(d => `<div class="arch"><h4>DAY ${d}</h4>${newsList(st.newsArchive[d])}</div>`).join('');
+      return Object.keys(st.newsArchive).map(Number).filter(d => WS.sys.Shop.paperRead(d)).sort((a, b) => b - a).map(d => `<div class="arch"><h4>DAY ${d}</h4>${newsList(st.newsArchive[d])}</div>`).join('');
     }
     const relWord = v => WS.data.relationWords.find(([t]) => v < t)[1];
     const known = id => ['kingdom', 'goblin', 'dwarf', 'village'].includes(id) || (st.met && st.met[id] !== undefined && st.met[id] < st.day + (st.phase === 'shop' ? 1 : 0));
@@ -1978,15 +2034,63 @@ WS.UI = (() => {
         <div><span>매입 지출</span><b class="neg">−${t.spend}</b></div>
         <div><span>임대료</span><b class="neg">−${t.rent}</b></div>
         ${t.guard ? `<div><span>경비 일당</span><b class="neg">−${t.guard}</b></div>` : ''}
+        ${t.paper ? `<div><span>신문 구독료</span><b class="neg">−${t.paper}</b></div>` : ''}
         <div class="total"><span>오늘 손익</span><b class="${net >= 0 ? 'pos' : 'neg'}">${net >= 0 ? '+' : ''}${net}G</b></div>
         <div class="gold-row"><span>금고</span><b>${st.gold}G</b></div>
       </div>
       ${last ? '' : safeBox()}
       <h3>오늘의 손님<i class="ink-stamp ${net >= 0 ? 'ok' : 'bad'}" aria-hidden="true">${net >= 0 ? '흑자' : '적자'}</i></h3>
       <ul class="plain small">${rows}</ul>
+      ${st.paperLapsed === st.day ? `<div class="warn-strip">⚠ 구독료 ${WS.data.shop.paper.fee}G를 치를 금고가 비어 신문이 끊겼다 — 까마귀 서신으로 다시 구독할 수 있다</div>` : ''}
+      ${paperNote ? `<p class="closing-note">${U.esc(paperNote)}</p>` : ''}
       <p class="night-line">${U.esc(endLine ? endLine.text : '가게 불을 끈다. 오늘 팔려 나간 물건들은 지금쯤 어디에 있을까.')}</p>
     </div>
-    <div class="bottom-bar"><button class="pbtn primary wide" data-act="next-day">${last ? '결말 보기 →' : '다음 날 →'}</button></div>`;
+    <div class="bottom-bar"><button class="pbtn primary wide" data-act="next-day">${last ? '결말 보기 →' : '다음 날 →'}</button></div>
+    ${crowTutorialOn() ? crowTutorial() : ''}`;
+  }
+
+  // ───────── 첫날 밤 까마귀 서신 튜토리얼 — 신문 구독 안내 ─────────
+  // 첫날 영업이 끝나면 까마귀가 창틀에 앉는다 (DayManager.closeShop). 편지로 할 수 있는 일과 신문의 쓸모를 차례로 알려 주고, 신문을 구독할지 묻는다.
+  let crowTutStep = 0;
+  let paperNote = ''; // 튜토리얼에서 고른 결과 한 줄 (다음 날로 넘어가면 지운다)
+  const crowTutSeen = () => !!(S().progress && S().progress.tutorialsSeen && S().progress.tutorialsSeen.crow_paper);
+  const crowTutorialOn = () => S().day === 1 && S().phase === 'closing' && !crowTutSeen() && !!WS.sys.Letters && WS.sys.Letters.crowReady();
+  function crowTutorial() {
+    const PP = WS.data.shop.paper, goods = WS.data.shop.goods, Inv = WS.sys.Inventory, X = Inv.nextStep(), LN = WS.data.letters.crowLoan, GD = WS.data.shop.guard;
+    const shopRows = goods.map(g => `<li><i>${g.icon}</i><span><b>${U.esc(g.name)}</b> <em>${g.cost}G</em><small>${U.esc(g.desc)}</small></span></li>`).join('');
+    const extraRows = [
+      X ? `<li><i>🔨</i><span><b>창고 확장</b> <em>${X.cost}G~</em><small>목수에게 증축을 맡긴다. 창고 용량이 늘어난다 (공사 2일).</small></span></li>` : '',
+      `<li><i>🪙</i><span><b>까마귀 대출</b> <em>${LN.limits[0]}~${LN.limits[LN.limits.length - 1]}G</em><small>급할 때 바로 금고에 들어온다. ${LN.days}일 안에 원금의 ${1 + LN.interest}배를 갚아야 하니 기한을 넘기지 마시오.</small></span></li>`,
+      `<li><i>💂</i><span><b>밤 경비</b> <em>일당 ${GD.wage}G</em><small>밤에 문을 두드리는 자의 정체를 열기 전에 알려 준다.</small></span></li>`,
+    ].join('');
+    const steps = [
+      { h: '첫 장사, 수고 많았소', body: `<p>가게 문을 닫으니 창틀에 까마귀 한 마리가 내려앉았소. 오늘부터 이 녀석이 가게의 우체부요.</p>
+        <p>창가의 까마귀를 눌러 <b>✒ 편지 쓰기</b>를 하면 물고 날아가고, 답장과 물건은 <b>이튿날 아침</b>에 도착하오. 경비대에 밀고하기 · 손님을 부르기 · 장사에 보탬이 되는 물건 사기 · 급전 빌리기까지 모두 이 까마귀로 하오.</p>
+        <p>그런데 아직 아무 소식도 들어오지 않소. 먼저 <b>신문</b>부터 받아 보시오.</p>` },
+      { h: '대륙 일보를 구독하시오', body: `<ul class="ct-list">
+        <li><i>📰</i><span>어제 벌어진 <b>사건 · 왕국과 세력들의 소식</b>을 손님 입에서 나오기 전에 먼저 알 수 있소.</span></li>
+        <li><i>📈</i><span><b>시세가 왜 뛰고 떨어졌는지</b>, 오늘의 장터 시세표와 이번 주 유행 물건이 실리오.</span></li>
+        <li><i>✔</i><span><b>✔ 표시</b>는 장사에 영향을 주는 확인된 정보, <b>❓ 표시</b>는 진위 불명의 소문이오. 정보상에게 까마귀로 물어볼 수도 있소.</span></li>
+        <li><i>🗺️</i><span>장부의 <b>최근 사건 · 소문 장부 · 대륙 정세</b>도 신문에서 채워지오. 신문이 없으면 비어 있소.</span></li></ul>
+        <p class="ct-fine">구독료는 <b>하루 ${PP.fee}G</b>, 밤마다 정산에서 자동으로 나가오. 금고가 모자라면 그날로 끊기고, 까마귀로 언제든 해지 · 재신청할 수 있소. 구독하지 않으면 신문은 오지 않소.</p>` },
+      { h: '신문을 받으면 살 수 있는 것들', body: `<p>모두 창가의 까마귀 → <b>✒ 편지 쓰기</b> → <b>가게 물품 주문</b>에서 신청하오. 삯은 <b>선불</b>, 며칠 뒤 아침 답장과 함께 도착하오. 도매상엔 이제 물건만 있소.</p>
+        <ul class="ct-list goods">${shopRows}${extraRows}</ul>` },
+      { h: '신문을 구독하시겠소?', body: `<div class="ct-ask"><i>📰</i><p><b>대륙 일보</b> — 하루 <b>${PP.fee}G</b><br>내일(2일째) 아침부터 문틈에 신문이 끼워져 있을 것이오.</p></div>
+        <p class="ct-fine">지금 금고에는 ${S().gold}G가 있소. 구독하지 않아도 장사는 할 수 있지만, 세상 돌아가는 소식과 시세의 이유는 알 길이 없소. 마음이 바뀌면 까마귀 서신에서 언제든 신청하시오.</p>` },
+    ];
+    const n = steps.length, i = Math.min(crowTutStep, n - 1), st = steps[i];
+    const last = i === n - 1;
+    const dots = steps.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('');
+    return `<div class="crow-tut" role="dialog" aria-modal="true" aria-label="까마귀 서신 안내">
+      <div class="ct-card">
+        <div class="ct-from"><span class="ct-crow" aria-hidden="true">🐦</span><small>까마귀 둥지지기 레나의 안내 · ${i + 1}/${n}</small></div>
+        <h3>${st.h}</h3>
+        <div class="ct-body">${st.body}</div>
+        <div class="ct-dots">${dots}</div>
+        <div class="ct-btns">${last
+          ? `<button class="pbtn ghost" data-act="tut-skip">지금은 안 한다</button><button class="pbtn primary grow" data-act="tut-sub">구독한다 <b>하루 ${PP.fee}G</b></button>`
+          : `${i ? '<button class="pbtn ghost" data-act="tut-step" data-n="-1">← 이전</button>' : '<span></span>'}<button class="pbtn primary grow" data-act="tut-step" data-n="1">다음 →</button>`}</div>
+      </div></div>`;
   }
 
   // ───────── 밤: 누군가 방문을 두드린다 ─────────
@@ -2967,7 +3071,7 @@ WS.UI = (() => {
     const before = c && c.result;
     if (act !== 'choice') confirmChoice = null;
     // 장면이 크게 바뀌는 행동은 검은 막으로 덮고 넘어간다 (중간 상태가 보이지 않게)
-    const toMorning = () => { D.nextDay(); resetDealState(); morningSub = null; turnDir = ''; mail.flash = ''; dawnPending = true; };
+    const toMorning = () => { paperNote = ''; crowTutStep = 0; D.nextDay(); resetDealState(); morningSub = null; turnDir = ''; mail.flash = ''; dawnPending = true; };
     const morningCard = () => ({ day: S().day });
     const curtained = {
       new: [() => { WS.Scene.reset(); WS.Game.newGame(); resetDealState(); morningSub = null; turnDir = ''; mail.flash = ''; visited = {}; nav = { place: null, sub: null }; dawnPending = true; },
@@ -3013,7 +3117,6 @@ WS.UI = (() => {
       case 'page-next': turnPage(1); render(); return;
       case 'cart': D.cartAdjust(id, Number(b.dataset.n)); buyNote = null; break;
       case 'buy-cart': buyCart(); break;
-      case 'shop-buy': buyGood(id); break;
       case 'repay-guild': D.repayGuild(Number(b.dataset.n)); break;
       case 'next': D.nextCustomer(); { const cc = D.current(); if (cc && cc.angry) WS.Sfx.play('door_close', 0.25); } mobileView = 'counter'; /* 폰: 새 손님이 오면 응대 책상부터 보여 준다 */ magnifyOpen = false; sealOpen = false; resetDealState(); break;
       case 'refuse': T.refuse(c); resetDealState(); break;
@@ -3088,6 +3191,18 @@ WS.UI = (() => {
         break;
       case 'poster': (S().progress.postersShown = S().progress.postersShown || {})[id] = true; nav = { place: 'docs', sub: 'poster:' + id }; if (c && c.status !== 'done') c.sawPoster = true; break;
       case 'tut-ok': WS.sys.Progress.markTutorialSeen(id); break;
+      case 'tut-step': crowTutStep = Math.max(0, crowTutStep + Number(b.dataset.n)); break;
+      case 'tut-sub': case 'tut-skip': {
+        (S().progress.tutorialsSeen = S().progress.tutorialsSeen || {}).crow_paper = true;
+        if (act === 'tut-sub') {
+          const r = WS.sys.Letters.send('paper_sub');
+          paperNote = r.ok ? '까마귀가 신문 구독을 신청하러 날아갔다. 내일 아침부터 대륙 일보가 온다 (하루 10G).' : r.msg;
+          if (r.ok) { crowFly('out'); WS.Sfx.play('cloth', 0.45); }
+        } else paperNote = '신문은 구독하지 않았다. 까마귀 서신에서 언제든 신청할 수 있다.';
+        crowTutStep = 0;
+        WS.sys.Save.autosave && WS.sys.Save.autosave();
+        break;
+      }
       case 'nav-back':
         // 막 받은 인상서를 닫으면 서랍에 넣고 창고로 — 서류함이 빛나 어디 넣었는지 알려 준다
         if (docsHint && nav.sub && nav.sub.startsWith('poster:')) nav = { place: null, sub: null };

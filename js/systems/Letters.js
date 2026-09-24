@@ -32,7 +32,7 @@ WS.sys.Letters = (() => {
   const tplOf = id => (WS.sys.Customers.tplById(id) || WS.sys.Customers.archById(id) || {});
 
   function initState() {
-    return { inbox: [], outbox: [], orders: [], loans: [], promises: [], reports: [], wishes: [], recent: [], seq: 0, welcomed: false, postersSent: {}, drawer: [] };
+    return { inbox: [], outbox: [], orders: [], loans: [], promises: [], reports: [], wishes: [], recent: [], seq: 0, welcomed: false, postersSent: {}, drawer: [], shopOrders: [] };
   }
 
   // 까마귀는 6일째 둥지지기가 들여 주면 창틀에 자리를 잡는다 (Progress 'crow').
@@ -775,7 +775,21 @@ WS.sys.Letters = (() => {
       ? tpl('guard_fire', { name: GD.hire.to, icon: GD.hire.icon }, GD.fire.title, GD.fire.desc, [], null)
       : tpl('guard_hire', { name: GD.hire.to, icon: GD.hire.icon }, GD.hire.title, GD.hire.desc, [], st.gold < GD.wage ? `일당 ${GD.wage}G가 없소.` : null);
 
-    return [report, notify, expand, rumorT, loanT, ...(repayT ? [repayT] : []), guardT, ...(S().flags.star_bought !== undefined && !S().flags.star_sent ? [star] : [])];
+    // 가게 물품 주문 — 지도 · 평판지 · 정보통 · 달력 · 간판. 삯은 선불, 며칠 뒤 아침 답장과 함께 들어온다 (증축 의뢰와 같은 방식)
+    const SH = WS.sys.Shop.goods();
+    const buyable = SH.filter(g => !g.owned && !g.pending);
+    const shopWhy = buyable.length ? null : SH.some(g => g.pending) ? '주문한 물건이 오는 중이오.' : '더 들일 물건이 없소.';
+    const shopT = tpl('shop', { name: '까마귀 우편 주문소', icon: '📮' }, '가게 물품 주문', `지도 · 평판지 · 정보통 · 달력 · 간판. 삯은 선불, 며칠 뒤 아침 물건이 온다`, [
+      { key: 'good', label: '들일 물건', options: buyable.map(g => ({ value: g.id, label: `${g.icon} ${g.name} — ${g.cost}G`, sub: `${g.desc} (${g.days}일 뒤)` })) },
+    ], shopWhy);
+
+    // 신문 구독 — 구독하기 전엔 신문이 오지 않는다. 하루 fee G, 마감 정산에서 (js/data/shop.js paper)
+    const PP = WS.data.shop.paper, subbed = WS.sys.Shop.subscribed();
+    const paperT = subbed
+      ? tpl('paper_cancel', PP.from, `${PP.name} 구독 해지`, `신문 배달을 멈춘다. 구독료는 더 나가지 않는다`, [], null)
+      : tpl('paper_sub', PP.from, `${PP.name} 구독`, `하루 ${PP.fee}G — 내일 아침부터 문틈에 신문이 온다`, [], null);
+
+    return [report, notify, shopT, paperT, expand, rumorT, loanT, ...(repayT ? [repayT] : []), guardT, ...(S().flags.star_bought !== undefined && !S().flags.star_sent ? [star] : [])];
   }
 
   // 별조각을 받을 수 있는 곳 — 대성당만 하늘의 대답(엔딩)으로 이어진다
@@ -887,6 +901,37 @@ WS.sys.Letters = (() => {
     receive(E.to, 'news', E.doneSubject, E.done[Math.min(lv, E.done.length - 1)]);
   }
 
+  // 가게 물품 주문 — 선불 후 days 일 뒤 아침에 답장과 함께 들어온다 (nightly → deliverShop)
+  function sendShop(p) {
+    const st = S();
+    if (!crowReady()) return no(NO_CROW);
+    const q = quote('shop', p);
+    if (!q.ok) return no(q.msg);
+    const g = WS.sys.Shop.goods().find(x => x.id === p.good);
+    st.gold -= g.cost;
+    if (st.today) st.today.spend += g.cost;
+    L().shopOrders.push({ id: g.id, day: st.day, doneDay: st.day + g.days });
+    record('shop', g.sender, `${g.name} 주문`, `삯 ${g.cost}G를 미리 냈다. ${g.days}일 뒤 아침 도착.`, g.cost);
+    return ok(`까마귀가 「${g.name}」 주문서를 물고 날아갔다. 삯 ${g.cost}G는 선불, ${g.days}일 뒤 아침에 답장이 온다.`);
+  }
+  function deliverShop() {
+    const l = L(), st = S();
+    const due = l.shopOrders.filter(o => o.doneDay <= st.day);
+    if (!due.length) return;
+    l.shopOrders = l.shopOrders.filter(o => o.doneDay > st.day);
+    for (const o of due) {
+      const g = WS.sys.Shop.grant(o.id);
+      if (g) receive(g.sender, 'news', g.letter.subject, g.letter.body);
+    }
+  }
+  // 구독료를 못 내 신문이 끊긴 이튿날 아침 — 안내 편지 한 통
+  function paperLapseLetter() {
+    const st = S(), PP = WS.data.shop.paper;
+    if (!st.paperLapsed || st.paperLapsed < st.day - 1) return;
+    st.paperLapsed = 0;
+    receive(PP.from, 'notice', PP.lapse.subject, U.fill(PP.lapse.body, { fee: PP.fee }));
+  }
+
   // 소문 확인 의뢰 — 삯 선불 (Rumors.ask 가 의뢰를 적어 둔다), 다음 날 아침 nightly → deliverRumorReplies 가 답장을 받는다
   function sendRumor(p) {
     const st = S();
@@ -951,6 +996,14 @@ WS.sys.Letters = (() => {
       return { ok: crowReady() && S().gold >= w, cost: 0, msg: `밤 경비를 세운다 — 일당 ${w}G가 매일 밤 정산에서 나간다 (금고가 모자라면 그날 그만둔다). 밤손님의 정체를 문 열기 전에 알려 준다.` };
     }
     if (type === 'guard_fire') return { ok: crowReady() && WS.sys.Shop.guarded(), cost: 0, msg: '경비를 내보낸다. 일당은 더 나가지 않는다.' };
+    if (type === 'shop') {
+      const g = WS.sys.Shop.goods().find(x => x.id === p.good);
+      if (!g) return { ok: false, cost: 0, msg: '어느 물건을 들일지 고르시오.' };
+      const why = g.owned || g.pending ? g.why : S().gold < g.cost ? `삯 ${g.cost}G가 모자라오.` : '';
+      return { ok: crowReady() && !why, cost: g.cost, msg: why || `「${g.name}」 주문 — ${g.days}일 뒤 아침 도착 · ${g.cost}G (선불)` };
+    }
+    if (type === 'paper_sub') return { ok: crowReady() && !WS.sys.Shop.subscribed(), cost: 0, msg: `하루 ${WS.data.shop.paper.fee}G — 내일 아침부터 대륙 일보가 온다. 구독료는 밤마다 정산에서 나가고, 금고가 모자라면 그날 끊긴다.` };
+    if (type === 'paper_cancel') return { ok: crowReady() && WS.sys.Shop.subscribed(), cost: 0, msg: '신문 배달을 멈춘다. 다시 받으려면 새로 구독해야 한다.' };
     if (type === 'star') {
       const t = starTargets().find(x => x.id === p.to);
       if (!t) return { ok: false, cost: fee, msg: '누구에게 보낼지 고르시오.' };
@@ -965,6 +1018,13 @@ WS.sys.Letters = (() => {
     if (type === 'notify') return sendNotify(p);
     if (type === 'star') return sendStar(p);
     if (type === 'expand') return sendExpand();
+    if (type === 'shop') return sendShop(p);
+    if (type === 'paper_sub' || type === 'paper_cancel') {
+      if (!crowReady()) return no(NO_CROW);
+      const r = type === 'paper_sub' ? WS.sys.Shop.subscribe() : WS.sys.Shop.unsubscribe();
+      if (r.ok) record(type, WS.data.shop.paper.from, type === 'paper_sub' ? '신문 구독' : '신문 해지', r.msg, 0);
+      return r.ok ? ok(r.msg) : no(r.msg);
+    }
     if (type === 'rumor') return sendRumor(p);
     if (type === 'loan') return sendLoan(p);
     if (type === 'loan_repay') return repayLoan();
@@ -1017,6 +1077,8 @@ WS.sys.Letters = (() => {
     closeStaleInsurance();
     deliverOrders();
     deliverExpand();
+    deliverShop();
+    paperLapseLetter();
     deliverRumorReplies();
     processCrowLoan();
     resolveReports();
