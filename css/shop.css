@@ -176,7 +176,7 @@
 }
 
 /* 하루 시작 · 문 열기 — 틀 없이 촛불처럼 깜박이는 글자만 (거리의 유일한 버튼 / 장부를 덮은 뒤 나오는 버튼) */
-.street-start { position: absolute; left: 0; right: 0; bottom: max(30px, 9vh); z-index: 2; display: flex; justify-content: center; pointer-events: none; }
+.street-start { position: absolute; left: 0; right: 0; bottom: 14px; z-index: 2; display: flex; justify-content: flex-end; padding-right: 18px; pointer-events: none; }
 .street-scene:not(.go) ~ .street-start { opacity: 0; visibility: hidden; }
 .street-scene.go ~ .street-start { transition: opacity 450ms ease 800ms, visibility 0s linear 800ms; }
 .day-start, .open-door { cursor: pointer; background: none; border: 0; padding: 10px 22px; text-align: center; font-family: 'Diphylleia', var(--serif); color: #ffdf9a; line-height: 1.15;
