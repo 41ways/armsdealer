@@ -2484,9 +2484,15 @@ WS.UI = (() => {
     const el = document.getElementById('debug');
     if (!el || el.hidden || !S()) return;
     const st = S();
-    el.innerHTML = `<b>ADMIN</b><table>${Object.entries(WS.data.worldVars).map(([k, d]) => `<tr><td>${d.label}</td><td>${U.round1(st.world[k])}</td></tr>`).join('')}</table>
-      <div>flags: ${Object.keys(st.flags).join(', ') || '-'}</div>
-      <div>scheduled: ${st.scheduled.map(s => `${s.event}@D${s.day}`).join(', ') || '-'}</div>`;
+    const C = WS.sys.Conditions, safe = w => { try { return !!C.check(w); } catch (e) { return false; } };
+    const rels = Object.entries(WS.data.worldVars).filter(([k]) => k.startsWith('rel_'));
+    let first = null;
+    const ends = WS.data.endings.map(e => { const ok = safe(e.when); if (ok && !first) first = e.id; return [e, ok]; });
+    el.innerHTML = `<b>ADMIN</b>
+      <h5>Relationship</h5><table>${rels.map(([k, d]) => `<tr><td>${d.label}</td><td>${U.round1(st.world[k])}</td></tr>`).join('')}</table>
+      <h5>Endings <small>(지금 끝나면 ▶)</small></h5><table>${ends.map(([e, ok]) => `<tr class="${ok ? 'ok' : ''}"><td>${e.id === first ? '▶ ' : ''}${e.title || e.id}</td><td>${ok ? '충족' : '-'}</td></tr>`).join('')}</table>
+      <h5>Flags</h5><div>${Object.keys(st.flags).join(', ') || '-'}</div>
+      <h5>Scheduled</h5><div>${st.scheduled.map(x => `${x.event}@D${x.day}`).join(', ') || '-'}</div>`;
   }
 
   // 금화가 바뀌면 숫자가 굴러 올라가고(count-up) +N / −N 이 떠올랐다 사라진다
