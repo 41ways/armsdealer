@@ -188,7 +188,7 @@
   text-shadow: 0 0 2px #1a0a02, 0 2px 3px #1a0a02, 0 0 12px rgba(255, 200, 100, 1), 0 0 26px rgba(255, 150, 50, .85); }
 .day-start:active, .open-door:active { transform: translateY(1px); }
 .day-start:focus-visible, .open-door:focus-visible { outline: 1px dashed #ffe08a; outline-offset: 6px; }
-.open-door { position: absolute; z-index: 5; left: 50%; bottom: 14px; translate: -50% 0; white-space: nowrap; animation: openDoorIn .45s cubic-bezier(.2, .8, .3, 1) both, candleText 3s ease-in-out .5s infinite; }
+.open-door { position: absolute; z-index: 5; left: auto; right: 18px; bottom: 14px; translate: 0 0; white-space: nowrap; animation: openDoorIn .45s cubic-bezier(.2, .8, .3, 1) both, candleText 3s ease-in-out .5s infinite; }
 @keyframes candleText { 0%, 100% { opacity: .92; } 30% { opacity: 1; } 55% { opacity: .82; } 75% { opacity: .98; } }
 @keyframes openDoorIn { from { opacity: 0; transform: translateY(16px); } }
 @media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) {
