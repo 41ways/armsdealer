@@ -175,43 +175,26 @@
   #stage[data-phase] #ui > .cart-warn { bottom: 86px; }
 }
 
-/* 거리의 '하루 시작' 버튼 — 거리에서 유일한 버튼 (놋쇠 테두리 · 밀랍 도장 · 큰 세리프 글씨) */
+/* 하루 시작 · 문 열기 — 틀 없이 촛불처럼 깜박이는 글자만 (거리의 유일한 버튼 / 장부를 덮은 뒤 나오는 버튼) */
 .street-start { position: absolute; left: 0; right: 0; bottom: max(30px, 9vh); z-index: 2; display: flex; justify-content: center; pointer-events: none; }
 .street-scene:not(.go) ~ .street-start { opacity: 0; visibility: hidden; }
 .street-scene.go ~ .street-start { transition: opacity 450ms ease 800ms, visibility 0s linear 800ms; }
-.day-start { pointer-events: auto; position: relative; min-width: min(360px, 86vw); min-height: 92px; padding: 10px 34px 10px 22px; display: flex; align-items: center; justify-content: center; gap: 16px; cursor: pointer;
-  border: 3px solid #d8a94d; border-radius: 6px; color: #f6e4bb; font-family: var(--serif);
-  background: linear-gradient(180deg, rgba(90, 52, 26, .96), rgba(38, 20, 11, .97)), url(../assets/ui/kit/leather_tile.png) 0 0 / 200px 200px, #3a2214; background-blend-mode: normal, multiply;
-  box-shadow: inset 0 0 0 2px #1a0f08, inset 0 0 0 4px rgba(216, 169, 77, .55), 0 10px 26px rgba(0, 0, 0, .65), 0 0 24px rgba(240, 190, 100, .28);
-  transition: transform .16s, box-shadow .2s, filter .2s; animation: dayStartGlow 2.6s ease-in-out infinite; }
-.day-start:hover { transform: translateY(-2px) scale(1.03); filter: brightness(1.12); }
-.day-start:active { transform: translateY(1px) scale(.98); }
-.day-start:focus-visible { outline: 3px solid #ffe08a; outline-offset: 3px; }
-.day-start .ds-seal { flex: none; width: 60px; height: 60px; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .6)); transform: rotate(-8deg); }
-.day-start .ds-seal svg { display: block; width: 100%; height: 100%; }
-.day-start .ds-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
-.day-start .ds-text small { font-family: var(--btn-font); font-size: calc(13px * var(--ui, 1)); font-weight: 700; letter-spacing: .14em; color: #e0b866; }
-.day-start .ds-text b { font-size: calc(34px * var(--ui, 1)); font-weight: 800; letter-spacing: .28em; padding-left: .1em; color: #fff0c8; text-shadow: 0 2px 0 #1a0f08, 0 0 14px rgba(240, 190, 100, .55); }
-.day-start .ds-rivet { position: absolute; top: 50%; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f6d688, #8a5c1c); box-shadow: 0 1px 1px rgba(0, 0, 0, .7); }
-.day-start .ds-rivet.l { left: 8px; } .day-start .ds-rivet.r { right: 8px; }
-@keyframes dayStartGlow { 0%, 100% { box-shadow: inset 0 0 0 2px #1a0f08, inset 0 0 0 4px rgba(216, 169, 77, .55), 0 10px 26px rgba(0, 0, 0, .65), 0 0 14px rgba(240, 190, 100, .18); }
-  50% { box-shadow: inset 0 0 0 2px #1a0f08, inset 0 0 0 4px rgba(216, 169, 77, .55), 0 10px 26px rgba(0, 0, 0, .65), 0 0 34px rgba(240, 190, 100, .5); } }
-
-/* 문 열기 — 장부를 끝까지 넘겨 책이 닫힌 뒤에만 나온다. 아래 막대 가운데에 얹혀 자리를 차지하지 않는다 */
-.open-door { position: absolute; z-index: 5; left: 50%; bottom: 12px; translate: -50% 0; min-width: 250px; width: max-content; white-space: nowrap; min-height: 68px; padding: 6px 28px; display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer;
-  border: 3px solid #d8a94d; border-radius: 6px; color: #2a1808; font-family: var(--serif);
-  background: linear-gradient(180deg, #f0cf83, #c08a34); box-shadow: inset 0 0 0 2px rgba(255, 240, 190, .55), inset 0 -3px 0 rgba(90, 52, 16, .45), 0 8px 20px rgba(0, 0, 0, .6), 0 0 22px rgba(240, 190, 100, .4);
-  animation: openDoorIn .45s cubic-bezier(.2, .8, .3, 1) both, dayStartGlow 2.6s ease-in-out .5s infinite; transition: filter .15s; }
-.open-door:hover { filter: brightness(1.1); } .open-door:active { translate: -50% 2px; }
-.open-door:focus-visible { outline: 3px solid #fff2b8; outline-offset: 3px; }
-.open-door .od-key { width: 38px; height: 38px; } .open-door .od-key svg { display: block; width: 100%; height: 100%; }
-.open-door b { font-size: calc(26px * var(--ui, 1)); font-weight: 800; letter-spacing: .22em; padding-left: .1em; text-shadow: 0 1px 0 rgba(255, 240, 190, .6); }
-@keyframes openDoorIn { from { opacity: 0; transform: translateY(16px) scale(.94); } }
+.day-start, .open-door { cursor: pointer; background: none; border: 0; padding: 10px 22px; text-align: center; font-family: 'Diphylleia', var(--serif); color: #ffdf9a; line-height: 1.15;
+  text-shadow: 0 0 2px #1a0a02, 0 2px 3px #1a0a02, 0 0 10px rgba(30, 12, 2, .9), 0 0 18px rgba(255, 140, 40, .5); animation: candleText 3s ease-in-out infinite; transition: color .2s, transform .16s; }
+.day-start { pointer-events: auto; }
+.day-start b, .open-door b { display: block; font-weight: 400; font-size: calc(38px * var(--ui, 1)); letter-spacing: .3em; text-indent: .3em; -webkit-text-stroke: .9px currentColor; paint-order: stroke fill; }
+.day-start small, .open-door small { display: block; margin-top: 4px; font-family: 'IM Fell English SC', var(--serif); font-size: calc(13px * var(--ui, 1)); letter-spacing: .4em; text-indent: .4em; color: #d1a55c; text-shadow: 0 1px 3px #000; -webkit-text-stroke: 0; }
+.day-start:hover, .open-door:hover { color: #fff4cf; animation: none; transform: translateY(-2px);
+  text-shadow: 0 0 2px #1a0a02, 0 2px 3px #1a0a02, 0 0 12px rgba(255, 200, 100, 1), 0 0 26px rgba(255, 150, 50, .85); }
+.day-start:active, .open-door:active { transform: translateY(1px); }
+.day-start:focus-visible, .open-door:focus-visible { outline: 1px dashed #ffe08a; outline-offset: 6px; }
+.open-door { position: absolute; z-index: 5; left: 50%; bottom: 14px; translate: -50% 0; white-space: nowrap; animation: openDoorIn .45s cubic-bezier(.2, .8, .3, 1) both, candleText 3s ease-in-out .5s infinite; }
+@keyframes candleText { 0%, 100% { opacity: .92; } 30% { opacity: 1; } 55% { opacity: .82; } 75% { opacity: .98; } }
+@keyframes openDoorIn { from { opacity: 0; transform: translateY(16px); } }
 @media not all and ((min-width: 760px) and (min-aspect-ratio: 1/1)) {
-  /* 좁은 화면: 왼쪽 아래 이전 화살표와 겹치지 않게 오른쪽 아래(다음 화살표 자리)에 */
-  .open-door { left: auto; right: 14px; translate: 0 0; min-width: 0; min-height: 60px; padding: 6px 20px; gap: 8px; }
-  .open-door:active { translate: 0 2px; }
-  .open-door b { font-size: 22px; } .open-door .od-key { width: 30px; height: 30px; }
+  /* 좁은 화면: 왼쪽 아래 이전 화살표와 겹치지 않게 오른쪽 아래에 */
+  .open-door { left: auto; right: 10px; translate: 0 0; padding: 6px 12px; }
+  .open-door b { font-size: 28px; }
 }
 @media (prefers-reduced-motion: reduce) { .day-start, .open-door { animation: none; } }
 
