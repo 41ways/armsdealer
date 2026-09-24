@@ -3350,6 +3350,7 @@ WS.UI = (() => {
   }
 
   function init() {
+    if (!document.getElementById('ver-tag')) { const v = document.createElement('div'); v.id = 'ver-tag'; v.textContent = WS.data.config.version; v.setAttribute('aria-hidden', 'true'); document.body.appendChild(v); }
     WS.Scene.mount(document.getElementById('scene'));
     // 장면이 먼저 크기를 다시 잡은 뒤 확대경 누름 자리를 따라 옮긴다
     // (장면 높이 H 가 바뀌면 확대경 자리도 바뀐다 — 순서가 어긋나지 않게 장면 크기부터 다시 잡는다. 같은 크기면 Scene.resize 는 그냥 돌아온다)
