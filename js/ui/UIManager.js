@@ -2316,14 +2316,14 @@ WS.UI = (() => {
     bookCtx = { id: base.id, A, B, C, album: album || [] };
     // 고서: 닫힌 표지 → 펼침. 컷신을 건너뛴 경우(개발 패널)는 표지 없이 바로 펼침
     const cover = !WS.Cinematic.skipAll && !st.endingBookOpen;
-    const arw = (dir, lab) => `<button type="button" class="eb-arw ${dir < 0 ? 'prev' : 'next'}" data-eb="${dir}" aria-label="${lab}"><svg viewBox="0 0 44 28" aria-hidden="true"${dir > 0 ? ' style="transform:scaleX(-1)"' : ''}><path d="M2 14 L15 3 L15 9 L41 9 Q43 9 43 11 L43 17 Q43 19 41 19 L15 19 L15 25 Z" fill="currentColor"/><path d="M15 3 L15 25" stroke="#3a2410" stroke-width="1" opacity=".55"/><path d="M19 12 H38 M19 16 H38" stroke="#3a2410" stroke-width=".8" opacity=".45"/></svg></button>`;
+    const arw = (dir, lab) => `<button type="button" class="eb-arw ${dir < 0 ? 'prev' : 'next'}" data-eb="${dir}" aria-label="${lab}">${BRUSH_ARROW(dir < 0 ? 'ep' : 'en')}</button>`;
     return `<div class="end-spread"><div class="end-book ${cover ? 'closed' : ''}">
       <div class="eb-slide"><div class="eb-spread">
         <div class="eb-left"><div class="eb-page"></div></div>
         <div class="eb-right"><div class="eb-page"></div></div>
         <div class="eb-nav">${arw(-1, '이전 쪽')}<span class="eb-no" aria-live="polite"></span>${arw(1, '다음 쪽')}</div>
       </div>
-      ${cover ? `<div class="eb-leaf r cov eb-cover" role="button" tabindex="0" aria-label="책을 펼친다"><div class="eb-lf front"><b>${U.esc(e.title)}</b><i class="eb-shade"></i></div><div class="eb-lf back"><div class="eb-page"></div><i class="eb-shade"></i></div></div>` : ''}</div>
+      ${cover ? `<div class="eb-leaf r cov eb-cover" role="button" tabindex="0" aria-label="책을 펼친다"><div class="eb-lf front"><i class="eb-shade"></i></div><div class="eb-lf back"><div class="eb-page"></div><i class="eb-shade"></i></div></div>` : ''}</div>
     </div>
     <div class="bottom-bar end-bar"><button class="pbtn primary wide" data-act="to-title">${st.replay ? '뒤로 가기' : '처음으로'}</button></div></div>`;
   }
