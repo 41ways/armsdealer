@@ -207,11 +207,7 @@ WS.UI = (() => {
     const first = S().day === 1;
     // 하루를 시작하는 버튼 — 거리에서 유일한 버튼. 1일째는 곧바로 문을 열고, 그다음부터는 간밤의 소식(서신 · 신문 · 장부)을 넘겨 보러 간다
     const start = `<div class="street-start pg-main">
-      <button class="day-start" data-act="${first ? 'open' : 'page-next'}" aria-label="하루 시작 — ${S().day}일째 아침" title="하루 시작">
-        <span class="ds-seal" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#7d1a17" stroke="#3a0a08" stroke-width="2"/><circle cx="24" cy="24" r="15.5" fill="none" stroke="#c9463d" stroke-width="1.6" stroke-dasharray="2 3"/><circle cx="20" cy="19" r="5" fill="none" stroke="#f3dcae" stroke-width="2.4"/><path d="M23.5 22.5 L32 31 M28 27 l3-3 M31 30 l3-3" fill="none" stroke="#f3dcae" stroke-width="2.4" stroke-linecap="round"/></svg></span>
-        <span class="ds-text"><small>${S().day}일째 아침</small><b>하루 시작</b></span>
-        <i class="ds-rivet l" aria-hidden="true"></i><i class="ds-rivet r" aria-hidden="true"></i>
-      </button></div>`;
+      <button class="day-start" data-act="${first ? 'open' : 'page-next'}" aria-label="하루 시작 — ${S().day}일째 아침" title="하루 시작"><b>하루 시작</b><small>${S().day}일째 아침</small></button></div>`;
     return `${hud()}<div class="street-scene ${dawnPending ? '' : 'go'}" aria-hidden="true"><i class="street-dawn"></i></div>
     <div class="street-gap"></div>
     ${start}`;
@@ -610,7 +606,7 @@ WS.UI = (() => {
     const prev = `<button class="pg-arw prev" data-act="page-prev" aria-label="이전" title="이전 (←)">${BRUSH_ARROW('bp')}</button>`;
     if (S().phase === 'prep' && doorReady) {
       return `<div class="bottom-bar page-bar pg-bar">${prev}
-        <button class="open-door" data-act="open" aria-label="문 열기" title="문 열기 (→)"><span class="od-key" aria-hidden="true"><svg viewBox="0 0 48 48"><circle cx="15" cy="24" r="9" fill="none" stroke="#3a250c" stroke-width="4"/><circle cx="15" cy="24" r="3" fill="#3a250c"/><path d="M24 24 H44 M36 24 v8 M42 24 v6" fill="none" stroke="#3a250c" stroke-width="4" stroke-linecap="round"/></svg></span><b>문 열기</b></button></div>`;
+        <button class="open-door" data-act="open" aria-label="문 열기" title="문 열기 (→)"><b>문 열기</b><small>OPEN</small></button></div>`;
     }
     return `<div class="bottom-bar page-bar pg-bar">${prev}<button class="pg-arw next" data-act="page-next" aria-label="다음" title="다음 (→)">${BRUSH_ARROW('bn')}</button></div>`;
   }
