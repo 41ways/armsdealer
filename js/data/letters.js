@@ -8,7 +8,7 @@ WS.data.letters = {
   crowFee: 2,
 
   senders: {
-    roost:      { name: '까마귀 둥지지기', icon: '🪶' },
+    roost:      { name: '까마귀 둥지지기', icon: '🐦' },
     wholesaler: { name: '도매상 조합', icon: '📦' },
     guard:      { name: '왕국 경비대', icon: '🛡️' },
     lender:     { name: '금저울 상인 길드 대부계', icon: '⚖️' },

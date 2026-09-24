@@ -125,7 +125,7 @@ WS.data.customers = [
   },
   {
     // 6일째: 까마귀를 들여 준다 → 창가의 까마귀 해금, 둥지지기의 안내장이 편지함에 꽂힌다 (Letters.crowArrived)
-    id: 'crow_keeper', look: 'crow_keeper', name: '둥지지기 레나', race: '인간', job: '까마귀 둥지지기', faction: 'traveler', portrait: '🪶', kind: 'talk',
+    id: 'crow_keeper', look: 'crow_keeper', name: '둥지지기 레나', race: '인간', job: '까마귀 둥지지기', faction: 'traveler', portrait: '🐦', kind: 'talk',
     spawn: { queuedOnly: true },
     ask: { tag: '까마귀 분양', note: '편지 한 통에 삯 2G' },
     greet: '둥지지기예요. 편지 나를 까마귀 한 마리, 들여 주세요.',
@@ -237,7 +237,7 @@ WS.data.customers = [
     poor: { style: 'hao' },
   },
   {
-    id: 'fake_knight', look: 'fake_knight', name: '"기사" 모르간', race: '인간', job: '기사(자칭)', faction: 'kingdom', trueFaction: 'goblin', portrait: '🥷',
+    id: 'fake_knight', look: 'fake_knight', name: '"기사" 모르간', race: '인간', job: '기사(자칭)', faction: 'kingdom', trueFaction: 'goblin', portrait: '🎭',
     spawn: { queuedOnly: true },
     greet: '제7기사단이다. 서류는 나중에. {item} {qty}개, {offer}골드.',
     request: { item: 'iron_sword', qty: 6, offer: 330, partialOk: true },
@@ -560,7 +560,7 @@ WS.data.customers = [
   },
   {
     // 첫 계약으로 가는 또 하나의 길 — 손거울을 사면 이튿날 밤 중개인이 찾아온다 (demon_bazaar 가 아직 안 떴을 때만)
-    id: 'mist_mirror_peddler', look: 'traveler', name: '떠돌이 행상 오다', race: '인간', job: '잡동사니 행상', faction: 'traveler', portrait: '🪞', kind: 'talk',
+    id: 'mist_mirror_peddler', look: 'traveler', name: '떠돌이 행상 오다', race: '인간', job: '잡동사니 행상', faction: 'traveler', portrait: '🔮', kind: 'talk',
     spawn: { minDay: 7, chance: 0.2, when: { all: [{ day: { lte: 20 } }, { noFlag: 'demon_contract' }, { noFlag: 'refused_contract' }, { not: { eventFired: 'demon_bazaar' } }, { not: { customerSeen: 'demon_contract' } }] } },
     ask: { tag: '거래 제안', gold: -30, note: '흐린 손거울' },
     greet: '안개 낀 밤에 주운 손거울이오. 30골드면 넘기지. …비춰 봐도 얼굴이 잘 안 보이는 게 흠이지만.',
@@ -1402,7 +1402,7 @@ WS.data.customers = [
     onSell: { vars: { rel_guild: 1 } },
   },
   {
-    id: 'wish_golem', look: 'puppeteer', name: '인형술사 핍', race: '인간', job: '태엽 인형 공방 견습', faction: 'golem', portrait: '🪆',
+    id: 'wish_golem', look: 'puppeteer', name: '인형술사 핍', race: '인간', job: '태엽 인형 공방 견습', faction: 'golem', portrait: '🤖',
     spawn: { day: 18, order: 3 },
     greet: '제 인형에 심장을 달고 싶어요. {item} {qty}개, {offer}골드!',
     request: { item: 'golem_core', qty: 1, offer: { mult: 1.4 } },
@@ -1416,7 +1416,7 @@ WS.data.customers = [
 
   // ════════════════════ 위장 감찰 ════════════════════
   {
-    id: 'disguised_buyer', look: 'disguised_buyer', name: '낯선 손님', race: '인간', job: '신원 불명', faction: 'kingdom', trueFaction: 'bandit', portrait: '🥸',
+    id: 'disguised_buyer', look: 'disguised_buyer', name: '낯선 손님', race: '인간', job: '신원 불명', faction: 'kingdom', trueFaction: 'bandit', portrait: '🕶',
     spawn: { queuedOnly: true },
     greet: '(속삭인다) 서류 없이 {item} {qty}개, {offer}골드. 비밀로.',
     request: { item: 'bow', qty: 2, offer: 260 },
@@ -1545,7 +1545,7 @@ WS.data.customers = [
   // 판정 자체는 onSell/onRefuse와 별개로 즉시 적용되며(flags: docCheck_correct/docCheck_wrong),
   // 실제 판매 여부는 평소처럼 매입/거절 버튼으로 따로 정한다.
   {
-    id: 'permit_dubious', look: 'hooded', name: '두건 쓴 통행인', race: '인간', job: '통행 인장을 든 나그네', faction: 'kingdom', trueFaction: 'bandit', portrait: '🥷',
+    id: 'permit_dubious', look: 'hooded', name: '두건 쓴 통행인', race: '인간', job: '통행 인장을 든 나그네', faction: 'kingdom', trueFaction: 'bandit', portrait: '🎭',
     spawn: { queuedOnly: true },
     stain: true,
     affil: { claim: 'royal', seal: 'fake', sealOf: 'royal', line: '왕실 통행 인장이오. 보면 알 거요.' },
@@ -1574,7 +1574,7 @@ WS.data.customers = [
     onSell: { vars: { rel_kingdom: 1 } },
   },
   {
-    id: 'militia_forager', look: 'militia_forager', name: '"자경단원"', race: '인간', job: '동쪽 마을 자경단원(자칭)', faction: 'village', trueFaction: 'bandit', portrait: '🥷',
+    id: 'militia_forager', look: 'militia_forager', name: '"자경단원"', race: '인간', job: '동쪽 마을 자경단원(자칭)', faction: 'village', trueFaction: 'bandit', portrait: '🎭',
     spawn: { queuedOnly: true },
     stain: true,
     affil: { claim: 'village', seal: 'fake', line: '동쪽 마을 자경단이오. 허가서에 인장 찍혀 있소.' },

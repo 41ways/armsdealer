@@ -119,7 +119,7 @@ WS.data.items = {
   // ───────── 확장 세력 관련 ─────────
   // market 에 세계 변수 이름을 쓰면 그 변수가 초기값보다 오른 만큼 시세가 움직인다 (Market.mult)
   holy_water: {
-    name: '성수', icon: '🫗', category: 'consumable', tags: ['consumable', 'holy'],
+    name: '성수', icon: '🕊', category: 'consumable', tags: ['consumable', 'holy'],
     // 해독/정화 성격이 가장 가까워 해독제 소분류의 대표 아이템으로 묶었다.
     newCategory: 'potion', subtype: 'antidote', shelf: 'potion',
     basePrice: 28, cost: 16, attack: 0, rarity: '일반', weight: 0.5, stack: 8, grid: [1, 1], impact: 1, danger: 1,

@@ -599,7 +599,7 @@
   // ════════════════════ ④ 전 주인의 비밀 ════════════════════
   C.push(
     {
-      id: 'carpenter_ledger', look: 'dwarf', name: '목수 드발', race: '드워프', job: '떠돌이 목수', faction: 'dwarf', portrait: '🪚', kind: 'talk',
+      id: 'carpenter_ledger', look: 'dwarf', name: '목수 드발', race: '드워프', job: '떠돌이 목수', faction: 'dwarf', portrait: '🔨', kind: 'talk',
       spawn: { day: 14, order: 1 },
       ask: { tag: '발견물', note: '서류함 밑 옛 장부' },
       greet: '서류함 밑에 옛 장부가 있었네. "붉은여울행 칼 40, 가렛"',

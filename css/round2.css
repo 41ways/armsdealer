@@ -24,9 +24,7 @@
 .ei-letter { width: 1.35em; background-image: url(../assets/ui/kit/envelope_closed.png); }
 .ei-check { background-image: url(../assets/ui/kit/icon_check.png); }
 .ei-warn { width: 1.05em; height: 1.05em; margin-right: .3em; vertical-align: -.12em; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #d9584a, #8e1f2a 70%); box-shadow: 0 0 0 1px #2a0a08, 0 1px 0 rgba(0, 0, 0, .6); filter: none; position: relative; }
-.ei-warn::after { content: '!'; position: absolute; inset: 0; display: grid; place-items: center; font: 800 .78em/1 var(--serif); color: #ffe9d0; }
-.paper-sheet .ei-check, .req-list .ei-check { filter: brightness(.55) sepia(1) saturate(1.6) hue-rotate(-12deg) drop-shadow(0 1px 0 rgba(255, 240, 200, .5)); }
-.tab .ei, .tut-hint .ei { width: 1.25em; height: 1.25em; }
+.ei-warn::after { content: '!'; position: absolute; inset: 0; display: grid; place-items: center; font: 800 .78em/1 var(--serif); color: #ffe9d0; }.tab .ei, .tut-hint .ei { width: 1.25em; height: 1.25em; }
 .pbtn .ei { width: 1.3em; height: 1.3em; }
 .pbtn .ei-crow { width: 1.7em; }
 
@@ -117,10 +115,7 @@
 
 /* ── 결말 두루마리 — 손글씨 장부처럼 ── */
 .ending h3 { font-family: var(--serif); letter-spacing: .08em; display: flex; align-items: center; gap: 8px; margin-top: 18px; }
-.ending h3::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(120, 58, 28, .55), transparent); }
-.ending .req-list li { position: relative; padding: 5px 0 5px 26px; font-size: 14.5px; line-height: 1.55; color: #3a2412; background: linear-gradient(90deg, rgba(120, 80, 30, .35) 1px, transparent 1.5px) 0 100% / 5px 1px repeat-x; }
-.ending .req-list .ei-check { position: absolute; left: 2px; top: 7px; width: 18px; height: 16px; margin: 0; }
-.ending-text { text-shadow: 0 0 1px rgba(58, 36, 18, .35); }
+.ending h3::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(120, 58, 28, .55), transparent); }.ending-text { text-shadow: 0 0 1px rgba(58, 36, 18, .35); }
 .ending-text::first-letter { font-family: var(--title-font); font-size: 2.6em; float: left; line-height: .9; padding: 4px 8px 0 0; color: #7a2a1c; text-shadow: 1px 1px 0 rgba(255, 230, 170, .5); }
 .ending .epilogue li { grid-template-columns: 7.5em 1fr; border-bottom: 0; padding: 4px 0 5px; background: linear-gradient(90deg, rgba(120, 80, 30, .35) 1px, transparent 1.5px) 0 100% / 5px 1px repeat-x; }
 .ending .epilogue .ep-who { color: #7a3a1c; }
@@ -129,36 +124,18 @@
 .ending > .small:first-child::before, .ending > .small:first-child::after { content: '\2756'; margin: 0 .8em; color: #8a5a2c; }
 
 /* ── 신문 (대륙 일보) 2차 ── */
-.np { overflow-x: hidden; }
-.np-desk { perspective: 1400px; filter: drop-shadow(0 16px 20px rgba(0, 0, 0, .55)); }
-.np { position: relative; background-image:
+.np { overflow-x: hidden; }.np { position: relative; background-image:
     linear-gradient(90deg, transparent calc(50% - 1px), rgba(70, 45, 15, .22) 50%, rgba(255, 250, 230, .35) calc(50% + 1px), transparent calc(50% + 3px)),
     linear-gradient(180deg, transparent calc(46% - 1px), rgba(70, 45, 15, .16) 46%, rgba(255, 250, 230, .3) calc(46% + 1px), transparent calc(46% + 3px)),
     radial-gradient(ellipse at 50% 0, rgba(255, 246, 214, .55), transparent 65%),
     url(../assets/ui/kit/paper_news.png);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 340px auto; background-repeat: no-repeat, no-repeat, no-repeat, repeat; background-attachment: local, local, scroll, local; background-color: #e6dcc0; background-blend-mode: normal, normal, normal, multiply; }
-.np-head { font-family: 'Nanum Myeongjo', 'Black Han Sans', var(--serif); font-weight: 800; letter-spacing: -.01em; font-size: clamp(27px, 7.4vw, 34px); line-height: 1.22; text-shadow: .5px .5px 0 rgba(0, 0, 0, .25); }
-.np-lead-text::before { content: ''; display: block; width: 46px; height: 5px; margin-bottom: 8px; background: #8a1f12; }
-.np-kicker { display: inline-block; align-self: flex-start; padding: 1px 8px; color: #f3e6c5; background: #8a1f12; letter-spacing: .12em; font-size: 10.5px; }
-.np-story h4 { text-wrap: wrap; }
-.np-smudge { position: absolute; z-index: 1; right: 8%; top: 96px; width: 84px; height: 62px; pointer-events: none; border-radius: 46% 54% 40% 60%; background: radial-gradient(ellipse at 40% 45%, rgba(30, 20, 8, .28), rgba(30, 20, 8, .1) 55%, transparent 72%); transform: rotate(-18deg); mix-blend-mode: multiply; filter: blur(1.2px); }
-.np-extra { position: absolute; z-index: 4; right: 16px; top: 20px; padding: 5px 22px 6px 26px; transform: rotate(7deg); color: #fff0dc; font: 800 19px/1 'Nanum Myeongjo', var(--serif); letter-spacing: .14em; text-shadow: 0 2px 0 #4a0c10; background: linear-gradient(180deg, #b52a30, #8e1f2a); filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%); animation: extraPop .5s var(--ease-pop) .7s both; }
-@keyframes extraPop { from { opacity: 0; transform: rotate(7deg) scale(1.8); } }
-.np-fig figcaption { font-style: italic; }
-.np-spot { box-shadow: 0 0 0 2px rgba(42, 37, 28, .35); }
-.np-market tr:nth-child(odd) td { background: rgba(120, 90, 40, .07); }
-.np-desk.page-turn.from-right .np { transform-origin: 0 50%; animation: paperFlipR .55s var(--ease-out) both; }
-.np-desk.page-turn.from-left .np { transform-origin: 100% 50%; animation: paperFlipL .55s var(--ease-out) both; }
-@keyframes paperFlipR { from { opacity: .2; transform: rotateY(-64deg) translateX(16%); filter: brightness(.6); } 60% { opacity: 1; } to { transform: rotate(-.35deg); } }
+  background-size: 100% 100%, 100% 100%, 100% 100%, 340px auto; background-repeat: no-repeat, no-repeat, no-repeat, repeat; background-attachment: local, local, scroll, local; background-color: #e6dcc0; background-blend-mode: normal, normal, normal, multiply; }.np-extra { position: absolute; z-index: 4; right: 16px; top: 20px; padding: 5px 22px 6px 26px; transform: rotate(7deg); color: #fff0dc; font: 800 19px/1 'Nanum Myeongjo', var(--serif); letter-spacing: .14em; text-shadow: 0 2px 0 #4a0c10; background: linear-gradient(180deg, #b52a30, #8e1f2a); filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%); animation: extraPop .5s var(--ease-pop) .7s both; }
+@keyframes extraPop { from { opacity: 0; transform: rotate(7deg) scale(1.8); } }@keyframes paperFlipR { from { opacity: .2; transform: rotateY(-64deg) translateX(16%); filter: brightness(.6); } 60% { opacity: 1; } to { transform: rotate(-.35deg); } }
 @keyframes paperFlipL { from { opacity: .2; transform: rotateY(64deg) translateX(-16%); filter: brightness(.6); } 60% { opacity: 1; } to { transform: rotate(-.35deg); } }
-.np-desk.page-turn { animation: none; }
-
 /* ── 타이틀 2차 ── */
 .ts-win { position: absolute; z-index: 1; width: 22%; height: 14%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 170, 70, .38), rgba(255, 130, 40, .1) 50%, transparent 70%); mix-blend-mode: screen; pointer-events: none; animation: winFlick 3.1s ease-in-out infinite; }
 .ts-win.w1 { left: 18%; top: 47%; } .ts-win.w2 { left: 42%; top: 52%; animation-delay: -1.4s; animation-duration: 2.6s; }
-@keyframes winFlick { 0%, 100% { opacity: .9; } 30% { opacity: 1; } 55% { opacity: .62; } 75% { opacity: .95; } }
-.ts-artsign { transform-origin: 50% -30%; animation: artSignSwing 5s ease-in-out infinite alternate; }
-@keyframes artSignSwing { from { transform: translate(-50%, -50%) rotate(-5deg); } to { transform: translate(-50%, -50%) rotate(-1deg); } }
+@keyframes winFlick { 0%, 100% { opacity: .9; } 30% { opacity: 1; } 55% { opacity: .62; } 75% { opacity: .95; } }@keyframes artSignSwing { from { transform: translate(-50%, -50%) rotate(-5deg); } to { transform: translate(-50%, -50%) rotate(-1deg); } }
 .ts-wide { display: none; }
 .title-scene { --mx: 0; --my: 0; }
 .ts-art, .ts-wide { translate: calc(var(--mx) * -6px) calc(var(--my) * -4px); transition: translate .25s ease-out; }
@@ -186,9 +163,12 @@
 
 /* ── 줄임 모션 보강 ── */
 @media (prefers-reduced-motion: reduce) {
-  .crow-fly, .ts-win, .np-extra, .ink-stamp, .np-curl, .gold-spark, .closing-sheet > h2 { animation: none !important; }
-  .np-desk .np, .np-desk.page-turn .np { animation: none !important; }
-  .ts-art, .ts-wide, .ts-logo, .ts-embers { translate: none; transition: none; }
+  .crow-fly,
+.ts-win,
+.np-extra,
+.ink-stamp,
+.gold-spark,
+.closing-sheet > h2{ animation: none !important; }  .ts-art, .ts-wide, .ts-logo, .ts-embers { translate: none; transition: none; }
 }
 
 /* ── 타이틀: 가로 화면은 밤거리 파노라마(title_wide) — 옆 검은 띠 없이 폭 전체 ── */
@@ -208,9 +188,7 @@
   .tw-glow.win { width: 14%; height: 24%; background: radial-gradient(circle, rgba(255, 160, 60, .35), rgba(255, 120, 30, .09) 52%, transparent 70%); animation: winFlick 3.1s ease-in-out infinite; }
   .tw-glow.win.a { left: 68%; top: 39%; margin: -12% 0 0 -7%; }
   .tw-glow.win.b { left: 79%; top: 42%; margin: -12% 0 0 -7%; animation-delay: -1.2s; }
-  .tw-glow.win.c { left: 66.5%; top: 70%; margin: -12% 0 0 -7%; animation-delay: -2s; animation-duration: 2.6s; }
-  .tw-sign { position: absolute; left: 79.2%; top: 51.6%; transform-origin: 50% -60%; transform: translate(-50%, -50%) rotate(-2deg); font: 800 clamp(11px, 1.55vw, 17px) var(--serif); letter-spacing: .12em; color: #d9a85a; text-shadow: 0 1px 0 #1a0c04, 0 0 8px rgba(240, 190, 100, .55); white-space: nowrap; animation: twSign 5.4s ease-in-out infinite alternate; }
-  @keyframes twSign { from { transform: translate(-50%, -50%) rotate(-3.2deg); } to { transform: translate(-50%, -50%) rotate(.6deg); } }
+  .tw-glow.win.c { left: 66.5%; top: 70%; margin: -12% 0 0 -7%; animation-delay: -2s; animation-duration: 2.6s; }  @keyframes twSign { from { transform: translate(-50%, -50%) rotate(-3.2deg); } to { transform: translate(-50%, -50%) rotate(.6deg); } }
   .ts-content { width: 38%; padding: 5% 0 4% 3.5%; }
   .ts-logo { width: min(100%, 232px); }
   .ts-torch { display: none; }
@@ -235,15 +213,10 @@
 .sheet, .drawer, .magnify-overlay, .panel { background-image: linear-gradient(180deg, rgba(36, 26, 18, .78), rgba(20, 13, 9, .86)), url(../assets/ui/kit/leather_tile.png); background-size: 100% 100%, 200px 200px; }
 .desk.storage { background-image: linear-gradient(180deg, rgba(28, 19, 13, .8), rgba(18, 12, 8, .88)), url(../assets/ui/kit/leather_tile.png); background-size: 100% 100%, 200px 200px; }
 /* 잉크 얼룩 — 신문 */
-.np-smudge { background: url(../assets/ui/kit/ink_blot.png) center / contain no-repeat; border-radius: 0; width: 76px; height: 68px; opacity: .22; filter: none; mix-blend-mode: multiply; image-rendering: pixelated; }
 /* 도장 — 마감 (원형 도장 테두리를 마스크로) */
 .ink-stamp { border: 0; border-radius: 0; padding: 14px 18px; background: none; }
 .ink-stamp::before { content: ''; position: absolute; inset: -6px -2px; background: currentColor; -webkit-mask: url(../assets/ui/kit/ink_stamp.png) center / 100% 100% no-repeat; mask: url(../assets/ui/kit/ink_stamp.png) center / 100% 100% no-repeat; opacity: .9; }
 /* 신문 모서리 — 눌러서 다음 쪽으로 (쪽 넘김) */
-.np-desk { position: relative; }
-.np-curl { position: absolute; right: 8px; bottom: 2px; width: 46px; height: 48px; padding: 0; border: 0; background: url(../assets/ui/kit/corner_curl.png) center / contain no-repeat; image-rendering: pixelated; filter: drop-shadow(-2px 3px 3px rgba(0, 0, 0, .45)); cursor: pointer; z-index: 6; transform-origin: 100% 100%; transition: transform .25s var(--ease-out); animation: curlHint 3.4s ease-in-out 2s infinite; }
-.np-curl:hover { transform: scale(1.22) rotate(-4deg); animation: none; }
-.np-curl:active { transform: scale(1.1); }
 @keyframes curlHint { 0%, 80%, 100% { transform: none; } 88% { transform: scale(1.14) rotate(-5deg); } }
 /* 밀랍 — 열어 본 편지는 갈라진 봉인 */
 .letter:not(.empty):not(.compose):not(.crow-guide)::after { background-image: url(../assets/ui/kit/seal_broken.png); width: 40px; height: 32px; right: 8px; top: 8px; transform: rotate(4deg); }
@@ -252,7 +225,6 @@
 .gold-spark { position: absolute; z-index: 31; width: 16px; height: 16px; margin: -8px 0 0 -8px; pointer-events: none; background: url(../assets/ui/kit/sparkle_gold.png) center / contain no-repeat; image-rendering: pixelated; opacity: 0; animation: goldSpark .8s ease-out var(--d, 0ms) forwards; }
 @keyframes goldSpark { 0% { opacity: 0; transform: translate(0, 0) scale(.2) rotate(0); } 25% { opacity: 1; transform: translate(calc(var(--dx) * .4), calc(var(--dy) * .4)) scale(var(--s, 1)) rotate(40deg); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.2) rotate(120deg); } }
 /* 날짜 카드 — 리본 위의 DAY */
-.cc-day { display: inline-block; min-width: 128px; padding: 12px 18px 16px; margin-bottom: 4px; background: url(../assets/ui/kit/ribbon_extra.png) center / 100% 100% no-repeat; image-rendering: pixelated; color: #ffe9d0; text-shadow: 0 1px 0 #3a0a10; letter-spacing: .14em; font-size: 12px; }
 /* 마감 — 매달린 놋쇠 간판 제목 */
 .closing-sheet > h2 { width: min(100%, 300px); min-height: 68px; margin: -4px auto 22px; padding: 22px 16px 10px; display: grid; place-items: center; background: url(../assets/ui/kit/sign_plaque.png) center / 100% 100% no-repeat; image-rendering: pixelated; font-size: 18px; color: #f0c878; transform-origin: 50% 0; animation: plaqueSwing 4.5s ease-in-out infinite alternate; }
 .closing-sheet > h2::after { display: none; }
@@ -290,8 +262,6 @@
 .rc-lm { border-radius: 0; box-shadow: inset 0 0 0 1px currentColor; background: rgba(0, 0, 0, .55); }
 .rc-miss { border-radius: 0; }
 /* 시세 배지 */
-.price-badge { border-radius: 0; border-width: 0; box-shadow: inset 0 0 0 1px currentColor, 0 1px 0 #000; font-family: var(--serif); background-color: rgba(0, 0, 0, .5); }
-.price-badge.pos { background-color: rgba(28, 46, 18, .7); } .price-badge.neg { background-color: rgba(60, 22, 14, .7); }
 .badge { border-radius: 0; font-family: var(--serif); box-shadow: 0 1px 0 #000; }
 .held-tag, .cell .trend, .cell .qty-badge, .tag { border-radius: 0; font-family: var(--serif); }
 .queue-tag { border: 6px solid transparent; border-image: url(../assets/ui/kit/btn_ghost_normal.png) 8 fill / 6px stretch; image-rendering: pixelated; background: none; padding: 0 5px; }
@@ -318,9 +288,7 @@
 }
 
 /* 가죽 바탕을 깔지 않는 곳 — 결말 두루마리는 종이 그림이 바탕 */
-.sheet.ending, .paper-sheet { background-image: none; }
-.np-curl { bottom: 4px; right: 6px; }
-.np { padding-bottom: 54px; }
+.sheet.ending{ background-image: none; }.np { padding-bottom: 54px; }
 .req-card { top: 64px; }
 
 /* 결말 선택지 — 장부에 손으로 적어 둔 줄 */
@@ -331,17 +299,10 @@
 .ending .end-choices .pbtn:active { transform: none; background-color: rgba(120, 80, 30, .2); }
 
 /* 도매상 — 아래 빈 자리에 촛불 · 잉크병 · 깃펜 */
-.prep-sheet { position: relative; }
-.prep-sheet::after { content: ''; position: sticky; display: block; left: 0; bottom: 6px; height: 74px; margin-top: 12px; pointer-events: none; opacity: .8;
-  background: url(../assets/ui/kit/candle.png) 6% 100% / auto 62px no-repeat, url(../assets/ui/kit/inkwell.png) 94% 100% / auto 56px no-repeat, url(../assets/ui/kit/quill.png) 82% 90% / auto 50px no-repeat; image-rendering: pixelated; }
-@media (max-height: 720px) { .prep-sheet::after { display: none; } }
+@media (max-height: 720px) {}
 
 @media (max-width: 430px) {
-  .page-bar .pbtn { min-width: 92px; }
-  .page-dots { gap: 3px; font-size: 13px; flex-wrap: nowrap; }
-  .page-dots span { padding: 0 3px; white-space: nowrap; }
-  .page-dots small { display: none; }
-}
+  .page-bar .pbtn { min-width: 92px; }}
 .mm-list::after { content: ''; display: block; height: 118px; margin-top: 18px; pointer-events: none;
   background: url(../assets/ui/kit/candle.png) 68% 100% / auto 62px no-repeat, url(../assets/ui/kit/crow_idle.png) 32% 100% / auto 92px no-repeat, radial-gradient(ellipse at 68% 70%, rgba(255, 170, 70, .25), transparent 46%);
   image-rendering: pixelated; animation: candleGlow 2.2s ease-in-out infinite; }
@@ -370,9 +331,7 @@
   .pill { font-size: 11.5px; padding: 0 2px; border-width: 5px; border-image-width: 5px; }
   .pill .ui-ico { width: 16px; height: 16px; }
   .pill.mute { min-width: 30px; }
-  .page-bar .pbtn { min-width: 76px; padding: 4px 6px; font-size: 12.5px; }
-  .page-dots { font-size: 11.5px; }
-  .ts-logo { width: min(74%, 250px); }
+  .page-bar .pbtn { min-width: 76px; padding: 4px 6px; font-size: 12.5px; }  .ts-logo { width: min(74%, 250px); }
   .sheet { padding: 8px 8px 10px; }
 }
 
@@ -400,4 +359,3 @@
 }
 
 /* 결말 종이: 우표가 제목 아래에 떠 있으므로, 글 다음 덩어리(그 뒤의 이야기 · 조건 · 선택지 …)는 우표 밑으로 내려 시작한다 */
-.ending > *:not(.ending-text):not(.ending-stamp) { clear: right; }
