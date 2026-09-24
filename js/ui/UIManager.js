@@ -3376,6 +3376,19 @@ WS.UI = (() => {
         setMenu('main');
         return;
       }
+      // 관리자 패널: Esc 메뉴의 음량 조절 바를 연 채 음량을 5%로 맞추고 비밀 문자열을 이어서 치면 열린다 (글자 사이 2초 안에). 닫기는 패널의 닫기 버튼
+      if (menu && menu.page === 'volume' && e.key.length === 1) {
+        const now = performance.now();
+        if (now - adminAt > 2000) adminBuf = '';
+        adminAt = now;
+        adminBuf = (adminBuf + e.key.toLowerCase()).slice(-ADMIN_CODE.length);
+        if (adminBuf === ADMIN_CODE && Math.round(WS.Sfx.volume * 100) === 5) {
+          adminBuf = '';
+          const el = document.getElementById('debug');
+          el.hidden = false;
+          renderDebug();
+        }
+      }
       if (menu) return;
       if ((ph === 'morning' || ph === 'prep') && !transitioning && !e.repeat) {
         const dir = ['>', '.', 'ArrowRight'].includes(e.key) ? 1 : ['<', ',', 'ArrowLeft'].includes(e.key) ? -1 : 0;
@@ -3383,19 +3396,6 @@ WS.UI = (() => {
           e.preventDefault();
           stepMorning(dir);
           return;
-        }
-      }
-      // 관리자 패널: 음량을 0으로 낮춘 뒤 비밀 문자열을 이어서 쳐야 열린다 (글자 사이 2초 안에). 닫기는 패널의 닫기 버튼
-      if (e.key.length === 1) {
-        const now = performance.now();
-        if (now - adminAt > 2000) adminBuf = '';
-        adminAt = now;
-        adminBuf = (adminBuf + e.key.toLowerCase()).slice(-ADMIN_CODE.length);
-        if (adminBuf === ADMIN_CODE && WS.Sfx.volume <= 0.001) {
-          adminBuf = '';
-          const el = document.getElementById('debug');
-          el.hidden = false;
-          renderDebug();
         }
       }
     });
