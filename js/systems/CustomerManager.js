@@ -493,7 +493,9 @@ WS.sys.Customers = (() => {
     const returners = WS.sys.Letters ? WS.sys.Letters.takeReturners() : [];
     const perDay = G().customersRange();
     // 달력 이벤트(장날·열병식·수확제·전염병)의 손님 수 보정 — 1일째와 튜토리얼 날은 건드리지 않는다
-    const cal = WS.sys.Calendar, bonus = cal && st.day > 1 && !G().isPlainDay() ? cal.crowdBonus() : 0, prefer = bonus ? cal.crowdFac() : null;
+    const cal = WS.sys.Calendar, live = st.day > 1 && !G().isPlainDay(), calBonus = cal && live ? cal.crowdBonus() : 0;
+    // 간판을 새로 단 가게는 하루 손님이 늘어난다 (data/shop.js sign.customers)
+    const bonus = calBonus + (live && WS.sys.Shop ? WS.sys.Shop.signCustomers() : 0), prefer = calBonus ? cal.crowdFac() : null;
     const target = st.day === 1 ? returners.length + fixed.length + extra.length
       : Math.max(U.randInt(...perDay) + bonus, returners.length + fixed.length + extra.length);
     const randoms = [];

@@ -5,7 +5,7 @@
 //   docs 서류함(인상서·규정집) / crow 창가의 까마귀(편지)
 // 아이템이 어느 자리에 놓이는지는 items.js 의 shelf 필드.
 //
-// 해금 순서: 1 무기 · 3 방어구 · 5 재료(광석+재료 자루) · 6 까마귀 · 7 물약 · 9 보석 · 11 서류함.
+// 해금 순서: 1 무기(첫날 밤 까마귀) · 3 방어구 · 5 재료(광석+재료 자루) · 7 물약 · 9 보석 · 11 서류함.
 //   special 은 날짜가 아니라 잠긴 궤짝 물건(shelf: 'special')을 처음 손에 넣는 순간 열린다.
 //
 // tutorialCustomers: 자리는 새벽에 저절로 열리지 않는다. 그날 대기열 맨 앞에 "튜토리얼 손님"이 서고,
@@ -47,8 +47,7 @@ WS.data.progress = {
     { id: 'tut_gem', day: 9, customer: 'obel_deposit', places: ['gem'], hint: '맡은 보석은 보석함에 들어간다' },
     // 경비대 전령이 인상서를 손으로 건넨다 → 서류함이 열리고 인상서가 서류함에 꽂힌다 (까마귀는 아직 없다)
     { id: 'tut_docs', day: 11, customer: 'guard_courier', places: ['docs'], posters: ['ratwhisker'], hint: '인상서를 받으면 서류함에 꽂힌다' },
-    // 6일째 둥지지기가 까마귀를 들여 준다 → 창가의 까마귀가 열리고 둥지지기의 안내장이 편지함에 꽂힌다 (인상서는 11일째 서류함이 열린 뒤에)
-    { id: 'tut_crow', day: 6, customer: 'crow_keeper', places: ['crow'], hint: '창가의 까마귀를 눌러 편지를 써 본다' },
+    // (까마귀는 첫날 영업 종료 뒤 튜토리얼에서 들어온다 — DayManager.closeShop 이 'crow' 를 열고 둥지지기의 안내장을 꽂는다. 인상서는 11일째 서류함이 열린 뒤에)
   ],
 
   schedule: [

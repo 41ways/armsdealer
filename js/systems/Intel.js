@@ -9,6 +9,7 @@ WS.sys.Intel = (() => {
   const W = k => WS.sys.World.get(k);
   const C = c => WS.sys.Conditions.check(c);
   const HIST_KEEP = 8;
+  const paperRead = d => !WS.sys.Shop || WS.sys.Shop.paperRead(d); // 신문을 받은 날의 기사만 정세에 쓴다 (구독 전엔 소식이 없다)
 
   // 지금 이 세력을 아는가: 처음부터 / 조건 / 그 세력 손님을 만났다 / 관련 기사가 신문에 나왔다
   // (아침에는 오늘 대기열이 이미 짜여 met 이 오늘이므로 어제까지 만난 손님만 센다 — 관계 서랍과 같은 규칙)
@@ -20,7 +21,7 @@ WS.sys.Intel = (() => {
     if (p.keys && p.keys.length) {
       const re = new RegExp(p.keys.join('|'));
       for (const d of Object.keys(st.newsArchive || {})) {
-        if (+d > st.day) continue;
+        if (+d > st.day || !paperRead(+d)) continue;
         if ((st.newsArchive[d] || []).some(n => !n.rumor && re.test(n.text || ''))) return true; // 소문 기사만으로는 알게 되지 않는다 (헛소문이 세력을 열어 주면 안 된다)
       }
     }
@@ -65,6 +66,12 @@ WS.sys.Intel = (() => {
   function reputation() {
     const v = W('reputation'), base = baseScore('_rep');
     return { v: Math.round(v * 10) / 10, delta: base === null ? null : Math.round((v - base) * 10) / 10 };
+  }
+  // 정보통: 왕국 우세도(왕국 세력의 힘 0~100 환산)와 5일 변화
+  function kingdomEdge() {
+    const p = D().powers.find(x => x.id === 'kingdom');
+    const n = numbers(p, scoreOf(p));
+    return { v: n.pct, delta: n.delta };
   }
   function relTone(varName) {
     if (!varName) return null;
@@ -111,7 +118,7 @@ WS.sys.Intel = (() => {
   // 최근 사건 연표: 신문에 실린 확인된 사건(key/big) 중 최근 것 n 줄
   function chronicle(n) {
     const st = S(), skip = D().chronicleSkip, out = [];
-    const days = Object.keys(st.newsArchive || {}).map(Number).filter(d => d <= st.day).sort((a, b) => b - a);
+    const days = Object.keys(st.newsArchive || {}).map(Number).filter(d => d <= st.day && paperRead(d)).sort((a, b) => b - a);
     for (const d of days) {
       for (const a of st.newsArchive[d] || []) {
         if (a.rumor || skip.includes(a.cat) || !(a.big || a.key)) continue;
@@ -135,5 +142,5 @@ WS.sys.Intel = (() => {
     };
   }
 
-  return { record, model, known, powerRow, reputation };
+  return { record, model, known, powerRow, reputation, kingdomEdge };
 })();

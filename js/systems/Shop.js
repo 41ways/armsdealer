@@ -1,5 +1,7 @@
-// 가게 물품(금화로 사는 것) · 달력 이벤트 · 밤 경비. 데이터: js/data/shop.js, 이벤트: js/data/events.js 의 cal_* 이벤트.
-//   state.upgrades = { reputationMap, calendar, sign, guard }   (구 저장본은 없음 = 전부 false — up() 가 채운다)
+// 가게 물품(까마귀 서신으로 사는 것) · 신문 구독 · 달력 이벤트 · 밤 경비. 데이터: js/data/shop.js, 이벤트: js/data/events.js 의 cal_* 이벤트.
+//   state.upgrades = { map, reputationMap, informant, calendar, sign, guard }   (구 저장본은 없음 = 전부 false — up() 가 채운다)
+//   state.subscribed / subSince   신문 구독 (구독하기 전엔 신문이 없다). 옛 저장본(shopV 없음)은 구독 중으로 친다 — migrate()
+//   state.paperDays = { 일: true }   신문이 실제로 문틈에 온 날 (정세·연표가 안 받은 신문의 소식을 알지 않게)
 //   state.calRoll  = { plague: 일, disaster: 일 }               판 시작 때 한 번 굴린 재난 날짜 (0 = 이번 판엔 없음). 달력이 없어도 그날엔 일어난다
 //   state.crowd    = [{ from, until, n, fac }]                  그날들의 손님 수 보정 (CustomerManager.buildQueue) — n<0 이면 줄어든다
 //   state.marketMods = [{ until, mult, match }]                 며칠 동안의 시세 보정 (Market.mult → Calendar.priceMult)
@@ -8,7 +10,8 @@
 WS.sys.Shop = (() => {
   const S = () => WS.Game.state;
   const D = () => WS.data.shop;
-  const KEYS = ['reputationMap', 'calendar', 'sign', 'guard'];
+  const KEYS = ['map', 'reputationMap', 'informant', 'calendar', 'sign', 'guard'];
+  const SHOP_V = 2;
 
   function up() {
     const st = S();
@@ -18,27 +21,80 @@ WS.sys.Shop = (() => {
   }
   const owned = id => !!up()[id];
 
-  // 진열: [{ id, name, icon, cost, desc, tag, owned, ok, why }]
+  // 옛 저장본 (GameManager.continueGame): 예전엔 지도 · 정세가 기본, 신문도 그냥 왔다 — 그대로 이어 준다
+  function migrate(st) {
+    if (st.shopV >= SHOP_V) return;
+    st.shopV = SHOP_V;
+    const u = st.upgrades || (st.upgrades = {});
+    u.map = true;
+    st.legacyIntel = true;
+    if (st.subscribed === undefined) { st.subscribed = true; st.subSince = 1; }
+    st.paperDays = {}; // 옛 저장본은 지난 신문을 모두 받은 것으로
+    for (let d = 1; d <= (st.day || 1); d++) st.paperDays[d] = true;
+  }
+  const newGameState = st => { st.shopV = SHOP_V; st.subscribed = false; st.subSince = 0; st.paperDays = {}; };
+
+  // 대륙 정세 쪽(4쪽)이 열려 있는가: 평판지 · 정보통, 또는 옛 저장본
+  const intelPage = () => owned('reputationMap') || owned('informant') || !!S().legacyIntel;
+
+  // ── 신문 구독 ──
+  const P = () => D().paper;
+  const subscribed = () => !!S().subscribed;
+  // 오늘 아침 신문이 왔는가 (구독 신청한 다음 날부터)
+  const paperComes = () => subscribed() && S().day >= (S().subSince || 2);
+  const paperRead = day => !S().paperDays || !!S().paperDays[day];
+  function notePaper() { const st = S(); if (st.paperDays && paperComes()) st.paperDays[st.day] = true; }
+  function subscribe() {
+    const st = S();
+    if (subscribed()) return { ok: false, msg: '이미 구독 중이오.' };
+    st.subscribed = true;
+    st.subSince = st.day + 1;
+    return { ok: true, msg: `${P().name} 구독을 신청했다. 내일 아침부터 신문이 온다 (하루 ${P().fee}G).` };
+  }
+  function unsubscribe() {
+    if (!subscribed()) return { ok: false, msg: '구독 중이 아니오.' };
+    S().subscribed = false;
+    return { ok: true, msg: `${P().name} 구독을 멈췄다.` };
+  }
+  // 마감 정산 (DayManager.closeShop): 신문이 온 날은 구독료를 낸다. 금고가 모자라면 그날 끊긴다
+  function settlePaper() {
+    const st = S();
+    if (!subscribed() || st.day < (st.subSince || 2)) return 0;
+    const f = P().fee;
+    if (st.gold >= f) {
+      st.gold -= f;
+      if (st.today) st.today.paper = (st.today.paper || 0) + f;
+      return f;
+    }
+    st.subscribed = false;
+    st.paperLapsed = st.day;
+    return 0;
+  }
+
+  // 진열: [{ id, name, icon, cost, desc, tag, owned, pending, ok, why }]
   function goods() {
     const st = S();
+    const pend = (st.letters && st.letters.shopOrders) || [];
     return D().goods.map(g => {
       const have = owned(g.id);
+      const wait = pend.some(o => o.id === g.id);
       const short = st.gold < g.cost;
-      return { ...g, owned: have, ok: !have && !short, why: have ? '' : short ? `금화가 ${g.cost}G는 있어야 한다 (지금 ${st.gold}G)` : '' };
+      return { ...g, owned: have, pending: wait, ok: !have && !wait && !short, why: have ? '이미 들였소.' : wait ? '주문한 물건이 오는 중이오.' : short ? `금화가 ${g.cost}G는 있어야 한다 (지금 ${st.gold}G)` : '' };
     });
   }
 
-  function buy(id) {
-    const st = S();
-    const g = goods().find(x => x.id === id);
-    if (!g) return { ok: false, msg: '그런 물품은 없다.' };
-    if (g.owned) return { ok: false, msg: '이미 샀다.' };
-    if (!g.ok) return { ok: false, msg: g.why };
-    st.gold -= g.cost;
-    if (st.today) st.today.spend += g.cost;
+  // 물건이 도착했다 (Letters.deliverShop) — 효과를 적용한다
+  function grant(id) {
+    const g = D().goods.find(x => x.id === id);
+    if (!g || owned(id)) return null;
     up()[id] = true;
-    if (id === 'sign' && g.rep) WS.sys.World.add('reputation', g.rep);
-    return { ok: true, msg: `${g.name}을(를) 들였다. −${g.cost}G`, good: g };
+    if (g.rep) WS.sys.World.add('reputation', g.rep);
+    return g;
+  }
+  // 간판 덕에 늘어난 손님 수 (CustomerManager.buildQueue)
+  function signCustomers() {
+    const g = D().goods.find(x => x.id === 'sign');
+    return owned('sign') && g ? g.customers || 0 : 0;
   }
 
   // ───────── 밤 경비 ─────────
@@ -77,7 +133,7 @@ WS.sys.Shop = (() => {
   const guardLine = knockId => (G().lines[knockId] || G().lines.default);
   const guardLabel = () => G().who;
 
-  return { up, owned, goods, buy, guarded, hire, fire, settleWage, guardLine, guardLabel };
+  return { up, owned, goods, grant, guarded, hire, fire, settleWage, guardLine, guardLabel, migrate, newGameState, intelPage, subscribed, paperComes, paperRead, notePaper, subscribe, unsubscribe, settlePaper, signCustomers };
 })();
 
 // ───────── 달력 ─────────

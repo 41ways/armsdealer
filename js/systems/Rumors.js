@@ -80,7 +80,8 @@ WS.sys.Rumors = (() => {
   }
 
   // 까마귀 정보상에게 물어볼 수 있는 소문: 아직 정정·확인이 안 났고, 진위를 못 알아냈고, 의뢰 중이 아닌 것
-  const askable = () => entries().filter(e => open(e) && e.known !== 'true' && e.known !== 'false' && !e.inquiry).map(e => ({ id: e.id, day: e.day, text: def(e.id).text }));
+  const readDay = d => !WS.sys.Shop || WS.sys.Shop.paperRead(d); // 신문을 받지 않은 날의 소문은 모른다
+  const askable = () => entries().filter(e => readDay(e.day) && open(e) && e.known !== 'true' && e.known !== 'false' && !e.inquiry).map(e => ({ id: e.id, day: e.day, text: def(e.id).text }));
   function ask(id) {
     const e = entries().find(x => x.id === id);
     if (!e || !open(e) || e.inquiry) return false;
@@ -101,7 +102,7 @@ WS.sys.Rumors = (() => {
   // ───────── 장부(정세 쪽)에 보여 줄 소문 목록 — 새것부터. status: open | asked | unsure | true | false ─────────
   //   by: 어떻게 알았나 ('news' 정정·확인 기사 / 'crow' 정보상). 열려 있는 소문의 진위는 여기서 새지 않는다
   function ledger(limit) {
-    return entries().slice().reverse().slice(0, limit || 99).map(e => {
+    return entries().filter(e => readDay(e.day)).reverse().slice(0, limit || 99).map(e => {
       const d = def(e.id) || {};
       let status = 'open', by = null;
       if (e.done) { status = d.truth ? 'true' : 'false'; by = 'news'; }
