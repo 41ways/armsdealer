@@ -1350,3 +1350,4 @@ body.over-customer, body.over-customer #ui { cursor: url(../assets/ui/cursor.png
 #debug h5 { margin: 8px 0 2px; color: #e0c070; font-size: 11px; }
 #debug h5 small { color: #7a9a7a; font-weight: 400; }
 #debug tr.ok td { color: #ffe08a; }
+#debug button { font: inherit; margin: 1px 0; padding: 0 5px; background: #1c2a1c; color: #9f9; border: 1px solid #385; border-radius: 3px; cursor: pointer; }

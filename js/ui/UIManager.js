@@ -2479,6 +2479,13 @@ WS.UI = (() => {
   }
 
   const ADMIN_CODE = 'ashes-of-kings';
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('#debug [data-unlock]');
+    if (!b) return;
+    const id = b.dataset.unlock, EL = WS.sys.EndingLog;
+    if (id === '*all') EL.unlockAll(); else if (id === '*none') EL.clear(); else EL.set(id, !EL.has(id));
+    renderDebug();
+  });
   let adminBuf = '', adminAt = 0;
   function renderDebug() {
     const el = document.getElementById('debug');
@@ -2486,11 +2493,13 @@ WS.UI = (() => {
     const st = S();
     const C = WS.sys.Conditions, safe = w => { try { return !!C.check(w); } catch (e) { return false; } };
     const rels = Object.entries(WS.data.worldVars).filter(([k]) => k.startsWith('rel_'));
+    const EL = WS.sys.EndingLog;
     let first = null;
     const ends = WS.data.endings.map(e => { const ok = safe(e.when); if (ok && !first) first = e.id; return [e, ok]; });
     el.innerHTML = `<b>ADMIN</b>
       <h5>Relationship</h5><table>${rels.map(([k, d]) => `<tr><td>${d.label}</td><td>${U.round1(st.world[k])}</td></tr>`).join('')}</table>
-      <h5>Endings <small>(지금 끝나면 ▶)</small></h5><table>${ends.map(([e, ok]) => `<tr class="${ok ? 'ok' : ''}"><td>${e.id === first ? '▶ ' : ''}${e.title || e.id}</td><td>${ok ? '충족' : '-'}</td></tr>`).join('')}</table>
+      <h5>Endings <small>(지금 끝나면 ▶)</small></h5><table>${ends.map(([e, ok]) => `<tr class="${ok ? 'ok' : ''}"><td>${e.id === first ? '▶ ' : ''}${e.title || e.id}</td><td>${ok ? '충족' : '-'}</td><td><button data-unlock="${e.id}">${EL.has(e.id) ? '해금됨' : '해금'}</button></td></tr>`).join('')}</table>
+      <button data-unlock="*all">전부 해금</button> <button data-unlock="*none">전부 잠금</button>
       <h5>Flags</h5><div>${Object.keys(st.flags).join(', ') || '-'}</div>
       <h5>Scheduled</h5><div>${st.scheduled.map(x => `${x.event}@D${x.day}`).join(', ') || '-'}</div>`;
   }
