@@ -603,7 +603,7 @@ button { font: inherit; color: inherit; }
 .seal-ref.on { border-color: var(--accent); background: rgba(255,208,112,.16); }
 
 /* ── 디버그 ── */
-#debug { position: fixed; left: 8px; top: 8px; z-index: 50; background: rgba(0,0,0,.9); color: #9f9; font: 11px/1.4 Consolas, monospace; padding: 8px; max-height: 80vh; overflow: auto; max-width: 300px; }
+#debug { position: fixed; left: 8px; top: 8px; z-index: 10000; background: rgba(0,0,0,.9); color: #9f9; font: 11px/1.4 Consolas, monospace; padding: 8px; max-height: 80vh; overflow: auto; max-width: 300px; }
 
 /* ── 픽셀 UI 아이콘 ── */
 .ui-ico { width: 18px; height: 18px; image-rendering: auto; object-fit: contain; vertical-align: -3px; margin-right: 4px; }
