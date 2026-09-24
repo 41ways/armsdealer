@@ -488,7 +488,7 @@ WS.UI = (() => {
       </div>`;
     return `${hud()}
     ${book('prep', left, right)}
-    ${pending ? '<div class="cart-warn" role="note">거래 진행을 누르지 않은 주문은 취소된다</div>' : ''}
+    <div class="cart-warn" role="note" ${pending ? '' : 'style="visibility:hidden"'}>거래 진행을 누르지 않은 주문은 취소된다</div>
     ${pageBar('prep')}`;
   }
   // 주문서 확정 — 산 것 · 판 것을 한 줄로 남기고 동전 소리
@@ -587,39 +587,11 @@ WS.UI = (() => {
     // 거리: 문 달린 집
     street: ic('<path d="M6 25 L24 9 L42 25"/><path d="M11 22 V41 H37 V22" fill="rgba(255,246,214,.55)"/><path d="M20 41 V29 a4 4 0 0 1 8 0 V41"/><path d="M31 16 V11 H35 V19"/><path d="M5 41 H43"/>'),
   };
-  // 붓으로 거칠게 그린 굽은 붉은 화살표 (책 속 이전·다음 쪽 · 신문 1면↔2면). 오른쪽을 가리키게 그려 두고 이전 쪽은 CSS 로 뒤집는다.
-  // 굽은 중심선(3차 Bézier)을 따라 굵기가 변하는 붓획 덩어리를 만들고, 거친 가장자리(feTurbulence 변위) · 마른 붓 자국 · 꼬리의 옅어짐을 얹는다.
-  const BRUSH_ARROW = (() => {
-    const P = [[7, 52], [34, 70], [74, 63], [102, 31]];
-    const bez = t => { const u = 1 - t; return [0, 1].map(k => u * u * u * P[0][k] + 3 * u * u * t * P[1][k] + 3 * u * t * t * P[2][k] + t * t * t * P[3][k]); };
-    const tan = t => { const u = 1 - t; const d = [0, 1].map(k => 3 * u * u * (P[1][k] - P[0][k]) + 6 * u * t * (P[2][k] - P[1][k]) + 3 * t * t * (P[3][k] - P[2][k])); const L = Math.hypot(d[0], d[1]); return [d[0] / L, d[1] / L]; };
-    const N = 28, up = [], dn = [], mid = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N, c = bez(t), d = tan(t), n = [-d[1], d[0]];
-      const w = 1.4 + 6.4 * Math.min(1, t / 0.4) * (1 - 0.3 * t) + Math.sin(t * 19) * 0.45; // 굵기: 붓끝에서 시작해 부풀었다가 머리 쪽에서 조금 잦아든다 (살짝 울퉁불퉁)
-      up.push([c[0] + n[0] * w, c[1] + n[1] * w]); dn.push([c[0] - n[0] * w, c[1] - n[1] * w]); mid.push(c);
-    }
-    const f = p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
-    const shaft = `M${f(up[0])} ${up.slice(1).map(p => 'L' + f(p)).join(' ')} ${dn.slice().reverse().map(p => 'L' + f(p)).join(' ')}Z`;
-    const e = bez(1), d = tan(1), n = [-d[1], d[0]];
-    const pt = (a, b) => [e[0] + d[0] * a + n[0] * b, e[1] + d[1] * a + n[1] * b];
-    const head = `M${f(pt(-3, 14))} L${f(pt(24, 1))} L${f(pt(-4, -14))} L${f(pt(-9, 0))}Z`;
-    const streak = (off, dash, w, col, op) => `<path d="M${mid.map((c, i) => { const dd = tan(i / N), nn = [-dd[1], dd[0]]; return f([c[0] + nn[0] * off, c[1] + nn[1] * off]); }).join(' L')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-dasharray="${dash}" stroke-linecap="round" opacity="${op}"/>`;
-    return dir => `<svg class="brush-arw" viewBox="0 0 124 80" aria-hidden="true">
-      <defs>
-        <filter id="ba-r-${dir}" x="-8%" y="-15%" width="118%" height="135%"><feTurbulence type="fractalNoise" baseFrequency="0.07 0.12" numOctaves="2" seed="${dir.length + 4}" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4.2"/></filter>
-        <linearGradient id="ba-f-${dir}" gradientUnits="userSpaceOnUse" x1="4" y1="0" x2="46" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff"/></linearGradient>
-        <mask id="ba-m-${dir}" maskUnits="userSpaceOnUse" x="0" y="0" width="124" height="80"><rect width="124" height="80" fill="url(#ba-f-${dir})"/></mask>
-      </defs>
-      <g filter="url(#ba-r-${dir})" stroke-linejoin="round">
-        <g mask="url(#ba-m-${dir})">
-          <path d="${shaft}" fill="#a91f14" stroke="#4a0f08" stroke-width="2.4"/>
-          ${streak(-3.6, '16 5 9 4 26 7', 1.2, '#e2705a', .42)}${streak(-0.6, '10 4 22 8 12 5', 1.1, '#e58a70', .34)}${streak(2.6, '20 6 8 5 18 6', 1.3, '#3c0a05', .3)}${streak(4.6, '9 7 15 5 12 9', 1, '#f0a890', .25)}
-        </g>
-        <path d="${head}" fill="#b8271a" stroke="#4a0f08" stroke-width="2.4"/>
-        <path d="M${f(pt(-2, 8))} L${f(pt(15, 1.5))} L${f(pt(-1, -2))}" fill="none" stroke="#e58a70" stroke-width="1.2" stroke-linecap="round" opacity=".5"/>
-      </g></svg>`;
-  })();
+  // 굽은 초승달 모양의 굵은 화살표 (책 속 이전·다음 쪽 · 신문 1면↔2면). 오른쪽을 가리키게 그려 두고 이전 쪽은 CSS 로 뒤집는다.
+  const BRUSH_ARROW = dir => `<svg class="brush-arw" viewBox="0 0 124 80" aria-hidden="true">
+      <path d="M4 44 C34 70 78 68 101 43 L105 54 L121 5 L74 25 L90 32 C66 54 34 54 4 44Z" fill="#1c130d" stroke="#f0d9a0" stroke-width="2.2" stroke-linejoin="round" paint-order="stroke"/>
+      <path d="M14 46 C40 58 68 56 88 38" fill="none" stroke="#6b4a2a" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+    </svg>`;
   function pageBar(page) {
     const pages = morningPages();
     const i = pages.indexOf(page);
@@ -2506,11 +2478,13 @@ WS.UI = (() => {
     });
   }
 
+  const ADMIN_CODE = 'ashes-of-kings';
+  let adminBuf = '', adminAt = 0;
   function renderDebug() {
     const el = document.getElementById('debug');
     if (!el || el.hidden || !S()) return;
     const st = S();
-    el.innerHTML = `<b>DEBUG</b> (\` 로 닫기)<table>${Object.entries(WS.data.worldVars).map(([k, d]) => `<tr><td>${d.label}</td><td>${U.round1(st.world[k])}</td></tr>`).join('')}</table>
+    el.innerHTML = `<b>ADMIN</b><table>${Object.entries(WS.data.worldVars).map(([k, d]) => `<tr><td>${d.label}</td><td>${U.round1(st.world[k])}</td></tr>`).join('')}</table>
       <div>flags: ${Object.keys(st.flags).join(', ') || '-'}</div>
       <div>scheduled: ${st.scheduled.map(s => `${s.event}@D${s.day}`).join(', ') || '-'}</div>`;
   }
@@ -3335,10 +3309,18 @@ WS.UI = (() => {
           return;
         }
       }
-      if (e.key === '`') {
-        const el = document.getElementById('debug');
-        el.hidden = !el.hidden;
-        renderDebug();
+      // 관리자 패널: 한 키가 아니라 비밀 문자열을 이어서 쳐야 열린다 (2초 안에)
+      if (e.key.length === 1) {
+        const now = performance.now();
+        if (now - adminAt > 2000) adminBuf = '';
+        adminAt = now;
+        adminBuf = (adminBuf + e.key.toLowerCase()).slice(-ADMIN_CODE.length);
+        if (adminBuf === ADMIN_CODE) {
+          adminBuf = '';
+          const el = document.getElementById('debug');
+          el.hidden = !el.hidden;
+          renderDebug();
+        }
       }
     });
     render();
