@@ -2495,8 +2495,10 @@ WS.UI = (() => {
     });
   }
 
-  const ADMIN_CODE = 'ashes-of-kings';
+  const ADMIN_CODE = 'always';
   document.addEventListener('click', e => {
+    const cl = e.target.closest && e.target.closest('#debug [data-close]');
+    if (cl) { document.getElementById('debug').hidden = true; return; }
     const b = e.target.closest && e.target.closest('#debug [data-unlock]');
     if (!b) return;
     const id = b.dataset.unlock, EL = WS.sys.EndingLog;
@@ -2513,7 +2515,7 @@ WS.UI = (() => {
     const EL = WS.sys.EndingLog;
     let first = null;
     const ends = WS.data.endings.map(e => { const ok = safe(e.when); if (ok && !first) first = e.id; return [e, ok]; });
-    el.innerHTML = `<b>ADMIN</b>
+    el.innerHTML = `<b>ADMIN</b> <button data-close="1">닫기</button>
       <h5>Relationship</h5><table>${rels.map(([k, d]) => `<tr><td>${d.label}</td><td>${U.round1(st.world[k])}</td></tr>`).join('')}</table>
       <h5>Endings <small>(지금 끝나면 ▶)</small></h5><table>${ends.map(([e, ok]) => `<tr class="${ok ? 'ok' : ''}"><td>${e.id === first ? '▶ ' : ''}${e.title || e.id}</td><td>${ok ? '충족' : '-'}</td><td><button data-unlock="${e.id}">${EL.has(e.id) ? '해금됨' : '해금'}</button></td></tr>`).join('')}</table>
       <button data-unlock="*all">전부 해금</button> <button data-unlock="*none">전부 잠금</button>
@@ -3385,16 +3387,16 @@ WS.UI = (() => {
           return;
         }
       }
-      // 관리자 패널: 한 키가 아니라 비밀 문자열을 이어서 쳐야 열린다 (2초 안에)
+      // 관리자 패널: 음량을 0으로 낮춘 뒤 비밀 문자열을 이어서 쳐야 열린다 (글자 사이 2초 안에). 닫기는 패널의 닫기 버튼
       if (e.key.length === 1) {
         const now = performance.now();
         if (now - adminAt > 2000) adminBuf = '';
         adminAt = now;
         adminBuf = (adminBuf + e.key.toLowerCase()).slice(-ADMIN_CODE.length);
-        if (adminBuf === ADMIN_CODE) {
+        if (adminBuf === ADMIN_CODE && WS.Sfx.volume <= 0.001) {
           adminBuf = '';
           const el = document.getElementById('debug');
-          el.hidden = !el.hidden;
+          el.hidden = false;
           renderDebug();
         }
       }
