@@ -1347,3 +1347,6 @@ body.over-customer, body.over-customer #ui { cursor: url(../assets/ui/cursor.png
 .grid9.theme-stash .cell.stash-note { justify-content: center; background: #1a0f0c; }
 .grid9.theme-stash .cell.stash-note b { color: #ffb08a; }
 .held-tag.stolen-tag { background: #7a1e12; color: #ffe0d4; border-color: #d0603a; }
+#debug h5 { margin: 8px 0 2px; color: #e0c070; font-size: 11px; }
+#debug h5 small { color: #7a9a7a; font-weight: 400; }
+#debug tr.ok td { color: #ffe08a; }
