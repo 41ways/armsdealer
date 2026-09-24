@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0908">
+  <title>Next!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Nanum+Myeongjo:wght@700;800&family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/kit.css">
+  <link rel="stylesheet" href="css/round2.css">
+  <link rel="stylesheet" href="css/round3.css">
+  <link rel="stylesheet" href="css/world.css">
+  <link rel="stylesheet" href="css/shop.css">
+</head>
+<body>
+  <div id="stage" data-phase="loading">
+    <canvas id="scene" width="144" height="256"></canvas>
+    <div id="ui"><div class="pre-load" aria-hidden="true"><i></i><span>불러오는 중</span></div></div>
+    <div id="curtain" aria-hidden="true"><i class="cu cu-l"></i><i class="cu cu-r"></i><div class="curtain-card"></div></div>
+  </div>
+  <div id="debug" hidden></div>
+
+  <!-- 코어 -->
+  <script src="js/core/util.js"></script>
+  <script src="js/core/Sfx.js"></script>
+  <script src="js/core/Boot.js"></script>
+  <!-- 데이터 (새 콘텐츠는 여기에만 추가하면 된다) -->
+  <script src="js/data/config.js"></script>
+  <script src="js/data/shop.js"></script>
+  <script src="js/data/items.js"></script>
+  <script src="js/data/categories.js"></script>
+  <script src="js/data/factions.js"></script>
+  <script src="js/data/customers.js"></script>
+  <script src="js/data/events.js"></script>
+  <script src="js/data/news.js"></script>
+  <script src="js/data/endings.js"></script>
+  <script src="js/data/ending_art.js"></script>
+  <script src="js/data/looks.js"></script>
+  <script src="js/data/sheets.js"></script>
+  <script src="js/data/letters.js"></script>
+  <script src="js/data/progress.js"></script>
+  <script src="js/data/stories.js"></script>
+  <script src="js/data/smuggling.js"></script>
+  <script src="js/data/epilogues.js"></script>
+  <script src="js/data/remarks.js"></script>
+  <script src="js/data/rumors.js"></script>
+  <script src="js/data/intel.js"></script>
+  <script src="js/data/decor.js"></script>
+  <!-- 시스템 -->
+  <script src="js/GameManager.js"></script>
+  <script src="js/systems/Conditions.js"></script>
+  <script src="js/systems/EventManager.js"></script>
+  <script src="js/systems/World.js"></script>
+  <script src="js/systems/Progress.js"></script>
+  <script src="js/systems/InventoryLayout.js"></script>
+  <script src="js/systems/NewsManager.js"></script>
+  <script src="js/systems/CustomerManager.js"></script>
+  <script src="js/systems/TransactionManager.js"></script>
+  <script src="js/systems/Stash.js"></script>
+  <script src="js/systems/DocCheck.js"></script>
+  <script src="js/systems/DayManager.js"></script>
+  <script src="js/systems/Letters.js"></script>
+  <script src="js/systems/Shop.js"></script>
+  <script src="js/systems/Rumors.js"></script>
+  <script src="js/systems/Intel.js"></script>
+  <script src="js/systems/EndingLog.js"></script>
+  <script src="js/systems/Decor.js"></script>
+  <!-- 렌더링 / UI -->
+  <script src="js/render/Pixel.js"></script>
+  <script src="js/render/Sprites.js"></script>
+  <script src="js/render/DecorLayer.js"></script>
+  <script src="js/render/Scene.js"></script>
+  <script src="js/render/Cinematic.js"></script>
+  <script src="js/ui/WorldView.js"></script>
+  <script src="js/ui/Emblem.js"></script>
+  <script src="js/ui/UIManager.js"></script>
+  <script>
+    WS.Game.toTitle();
+    WS.UI.init();
+    WS.UI.boot();
+  </script>
+</body>
+</html>

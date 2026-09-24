@@ -1,0 +1,52 @@
+/* ============================================================
+   가게 물품(도매상 맨 끝) · 평판지 숫자 · 달력 · 경비 밤 장면 — js/systems/Shop.js · js/ui/WorldView.js
+   양피지(.book)의 잉크색 변수(--bk-ink 등)를 그대로 쓴다.
+   ============================================================ */
+
+/* ── 도매상 끝: 가게 물품 ── */
+.shop-goods { margin: 6px 0 4px; padding-top: 4px; border-top: 3px double var(--bk-rule); }
+.shop-goods .bk-h { margin: 6px 0 6px; }
+.sg-card { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; padding: 8px 8px; margin: 0 0 6px;
+  border: 1px solid var(--bk-rule); border-radius: 3px; background: rgba(255, 246, 214, .3); }
+.sg-ico { font-style: normal; font-size: 26px; text-align: center; line-height: 1; }
+.sg-main { min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; }
+.sg-main b { font-size: calc(16px * var(--ui, 1)); color: var(--bk-ink); }
+.sg-tag { padding: 0 6px; border: 1px solid var(--bk-rule); border-radius: 9px; font-family: var(--btn-font); font-size: 11px; font-weight: 700; color: var(--bk-dim); }
+.sg-main small { flex: 1 0 100%; margin-top: 2px; font-size: calc(12.5px * var(--ui, 1)); line-height: 1.4; color: var(--bk-dim); }
+.sg-buy { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; max-width: 168px; }
+.sg-buy .pbtn { min-height: 38px; padding: 4px 12px; font-size: calc(14px * var(--ui, 1)); white-space: nowrap; }
+.sg-buy .pbtn b { margin-left: 4px; }
+.sg-why { font-size: 11.5px; line-height: 1.3; text-align: right; color: var(--paper-neg, #8a2a1a); }
+.sg-card.owned { background: rgba(120, 150, 80, .14); border-style: dashed; }
+.sg-done { color: var(--paper-pos, #3f6a2a); white-space: nowrap; }
+.sg-card.fresh { animation: sgFlash .7s ease-out both; }
+@keyframes sgFlash { from { background: rgba(200, 152, 31, .5); } }
+@media (max-width: 520px) {
+  .sg-card { grid-template-columns: 30px minmax(0, 1fr); }
+  .sg-buy { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: flex-end; max-width: none; }
+  .sg-why { text-align: left; flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .sg-card.fresh { animation: none; } }
+
+/* ── 대륙 정세: 평판지 숫자 ── */
+.wl-row.has-num { grid-template-areas: "name rel word" "bar bar num"; }
+.wl-num { grid-area: num; display: flex; align-items: baseline; justify-content: flex-end; gap: 4px; font-family: var(--btn-font); font-size: 12px; color: var(--bk-dim); }
+.wl-num b { font-size: 14px; color: var(--bk-ink); }
+.wl-d { font-style: normal; font-size: 11.5px; font-weight: 700; }
+.wl-d.up { color: #9a2a1a; } .wl-d.down { color: #3d5f86; } .wl-d.flat { color: var(--bk-dim); }
+.wl-rel b { font-weight: 800; }
+.wl-rep { margin: 0 0 6px; padding: 4px 8px; border: 1px dashed var(--bk-rule); border-radius: 3px; text-align: center; font-size: calc(14px * var(--ui, 1)); color: var(--bk-ink); }
+.wl-rep b { font-size: 1.15em; }
+.wl-rep small { margin-left: 8px; font-size: 11px; color: var(--bk-dim); }
+
+/* ── 달력 ── */
+.wc-cal { margin: 4px 0 0; padding: 0; list-style: none; }
+.wc-cal li { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 4px 2px; border-bottom: 1px dotted var(--bk-rule); font-size: calc(13.5px * var(--ui, 1)); line-height: 1.4; }
+.wc-cal b { color: var(--bk-ink); white-space: nowrap; }
+.wc-cal b small { margin-left: 2px; font-size: 11px; color: var(--bk-dim); }
+.wc-cal li.now { background: linear-gradient(transparent 60%, rgba(200, 152, 31, .25) 60%); }
+.wc-omen { margin: 6px 0 0; padding: 4px 8px; border-left: 3px solid #6d7f96; font-style: italic; font-size: calc(13px * var(--ui, 1)); color: #3f5062; }
+
+/* ── 밤: 경비가 문틈으로 살핀다 ── */
+.nk-who.nk-guard { margin-top: 8px; color: #c8a13a; }
+.nk-line.nk-guard-line { color: #e6d6ae; }
