@@ -379,7 +379,7 @@ WS.data.factions = {
   // 마법사 길드: 무기엔 관심 없다. 마력 결정·요정 가루·용비늘·별조각 같은 "연구 재료"에 돈을 아끼지 않는다.
   // 가게에 진귀품이 있으면 귀신같이 알고 찾아온다(when: has). 연구가 쌓이면 골렘·차원문으로 이어진다.
   mage: {
-    name: '마법사 길드', fullName: '은빛 탑 마법사 길드', icon: '🪄', color: '#7a6ad8', race: '인간',
+    name: '마법사 길드', fullName: '은빛 탑 마법사 길드', icon: '🧙', color: '#7a6ad8', race: '인간',
     payMult: 1.2, haggle: { tolerance: 0.15, patience: 2 },
     payScale: { arcane_power: 0.008 },
     visit: { base: 0.2, relScale: 0.06, var: 'rel_mage', scaleVars: { arcane_power: 0.02 } },

@@ -187,20 +187,6 @@ WS.UI = (() => {
     return hit ? hit[1] : (NP_SPOT_CAT[n.cat] || 'court');
   };
 
-  function marketBox() {
-    const st = S();
-    const ids = WS.sys.Market.supplyList().slice(0, 5);
-    if (!ids.length) return '';
-    const rows = ids.map(id => {
-      const now = WS.sys.Market.price(id);
-      const prev = st.prevPrices && st.prevPrices[id];
-      const pct = prev ? Math.round((now / prev - 1) * 100) : 0;
-      const mv = pct > 0 ? `<i class="up">▲${pct}</i>` : pct < 0 ? `<i class="down">▼${-pct}</i>` : '<i>—</i>';
-      return `<tr><td>${U.esc(item(id).name)}</td><td>${now}G</td><td>${mv}</td></tr>`;
-    }).join('');
-    return `<div class="np-box"><h5>오늘의 장터 시세</h5><table class="np-market">${rows}</table></div>`;
-  }
-
   // 아침 거리 — 새벽빛이 걷히고 아침이 오면 신문 → 도매상 순으로 넘긴다
   function streetPage() {
     endReached = false; doorReady = false; ltIdx = 0; // 새 아침 — 장부 끝까지 넘겨 책이 닫혀야 문이 열린다
@@ -515,7 +501,6 @@ WS.UI = (() => {
   // 세로 화면의 신문은 1면 → 2면을 한 번 더 넘긴다 (npSide).
   let morningSub = null; // 'letters' | 'news' | 'ledger'
   let turnDir = '';      // 'from-right' | 'from-left' — 넘긴 방향 (책장 넘김 · 신문 넘김)
-  const PAGE_NAME = { street: '거리', letters: '서신', news: '신문', ledger: '장부', prep: '도매상' };
   function lettersToday() {
     const L = WS.sys.Letters;
     if (!L || (P() && !P().isUnlocked('crow'))) return [];
@@ -1121,122 +1106,6 @@ WS.UI = (() => {
   // 말풍선이 다 사라진 뒤 요구 쪽지가 들어오는 지연(ms, 음수면 이미 들어와 있음)
   const slipDelay = c => { const st = sayState(c); return st && !say.ask && !say.custom ? Math.round(st.left) : -9999; };
 
-  // 시세 대비 몇 % 인지 한눈에 보이는 배지
-  function priceBadge(diff) {
-    if (!diff) return `<span class="price-badge flat">시세와 같다</span>`;
-    const up = diff > 0;
-    return `<span class="price-badge ${up ? 'pos' : 'neg'}">${up ? '▲' : '▼'} 시세보다 ${up ? '+' : ''}${diff}%</span>`;
-  }
-
-  // 교환: 왼쪽 = 내가 넘길 물건, 오른쪽 = 손님이 내놓는 물건 (+웃돈)
-  function tradeStrip(c) {
-    const t = c.trade;
-    const T = WS.sys.Trade;
-    const mine = t.want.map(w => {
-      const have = WS.sys.Inventory.count(w.item);
-      return `<div class="trade-item">${ico(w.item, 'sm')}<span><b>${U.esc(item(w.item).name)} ×${w.qty}</b><small class="${have < w.qty ? 'neg' : 'muted'}"> 보유 ${have}</small></span></div>`;
-    }).join('');
-    const theirs = t.give.map(g => `<div class="trade-item">${ico(g.item, 'sm')}<span><b>${U.esc(item(g.item).name)} ×${g.qty}</b><small class="muted"> ${U.esc(item(g.item).rarity)}</small></span></div>`).join('');
-    const gold = t.gold ? `<div class="trade-gold ${t.gold > 0 ? 'pos' : 'neg'}">${t.gold > 0 ? '+ 웃돈 ' + t.gold : '− 내가 ' + -t.gold}G</div>` : '';
-    const giveV = T.sideValue(t.want), getV = T.sideValue(t.give) + t.gold;
-    const diff = giveV ? Math.round(((getV - giveV) / giveV) * 100) : 0;
-    return `<div class="deal trade">
-      <div class="trade-cols">
-        <div class="trade-side"><small class="muted">내가 줄 것</small>${mine}</div>
-        <div class="trade-arrow">⇄</div>
-        <div class="trade-side"><small class="muted">받을 것</small>${theirs}${gold}</div>
-      </div>
-      <div class="trade-sum"><span class="small muted">시세로 치면 줄 것 ${giveV}G · 받을 것 ${getV}G</span> ${priceBadge(diff)}</div>
-    </div>`;
-  }
-
-  // 구형(콘크리트 아이템) 요청: 판매(kind sell)·매입(kind buy, 구형) 공용
-  function dealStrip(c) {
-    const r = c.request;
-    const it = item(r.item);
-    const have = WS.sys.Inventory.count(r.item);
-    const market = WS.sys.Market.price(r.item);
-    const amount = c.kind === 'sell' ? r.price : r.offer;
-    const unit = Math.round(amount / r.qty);
-    const diff = Math.round(((unit - market) / market) * 100);
-    const lack = c.kind !== 'sell' && have < r.qty;
-    return `<div class="deal">
-      <div class="deal-main">
-        ${ico(r.item)}
-        <div class="deal-name"><b>${U.esc(it.name)} ×${r.qty}</b><span class="small ${lack ? 'neg' : 'muted'}">${c.kind === 'sell' ? '매입 제안' : '보유 ' + have + '개'}</span>${c.payNote ? `<span class="small neg">${U.esc(c.payNote)}</span>` : ''}</div>
-        <div class="deal-price"><b>${amount}G</b><span class="small muted">개당 ${unit}G · 시세 ${market}G</span>${priceBadge(diff)}</div>
-      </div>
-    </div>`;
-  }
-
-  // 신형(카테고리) 요청: 소분류별 대우(우대/보통/거절)를 나열
-  function findRepresentative(category, subtype) {
-    const entries = Object.entries(WS.data.items).filter(([, it]) => it.newCategory === category && (!subtype || it.subtype === subtype));
-    if (!entries.length) return null;
-    const plain = entries.find(([, it]) => !it.special) || entries[0];
-    return plain[0];
-  }
-
-  function categorySummary(c) {
-    const r = c.request;
-    const subs = WS.data.categories[r.category].subtypes;
-    const rows = Object.entries(subs).map(([sub, label]) => {
-      const repId = findRepresentative(r.category, sub);
-      if (!repId) return '';
-      const pref = r.preferSubtype === sub;
-      const payMult = pref ? (r.preferPay ?? 1) : (r.otherPay ?? 1);
-      const refused = !pref && ((r.refuseSubtypes || []).includes(sub) || payMult < 0.5);
-      const pct = Math.round((payMult - 1) * 100);
-      const pxText = refused ? '거절' : (pct === 0 ? '시세대로' : (pct > 0 ? `+${pct}% 웃돈` : `${pct}%`));
-      return `<div class="sum-row ${pref ? 'pref' : ''}"><div class="ic">${item(repId).icon}</div><div class="nm">${U.esc(label)}</div><div class="px">${U.esc(pxText)}</div></div>`;
-    }).join('');
-    // 마진은 왼쪽, 요구사항(무엇을 얼마나 우대·박대하는지)은 오른쪽
-    return `<div class="deal-2col">
-      <div class="deal-col-margin">${marginBoxHtml(marginInfo(c))}</div>
-      <div class="deal-col-req">
-        <div class="lbl">▾ ${U.esc(WS.data.categories[r.category].name)}에서 무엇을 내줄지 골라보기</div>
-        ${rows}
-      </div>
-    </div>`;
-  }
-
-  function marginBoxHtml(info) {
-    const loss = info.margin < 0;
-    return `<div class="margin-box ${loss ? 'loss' : ''}">
-      <div class="calc">받는 값 <b>${Math.round(info.got)}G</b> − 원가 <b>${Math.round(info.cost)}G</b></div>
-      <div class="result">마진 ${info.margin >= 0 ? '+' : ''}${Math.round(info.margin)}G</div>
-    </div>`;
-  }
-
-  // 마진 계산: 손님 kind·요청 형태(신형/구형)에 따라 "받는 값"과 "원가"를 구한다
-  function marginInfo(c) {
-    const T = WS.sys.Trade;
-    if (c.kind === 'trade') {
-      const t = c.trade;
-      const giveV = T.sideValue(t.want), getV = T.sideValue(t.give) + t.gold;
-      return { got: getV, cost: giveV, margin: getV - giveV };
-    }
-    const r = c.request;
-    if (c.kind === 'sell') {
-      const mv = WS.sys.Market.price(r.item) * r.qty;
-      return { got: mv, cost: r.price, margin: mv - r.price };
-    }
-    // 사러 온 손님 — 테이블에 올린 것 중 손님이 받아 갈 것만 계산 (비어 있으면 0)
-    const d = tableDeal(c);
-    return { got: d.got, cost: d.cost, margin: d.got - d.cost };
-  }
-
-  function dealSummary(c) {
-    if (c.kind === 'trade') return `${tradeStrip(c)}<div class="deal-sum">${marginBoxHtml(marginInfo(c))}</div>`;
-    const r = c.request;
-    if (r.category) return categorySummary(c);
-    // 마진 왼쪽, 요구사항(물건·수량·가격) 오른쪽
-    return `<div class="deal-2col">
-      <div class="deal-col-margin">${marginBoxHtml(marginInfo(c))}</div>
-      <div class="deal-col-req">${dealStrip(c)}</div>
-    </div>`;
-  }
-
   // ───────── 감정 확대경 (서류/인장 대조 미니게임) ─────────
   function magnifyOverlay(c) {
     const dc = c && c.docCheck;
@@ -1553,9 +1422,6 @@ WS.UI = (() => {
     (L && L.posters ? L.posters() : []).forEach(x => out.push({ act: 'poster', id: String(x.letterId), ic: '📜', ttl: `[인상서] ${x.title}`, sub: x.name }));
     return out;
   }
-
-  // 튜토리얼 손님이 가리키는 자리 (그 손님이 오면 열리고, 물건을 올릴 때까지 반짝인다)
-  const tutPlaces = c => (c && c.tutorial && c.status !== 'done' && !tray.length) ? [].concat(c.tutorial.place || c.tutorial.places || []) : [];
 
   function roomView(c) {
     const unread = WS.sys.Letters ? WS.sys.Letters.unreadCount() : 0;
@@ -1880,18 +1746,6 @@ WS.UI = (() => {
       ${tot}${hint}</div>`;
   }
 
-  // 새 자리가 열린 날 — 전 주인이 남긴 쪽지 (해금마다 한 장씩, 읽고 나면 다시 안 뜬다)
-  function tutorialNote() {
-    const t = P() && P().pendingTutorials()[0];
-    if (!t) return '';
-    return `<div class="tut-bg"></div>
-    <div class="tut-note" role="dialog" aria-label="${U.esc(t.title)}">
-      <h3>${U.esc(t.title)}</h3>
-      <ol>${t.steps.map(x => `<li>${U.esc(x)}</li>`).join('')}</ol>
-      <button class="pbtn primary" data-act="tut-ok" data-id="${U.esc(t.id)}">쪽지를 접어 둔다</button>
-    </div>`;
-  }
-
   function shop() {
     const c = WS.sys.Day.current();
     const waiting = WS.sys.Day.waiting().length;
@@ -2180,17 +2034,6 @@ WS.UI = (() => {
     render();
   }
 
-  // ───────── 엔딩 ─────────
-  // 그 뒤의 이야기 — 가게를 거쳐 간 사람들이 어떻게 되었는지 (Papers, Please 의 마지막 장처럼 한 줄씩)
-  // WS.data.epilogues = [{ id, who, icon, variants: [{ when, text }] }] — 조건이 맞는 첫 variant 하나
-  function epilogueHtml() {
-    const eps = (WS.data.epilogues || []).map(ep => {
-      const v = (ep.variants || []).find(x => WS.sys.Conditions.check(x.when));
-      return v ? `<li><span class="ep-who">${ep.icon || '•'} ${U.esc(ep.who)}</span><span>${U.esc(v.text)}</span></li>` : '';
-    }).filter(Boolean);
-    return eps.length ? `<h3>그 뒤의 이야기</h3><ul class="epilogue">${eps.join('')}</ul>` : '';
-  }
-
   // 결말 컷신 (엔딩의 cinematic 필드 → js/render/Cinematic.js) — 결말 글보다 먼저 한 번. 다 보거나 건너뛰면 글로
   const cinemaPending = () => {
     const st = S(), base = st && st.phase === 'ending' && WS.data.endings.find(x => x.id === st.ending);
@@ -2368,6 +2211,7 @@ WS.UI = (() => {
       [...pa, ...pb, ...pc].forEach(h => sp.push({ l: h }));
       if (photos.length) { sp.push({ l: bkAlbumTitle }); photos.forEach(p => sp.push({ l: bkPhoto(p, false) })); }
     }
+    sp.forEach(x => { x.l = emoHtml(x.l); if (x.r) x.r = emoHtml(x.r); }); // 결말 책은 나중에 그려지므로 그림 이모지(🪙 등)를 여기서 바꾼다
     bookSpreads = sp;
     bookIdx = Math.max(0, Math.min(sp.length - 1, bookIdx));
     fillBook(root, sp[bookIdx]);
@@ -2582,6 +2426,8 @@ WS.UI = (() => {
   // 이모지 → 키트 아이콘 (화면 어디서 나온 글이든 같은 그림체로). 진영·분류 아이콘은 데이터 쪽이라 그대로 둔다
   const EMO = { '🐦': 'crow', '✒': 'quill', '🔍': 'seal', '📜': 'scroll', '🔒': 'lock', '📦': 'stock', '💡': 'candle', '👆': 'help', '📒': 'ledger', '📰': 'news', '🗺': 'map', '🪙': 'gold', '⚠': 'warn', '✉': 'letter', '✓': 'check' };
   const EMO_RE = /(🐦|✒️?|🔍|📜|🔒|📦|💡|👆|📒|📰|🗺️?|🪙|⚠️?|✉️?|✓)/;
+  // HTML 문자열의 글자 부분(태그 밖)만 그림 이모지로 바꾼다 — 나중에 그려지는 화면(결말 책)용
+  const emoHtml = h => (h ? String(h).replace(new RegExp(`(<[^>]*>)|${EMO_RE.source}`, 'g'), (m, tag, emo) => (tag ? tag : `<i class="ei ei-${EMO[emo.replace(/️/g, '')]}" aria-hidden="true"></i>`)) : h);
   function emojiPass(root) {
     if (!root) return;
     const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => (EMO_RE.test(n.nodeValue) && !n.parentElement.closest('script,style,[data-noemo]')) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT });
@@ -2607,7 +2453,7 @@ WS.UI = (() => {
     const g = o.el;
     if (!nm || !g.animate || !nm.animate) return;
     const fwd = o.dir === 'from-right';
-    if (!nm.matches('.gz-spread')) ui.classList.remove('fresh'); // 목록이 차례로 올라오는 등장 대신 넘김
+    ui.classList.remove('fresh'); // 슬라이드로 들어오는 동안은 '아래에서 올라오는' 등장 효과(목록·신문)를 끈다 — 겹치면 어색하다
     const nbook = nm.querySelector('.book'); if (nbook) nbook.classList.add('bk-turning');
     g.inert = true; g.setAttribute('aria-hidden', 'true');
     Object.assign(g.style, { position: 'absolute', left: o.x + 'px', top: o.y + 'px', width: o.w + 'px', height: o.h + 'px', margin: '0', zIndex: '3', pointerEvents: 'none', boxSizing: 'border-box' });
@@ -2823,7 +2669,6 @@ WS.UI = (() => {
   }
   const roman = n => [[40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]
     .reduce((out, [v, r]) => { while (n >= v) { out += r; n -= v; } return out; }, '');
-
 
   // 행동 결과에 맞는 효과음
   function playSfx(act, c, before) {

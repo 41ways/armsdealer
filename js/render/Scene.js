@@ -219,16 +219,6 @@ WS.Scene = (() => {
     return { tx, ty: ty - 3, flicker: 0.85 + r() * 0.15 };
   }
 
-  function drawShelves() {
-    const st = S();
-    if (!st) return;
-    const { floorTop } = lay();
-    const ids = Object.keys(st.inventory).sort((a, b) => st.inventory[b] - st.inventory[a]).slice(0, 3);
-    ids.forEach((id, i) => {
-      const y = floorTop - 62 + i * 20 - 10;
-      ctx.drawImage(SP().item(id), 0, 0, 56, 20, 107, y, 34, 12);
-    });
-  }
 
   // 손님은 카운터 너머 한 걸음 뒤에 선다 — 머리 위로 말풍선이 뜰 자리를 남긴다
   const CUST_SCALE = 0.8;

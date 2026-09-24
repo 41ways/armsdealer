@@ -39,7 +39,6 @@ li.rum .gz-kick, .gz-kicker .gz-rum + * { color: #3f5062; }
 .wl-unk .wl-bar i { border-style: dashed; background: none; }
 
 /* ── 오른쪽 쪽: 지도 · 최근 사건 · 소문 장부 ── */
-.wr-blocks { display: block; }
 .wr-blk { margin: 0 0 4px; }
 .wr-blk .bk-h { margin-top: 8px; }
 .wm { display: block; width: 100%; height: clamp(150px, 30vh, 260px); margin: 4px 0 2px; }
@@ -68,10 +67,7 @@ li.rum .gz-kick, .gz-kicker .gz-rum + * { color: #3f5062; }
 .wc-list li.big span { font-weight: 800; }
 .wc-list li span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.wr-list { margin: 0; padding: 0; list-style: none; }
-.wl-list > li.wl-blk { display: block; padding: 0; border-bottom: 0; }
-.wl-blk .bk-h { margin-top: 12px; }
-.wr-list li { display: grid; grid-template-columns: 1.7em minmax(0, 1fr); gap: 6px; align-items: start; padding: 4px 2px; border-bottom: 1px dotted var(--bk-rule); font-size: calc(13.5px * var(--ui, 1)); line-height: 1.35; }
+.wr-list { margin: 0; padding: 0; list-style: none; }.wr-list li { display: grid; grid-template-columns: 1.7em minmax(0, 1fr); gap: 6px; align-items: start; padding: 4px 2px; border-bottom: 1px dotted var(--bk-rule); font-size: calc(13.5px * var(--ui, 1)); line-height: 1.35; }
 .wr-mk { display: inline-grid; place-items: center; width: 1.45em; height: 1.45em; margin-top: 1px; border-radius: 50%; font-style: normal; font-size: 11.5px; font-weight: 900; line-height: 1; color: #f6f0dc; }
 .wr-mk.open { background: #5d7186; }
 .wr-mk.true { background: #3f7a30; }
@@ -81,9 +77,6 @@ li.rum .gz-kick, .gz-kicker .gz-rum + * { color: #3f5062; }
 .wr-list li.true small { color: #3f7a30; } .wr-list li.false small { color: #a3261a; }
 
 /* 정세 읽는 법 (빈 쪽에만) */
-.wg-list { margin: 0; padding: 0; list-style: none; }
-.wg-list li { display: grid; grid-template-columns: 6.2em minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 4px 2px; border-bottom: 1px dotted var(--bk-rule); font-size: calc(13px * var(--ui, 1)); line-height: 1.4; color: var(--bk-dim); }
-.wg-list b { font-family: var(--btn-font); font-size: .95em; color: var(--bk-ink); }
 
 @media (max-width: 759px), (max-aspect-ratio: 1/1) {
   .wm { height: clamp(150px, 30vh, 230px); }

@@ -752,7 +752,7 @@ WS.sys.Letters = (() => {
 
     const E = d.expand, Inv = WS.sys.Inventory, X = Inv.nextStep();
     const expandWhy = !X ? '창고 확장은 끝났소.' : L().expandOrder ? '증축 공사 중이오.' : st.gold < X.cost ? `삯 ${X.cost}G가 모자라오.` : null;
-    const expand = tpl('expand', E.to, `${E.title} (${Inv.level() + 1}/${Inv.maxLevel()}단계)`, `${E.desc} (${X ? X.cost + 'G' : '—'})`, [], expandWhy);
+    const expand = tpl('expand', E.to, X ? `${E.title} (${Inv.level() + 1}/${Inv.maxLevel()}단계)` : `${E.title} (모두 마쳤소)`, X ? `${E.desc} (${X.cost}G)` : E.desc, [], expandWhy);
 
     // 소문 확인 의뢰 — 신문 ❓ 소문의 진위를 정보상에게. 삯 선불, 답장은 다음 날 아침 (Rumors.js)
     const RC = d.rumorCheck, rums = WS.sys.Rumors ? WS.sys.Rumors.askable() : [];
