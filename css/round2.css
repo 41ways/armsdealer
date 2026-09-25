@@ -141,7 +141,7 @@
 .ts-art, .ts-wide { translate: calc(var(--mx) * -6px) calc(var(--my) * -4px); transition: translate .25s ease-out; }
 .ts-fog.f1 { margin-left: calc(var(--mx) * 12px); } .ts-fog.f2 { margin-left: calc(var(--mx) * -18px); }
 .ts-embers { translate: calc(var(--mx) * 16px) calc(var(--my) * 8px); }
-.ts-logo { translate: calc(var(--mx) * 4px) calc(var(--my) * 3px); }
+.ts-logo { translate: calc(var(--mx) * -6px) calc(var(--my) * -4px); transition: translate .25s ease-out; }
 .ts-logo::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 42%, rgba(255, 236, 190, .6) 50%, transparent 58%) -160% 0 / 60% 100% no-repeat; mix-blend-mode: overlay; animation: logoShine 6.5s ease-in-out 2.4s infinite; -webkit-mask: url(../assets/ui/kit/title_logo_frame.png) center / 100% 100% no-repeat; mask: url(../assets/ui/kit/title_logo_frame.png) center / 100% 100% no-repeat; }
 @keyframes logoShine { 0% { background-position: -160% 0; } 30%, 100% { background-position: 260% 0; } }
 .ts-menu .pbtn.ts-continue { flex-direction: column; gap: 0; line-height: 1.15; padding-top: 6px; padding-bottom: 6px; }
