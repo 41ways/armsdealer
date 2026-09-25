@@ -3218,7 +3218,7 @@ WS.UI = (() => {
         e.preventDefault();
         if (collOpen && ph !== 'loading') { collOpen = false; render(); return; }
         if (menu) { if (menu.page !== 'main' && !(ph === 'title' && menu.page === 'load')) setMenu('main'); else closeMenu(); return; }
-        if (!ph || ph === 'title' || ph === 'loading' || ph === 'ending' || transitioning) return;
+        if (!ph || ph === 'loading' || ph === 'ending' || transitioning) return;
         setMenu('main');
         return;
       }
@@ -3291,13 +3291,14 @@ WS.UI = (() => {
     } else {
       head = '메뉴';
       const armed = menu.arm === 'title';
-      list = btn('menu-close', '계속하기', '', '', 'primary')
+      list = inTitle ? btn('menu-page', '음량', WS.Sfx.muted ? '꺼짐' : `${Math.round(WS.Sfx.volume * 100)}%`, 'data-page="volume"') : (btn('menu-close', '계속하기', '', '', 'primary')
         + btn('menu-page', '저장하기', '', `data-page="save" ${canSave() ? '' : 'disabled'}`)
         + btn('menu-page', '불러오기', '', 'data-page="load"')
         + btn('menu-page', '음량', WS.Sfx.muted ? '꺼짐' : `${Math.round(WS.Sfx.volume * 100)}%`, 'data-page="volume"')
-        + btn('menu-title', armed ? '처음으로 — 한 번 더' : '처음으로', armed ? '저장하지 않은 진행은 사라집니다' : '', '', armed ? 'danger' : '');
+        + btn('menu-title', armed ? '처음으로 — 한 번 더' : '처음으로', armed ? '저장하지 않은 진행은 사라집니다' : '', '', armed ? 'danger' : ''));
     }
-    const back = menu.page === 'main' || (inTitle && menu.page === 'load') ? btn('menu-close', '닫기', '', '', 'ghost') : btn('menu-page', '← 뒤로', '', 'data-page="main"', 'ghost');
+    // 게임 중 메뉴 첫 화면은 '계속하기'가 닫기 역할이라 닫기 버튼을 따로 두지 않는다 (홈 화면에서는 닫기만 있다)
+    const back = menu.page === 'main' ? (inTitle ? btn('menu-close', '닫기', '', '', 'ghost') : '') : (inTitle && menu.page === 'load') ? btn('menu-close', '닫기', '', '', 'ghost') : btn('menu-page', '← 뒤로', '', 'data-page="main"', 'ghost');
     return `<div class="em-box" role="dialog" aria-label="${head}"><h2>${head}</h2>
       ${menu.flash ? `<p class="em-flash">${U.esc(menu.flash)}</p>` : ''}
       <div class="em-list">${list}</div>${back}<p class="em-hint">Esc 로 닫기</p></div>`;
