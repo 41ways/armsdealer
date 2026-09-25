@@ -6,4 +6,5 @@
 - 플레이: https://41ways.github.io/armsdealer/
 - 구조: `index.html`(진입점, 스크립트 로드 순서) · `css/` · `js/core`(네임스페이스·소리) · `js/data`(콘텐츠 데이터) · `js/systems`(규칙) · `js/render`(픽셀 장면) · `js/ui`(화면) · `assets/`(그림·소리·폰트)
 - 이 저장소는 배포용 사본이다. 원본 작업 폴더(기획 문서·시안·QA 도구 포함)는 별도로 관리한다.
+- 인수인계 문서: `docs/HANDOVER.md`(작업 규칙·구조·시스템·남은 일) · `docs/BALANCE_HANDOVER.md`(밸런스 조정용)
 - 에셋 출처와 라이선스: `CREDITS.md`

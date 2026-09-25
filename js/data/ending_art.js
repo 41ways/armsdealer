@@ -50,6 +50,18 @@ WS.data.endingArt = {
       {
         "file": "assets/ending/hires/candle_queen_album_1.png",
         "caption": "물약 여섯 병을 안고 나서는 수녀"
+      },
+      {
+        "file": "assets/ending/hires/candle_queen_album_2.png",
+        "caption": "구호소에서 물약을 나눈다"
+      },
+      {
+        "file": "assets/ending/hires/candle_queen_album_3.png",
+        "caption": "빵 바구니와 기부금 주머니"
+      },
+      {
+        "file": "assets/ending/hires/candle_queen_album_4.png",
+        "caption": "호위를 받으며 상점가를 걷는 여왕"
       }
     ],
     "thumb": "assets/ending/hires/candle_queen_thumb.png"
@@ -105,10 +117,46 @@ WS.data.endingArt = {
   },
   "forest_benefactor": {
     "title": "숲의 은인",
+    "album": [
+      {
+        "file": "assets/ending/hires/forest_benefactor_album_1.png",
+        "caption": "카운터의 인상서, 멀리 선 마르가"
+      },
+      {
+        "file": "assets/ending/hires/forest_benefactor_album_2.png",
+        "caption": "태연하게 카운터를 닦는 주인"
+      },
+      {
+        "file": "assets/ending/hires/forest_benefactor_album_3.png",
+        "caption": "즈긱이 킥킥 웃으며 값을 치른다"
+      },
+      {
+        "file": "assets/ending/hires/forest_benefactor_album_4.png",
+        "caption": "사절단 맨 앞의 마르가"
+      }
+    ],
     "thumb": "assets/ending/hires/forest_benefactor_thumb.png"
   },
   "goblin_nation": {
     "title": "명예 고블린",
+    "album": [
+      {
+        "file": "assets/ending/hires/goblin_nation_album_1.png",
+        "caption": "칼과 활을 자랑하는 즈긱"
+      },
+      {
+        "file": "assets/ending/hires/goblin_nation_album_2.png",
+        "caption": "칼 상자를 나르는 그르낙의 부하들"
+      },
+      {
+        "file": "assets/ending/hires/goblin_nation_album_3.png",
+        "caption": "각인 칼을 찬 국경 초소의 병사들"
+      },
+      {
+        "file": "assets/ending/hires/goblin_nation_album_4.png",
+        "caption": "뼈 부적을 걸어 주는 건국 연회"
+      }
+    ],
     "thumb": "assets/ending/hires/goblin_nation_thumb.png"
   },
   "golem_age": {
@@ -244,6 +292,24 @@ WS.data.endingArt = {
   },
   "pin_heir": {
     "title": "청출어람",
+    "album": [
+      {
+        "file": "assets/ending/hires/pin_heir_album_1.png",
+        "caption": "빗자루를 든 맨발 소년"
+      },
+      {
+        "file": "assets/ending/hires/pin_heir_album_2.png",
+        "caption": "병든 동생의 약값"
+      },
+      {
+        "file": "assets/ending/hires/pin_heir_album_3.png",
+        "caption": "몽둥이를 든 핀과 등불"
+      },
+      {
+        "file": "assets/ending/hires/pin_heir_album_4.png",
+        "caption": "카운터를 이어받은 핀"
+      }
+    ],
     "thumb": "assets/ending/hires/pin_heir_thumb.png"
   },
   "red_ford_again": {
@@ -296,6 +362,24 @@ WS.data.endingArt = {
   },
   "star_guests": {
     "title": "별에서 온 그대",
+    "album": [
+      {
+        "file": "assets/ending/hires/star_guests_album_1.png",
+        "caption": "문틈으로 스미는 차가운 빛"
+      },
+      {
+        "file": "assets/ending/hires/star_guests_album_2.png",
+        "caption": "별조각을 발에 묶은 까마귀"
+      },
+      {
+        "file": "assets/ending/hires/star_guests_album_3.png",
+        "caption": "대성당에서 기도하는 뒷모습"
+      },
+      {
+        "file": "assets/ending/hires/star_guests_album_4.png",
+        "caption": "따뜻한 비를 받는 병자"
+      }
+    ],
     "thumb": "assets/ending/hires/star_guests_thumb.png",
     "intro": {
       "speaker": "얼굴 없는 밤손님",
@@ -307,6 +391,24 @@ WS.data.endingArt = {
   },
   "steel_age": {
     "title": "강철의 시대",
+    "album": [
+      {
+        "file": "assets/ending/hires/steel_age_album_1.png",
+        "caption": "전령 도린에게 건네는 광석 자루"
+      },
+      {
+        "file": "assets/ending/hires/steel_age_album_2.png",
+        "caption": "장로 투르가와 맺는 계약"
+      },
+      {
+        "file": "assets/ending/hires/steel_age_album_3.png",
+        "caption": "두 배 값 유혹을 물리친다"
+      },
+      {
+        "file": "assets/ending/hires/steel_age_album_4.png",
+        "caption": "용광로에서 나온 첫 강철 칼"
+      }
+    ],
     "thumb": "assets/ending/hires/steel_age_thumb.png"
   },
   "thunder_age": {
