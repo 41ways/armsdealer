@@ -1757,7 +1757,8 @@ WS.UI = (() => {
     </div>`).join('');
     const tot = total === null || total === undefined ? ''
       : `<div class="rc-total ${total < 0 ? 'neg' : 'pos'}"><small>${totalLabel || '마진'}</small>${signG(total)}G</div>`;
-    const hint = c.tutorial && c.tutorial.hint ? `<div class="tut-hint">💡 ${U.esc(c.tutorial.hint)}</div>` : c.hint ? `<div class="tut-hint">💡 ${U.esc(c.hint)}</div>` : '';
+    // 튜토리얼 손님은 요구 카드 대신 따로 뜨는 안내 카드(tutGuide)로 — 여기엔 일반 손님 힌트만
+    const hint = !c.tutorial && c.hint ? `<div class="tut-hint">💡 ${U.esc(c.hint)}</div>` : '';
     const st = sayState(c); // 말풍선이 떠 있는 동안은 숨었다가, 끝나면 나타난다 (다시 듣기 때도)
     const shownF = WS.ui.shownFaction(c);
     return `<div class="req-card" style="--delay:${st ? Math.round(st.left) : -9999}ms;--fc:${WS.ui.factionColor(shownF)}">
@@ -1766,18 +1767,42 @@ WS.UI = (() => {
       ${tot}${hint}</div>`;
   }
 
+  // 튜토리얼 손님 안내 카드 — 알림보다는 또렷하고 까마귀 안내보다는 가볍게: 화면을 막지 않고 오른쪽에서 밀려 들어와
+  // 창고 칸 한 귀퉁이에 걸린다 (테이블·손님은 가리지 않는다). 지금 할 단계만 밝힌다 — tutStep: 자리 열기 → 물건 올리기 → 판매.
+  // side: 'storage' = 넓은 화면(창고 칸 오른쪽 아래) · 'counter' = 폰(응대 화면 오른쪽) — CSS 가 화면 폭에 맞는 쪽만 보인다
+  function tutGuide(c, side) {
+    if (!c || !c.tutorial || c.status === 'done' || !c.tutorial.hint) return '';
+    const t = tutStep(c) || {};
+    const st = sayState(c);
+    const delay = `--delay:${st ? Math.round(st.left) : -9999}ms`;
+    const head = `<div class="tg-head"><span class="tg-tag">처음 해 보는 일</span><b>${U.esc(c.tutorial.hint)}</b></div>`;
+    const wrap = body => `<div class="tut-guide tg-${side}" style="${delay}" role="status">${body}</div>`;
+    if (c.kind === 'talk' || t.choice) return wrap(head);
+    const place = PLACE_NAME[[].concat(c.tutorial.place || c.tutorial.places || [])[0]] || '창고';
+    const want = c.request && c.request.item ? item(c.request.item).name : '물건';
+    const now = t.confirm ? 2 : t.item ? 1 : 0;
+    const J = (w, j) => { const x = WS.sys.News.josa(w, j); return `<b>${U.esc(w)}</b>${x.slice(w.length)}`; };
+    const steps = [
+      side === 'counter' ? `<b>창고 보기</b>를 눌러 ${J(place, '을')} 연다` : `창고에서 ${J(place, '을')} 연다`,
+      `${J(want, '을')} 끌거나 <b>+1</b>로 테이블에 올린다`,
+      `아래 <b>판매</b>를 누른다`,
+    ];
+    return wrap(`${head}<ol class="tg-steps">${steps.map((x, i) => `<li class="${i < now ? 'done' : i === now ? 'now' : ''}"><span>${x}</span></li>`).join('')}</ol>`);
+  }
+
   function shop() {
     const c = WS.sys.Day.current();
     const waiting = WS.sys.Day.waiting().length;
     // 장면(왼쪽)에는 말풍선만 잠깐 뜬다 — 손님 얼굴과 테이블은 가리지 않는다.
     const left = `<div class="desk counter">
       <div class="desk-head"><span class="dh-t">응대 테이블</span> <small>손님과 마주하는 곳</small>${drawerTabsRow()}</div>
-      ${c ? sceneBubbles(c) + reqCard(c) + affilButton(c) : ''}
+      ${c ? sceneBubbles(c) + reqCard(c) + tutGuide(c, 'counter') + affilButton(c) : ''}
       <div class="counter-actions">${actionBar(c, waiting)}</div>
     </div>`;
     const right = `<div class="desk storage">
       <div class="desk-head crumb">${nav.place ? '<button class="back-tab sm crumb-back" data-act="nav-back" aria-label="돌아가기">◀ 돌아가기</button>' : '<i class="ei ei-stock"></i>'} <div class="crumb-path">${crumbHtml()}</div></div>
       <div class="shelf-body">${storageView(c)}</div>
+      <div class="tg-anchor">${tutGuide(c, 'storage')}</div>
       ${actionBar(c, waiting)}
     </div>`;
     return `${hud()}
