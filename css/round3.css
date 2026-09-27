@@ -1214,3 +1214,4 @@ button.crumb-tab:hover { color: var(--brass-hi); text-decoration: underline; tex
 .news-mine { display: inline-block; margin-left: 4px; padding: 0 5px; font: 700 10.5px/1.5 var(--sans); font-style: normal; color: #7a4a1a;
   border: 1px solid #a0703a; border-radius: 2px; transform: rotate(-3deg); vertical-align: 1px; }
 .drawer-body.ledger-paper .ledger .lg-echo { margin-left: 72px; }
+.seal-check .wax { max-width: 118px; }
