@@ -1171,7 +1171,7 @@ WS.UI = (() => {
       d.match.forEach(l => { const st = item(l.itemId).subtype; by[st] = (by[st] || 0) + l.qty; });
       if (Object.entries(r.exact).some(([k, n]) => (by[k] || 0) !== n)) return { ok: false, label: '판매', why: '칼 2개와 활 1개를 올려 달라고 한다' };
     }
-    if (d.qty < r.qty && r.partialOk === false) return { ok: false, label: '판매', why: `${r.qty}개 전부가 아니면 안 산다고 한다` };
+    if (d.qty < r.qty && r.partialOk === false) return { ok: false, label: '판매', why: c.lines && c.lines.needAll ? `"${c.lines.needAll}"` : `${r.qty}개 전부가 아니면 안 산다고 한다` };
     return { ok: true, label: d.qty < r.qty ? `${d.qty}개만 판매` : '판매', why: stray || (d.gifts.length ? '덤은 값을 받지 않는다 — 손해지만 우호도가 오른다' : '') };
   }
 

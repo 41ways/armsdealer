@@ -45,7 +45,7 @@ WS.data.customers = [
     lines: { sold: '고맙소. 이 검으로 백성을 지키겠소.', refused: '…왕국에 협조하지 않는 가게로구려.' },
     onSell: { flags: ['helped_leon'], news: [{ cat: '왕국', text: '제7기사단 레온 경, 서부 숲 순찰 출발… 새 칼이 번쩍' }] },
   },
-  // ── 1일째 고정 손님 (튜토리얼): ① 레온(칼 1) ② 고블린(칼 2 + 활 1) ③ 궁수(활 3 — 재고 모자람, "내일 다시 오시오") ④ 기사단원(칼 2 — 1자루뿐, 일부만 판매)
+  // ── 1일째 고정 손님 (튜토리얼): ① 레온(칼 1) ② 고블린(칼 2 + 활 1) ③ 궁수(활 3 — 재고 모자람, 모자라면 안 산다 → "내일 다시 오시오") ④ 기사단원(칼 2 — 1자루뿐, 일부만 판매)
   //    시작 재고는 config.startInventory (칼 3 + 레온용 1, 활 2). 마지막 손님 힌트로 '손님 다시 누르기'·돋보기를 알려 주고, 그 뒤로는 따로 안내하지 않는다.
   {
     id: 'd1_goblin', look: 'goblin_trader', name: '즈긱', race: '고블린', job: '행상', faction: 'goblin', portrait: '👺',
@@ -60,9 +60,10 @@ WS.data.customers = [
     id: 'd1_hunter', look: 'hunter', name: '한스', race: '인간', job: '궁수', faction: 'village', portrait: '🏹',
     spawn: { day: 1, order: 2 },
     greet: '숲에 늑대가 늘었소. 활 {qty}개, {offer}골드에 주시오.',
-    request: { item: 'bow', qty: 3, offer: 135 },
-    hint: '가진 활이 모자란다. 팔 수 없으면 「내일 다시 오시오」로 돌려보내면 다음 날 다시 온다.',
-    lines: { sold: '고맙소. 이걸로 겨울을 나겠군.', refused: '허, 활 하나 구하기 어렵구려.' },
+    request: { item: 'bow', qty: 3, offer: 135, partialOk: false }, // 모자라면 안 산다 — 재고가 왜 중요한지 첫날 겪게
+    waits: true, // 「내일 다시 오시오」를 늘 받아들인다 (힌트대로 이튿날 다시 온다)
+    hint: '가진 활이 모자란다. 셋이 다 있어야 산다고 한다 — 「내일 다시 오시오」로 돌려보내면 다음 날 다시 온다.',
+    lines: { sold: '고맙소. 이걸로 겨울을 나겠군.', refused: '허, 활 하나 구하기 어렵구려.', needAll: '셋이 다 있어야 하오. 한두 자루로는 겨울을 못 나오.' },
   },
   {
     id: 'd1_adventurer', look: 'soldier', name: '벨', race: '인간', job: '왕국 기사단원', faction: 'kingdom', portrait: '💂',

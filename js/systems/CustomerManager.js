@@ -93,6 +93,9 @@ WS.sys.Customers = (() => {
     return affil(c).seal === 'fake' || !!t.stain;
   }
 
+  // 초반(평범한 날)엔 있는 만큼도 사 가지만, 틀에 partialOk: false 라고 적은 손님은 전부가 아니면 안 산다
+  const partialOf = r => r.partialOk === false ? false : !!r.partialOk || G().isPlainDay();
+
   function fromTemplate(tpl) {
     const st = S();
     st.seenCustomers[tpl.id] = st.day;
@@ -109,15 +112,16 @@ WS.sys.Customers = (() => {
     c.payNote = payNote(c.payment);
     c.affil = makeAffil(c, tpl);
     if (tpl.hint) c.hint = tpl.hint;
+    if (tpl.waits) c.waits = true; // 「내일 다시 오시오」를 늘 받아들인다 (Letters.reactionOf)
     if (tpl.request && tpl.request.category) {
       // 분류형 요청을 고정 손님 틀에 직접 적은 경우 ("무기 3개 — 칼이든 활이든")
       const r = tpl.request;
       c.request = { category: r.category, qty: r.qty, preferSubtype: r.preferSubtype || null, preferPay: r.preferPay ?? 1, otherPay: r.otherPay ?? 1,
-        refuseSubtypes: r.refuseSubtypes || [], partialOk: !!r.partialOk || G().isPlainDay(), exact: r.exact || null };
+        refuseSubtypes: r.refuseSubtypes || [], partialOk: partialOf(r), exact: r.exact || null };
     } else if (tpl.request) {
       const r = tpl.request;
       const id = C(r.item);
-      c.request = { item: id, qty: r.qty, partialOk: !!r.partialOk || G().isPlainDay() };
+      c.request = { item: id, qty: r.qty, partialOk: partialOf(r) };
       if (kind === 'sell') c.request.price = r.price;
       else c.request.offer = typeof r.offer === 'number' ? r.offer : offerFor(id, r.qty, c.faction, r.offer && r.offer.mult);
     }

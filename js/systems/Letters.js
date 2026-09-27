@@ -585,7 +585,7 @@ WS.sys.Letters = (() => {
     const R = P.reactions || {};
     const conf = R[c.faction] || R.default;
     if (!conf) return { kind: 'accept', conf: { accept: P.replies } };
-    if (c.tutorial) return { kind: 'accept', conf };
+    if (c.tutorial || c.waits) return { kind: 'accept', conf };
     const rv = relVarOf(c.faction);
     const rel = rv ? WS.sys.World.get(rv) : 0;
     const rate = Math.max(0.08, Math.min(0.9, conf.rate + rel * 0.01));
