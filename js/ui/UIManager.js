@@ -54,8 +54,11 @@ WS.UI = (() => {
 
   function newsList(list) {
     if (!list || !list.length) return '<p class="muted">기사가 없다.</p>';
-    return list.map(n => `<article class="news ${n.big ? 'big' : ''}"><span class="cat">${WS.ui.emblemOfCat(n.cat)}[${U.esc(n.cat)}]</span> ${n.rumor ? '<i class="rum-q" title="진위 불명 소문">❓</i>' : ''}${U.esc(n.text)}</article>`).join('');
+    return list.map(n => `<article class="news ${n.big ? 'big' : ''}"><span class="cat">${WS.ui.emblemOfCat(n.cat)}[${U.esc(n.cat)}]</span> ${n.rumor ? '<i class="rum-q" title="진위 불명 소문">❓</i>' : ''}${U.esc(n.text)}${n.mine ? ' <i class="news-mine" title="장부에 적힌 거래와 이어진 기사 — 장부에서 확인">장부</i>' : ''}</article>`).join('');
   }
+  // 장부 줄에 이어진 기사 (NewsManager 가 e.echo 에 적는다) — 신문을 받아 본 날 것만
+  const echoHtml = e => (e.echo || []).filter(x => !WS.sys.Shop || WS.sys.Shop.paperRead(x.day))
+    .map(x => `<small class="lg-echo">↳ ${x.day}일 신문 — ${U.esc(x.text)}</small>`).join('');
 
   // ───────── 타이틀 / 로딩 (같은 밤거리 장면 — 로고 자리를 그대로 두고 아래만 바뀐다) ─────────
   // 불씨·먼지 입자: 위치·속도가 매번 같도록 고정 값으로 (다시 그려도 튀지 않게)
@@ -303,7 +306,7 @@ WS.UI = (() => {
     const line = e => {
       const it = e.item ? item(e.item) : null;
       const what = e.action === 'trade' ? tradeText(e) : it ? `${U.esc(it.name)}×${e.qty}` : '—';
-      return `<li class="${e.action}"><span class="lg-who">${WS.ui.emblem(e.faction)}${U.esc(e.name)}</span><span class="lg-what">${label[e.action]} · ${what}</span><b class="lg-g ${e.price > 0 ? 'pos' : e.price < 0 ? 'neg' : ''}">${e.price ? (e.price > 0 ? '+' : '') + e.price + 'G' : '—'}</b></li>`;
+      return `<li class="${e.action}"><span class="lg-who">${WS.ui.emblem(e.faction)}${U.esc(e.name)}</span><span class="lg-what">${label[e.action]} · ${what}</span><b class="lg-g ${e.price > 0 ? 'pos' : e.price < 0 ? 'neg' : ''}">${e.price ? (e.price > 0 ? '+' : '') + e.price + 'G' : '—'}</b>${echoHtml(e)}</li>`;
     };
     const ps = pledges();
     return `<h2 class="bk-title">장부 <small>${st.day}일째 아침</small></h2>
@@ -1817,7 +1820,7 @@ WS.UI = (() => {
       return `<div class="ledger-head"><b>무기점 거래 장부</b><small>DAY ${st.day} · ${st.ledger.length}건</small><i class="ledger-stamp" aria-hidden="true">검인</i></div><ul class="ledger">${[...st.ledger].reverse().map(e => {
         const it = e.item ? item(e.item) : null;
         const what = e.action === 'trade' ? ` · ${tradeText(e)}` : it ? ` · ${U.esc(it.name)}×${e.qty}` : '';
-        return `<li class="${e.action}"><span class="when">D${e.day} ${U.fmtTime(e.time)}</span><span class="who">${U.esc(e.name)} ${fac(e.faction).icon}</span><span class="what">${label[e.action] || '대화'}${what}${e.price ? ` · ${e.price > 0 ? '+' : ''}${e.price}G` : ''}</span></li>`;
+        return `<li class="${e.action}"><span class="when">D${e.day} ${U.fmtTime(e.time)}</span><span class="who">${U.esc(e.name)} ${fac(e.faction).icon}</span><span class="what">${label[e.action] || '대화'}${what}${e.price ? ` · ${e.price > 0 ? '+' : ''}${e.price}G` : ''}</span>${echoHtml(e)}</li>`;
       }).join('')}</ul>`;
     }
     if (drawer === 'news') {

@@ -38,7 +38,9 @@ WS.Scene = (() => {
     redford_orto: [0,0,0,-9,-9,-9,-9,-13], smuggle_lord: [0,0,0,0,6,7,7,7], star_keeper: [0,0,0,0,6,6,6,6],
     thrall: [0,9,0,9,14,13,14,13], widow_eda: [0,0,0,0,10,10,10,10],
   };
-  const artDy = () => H - ART_H; // 화면 높이가 256이 아니면 그림을 아래(카운터)에 맞추고 위를 자르거나 채운다
+  // 테이블을 조금 덜 보이게 — 그림을 이만큼 아래로 내려 카운터 아랫단을 화면 밖으로 잘라 낸다 (손님 쪽 벽이 그만큼 넓어진다)
+  const TABLE_CUT = 12;
+  const artDy = () => H - ART_H + TABLE_CUT; // 화면 높이가 256이 아니면 그림을 아래(카운터)에 맞추고 위를 자르거나 채운다
   const lay = () => ({ counterTop: ART_COUNTER + artDy(), floorTop: ART_FLOOR + artDy() });
   const ease = t => 1 - (1 - t) ** 3;
   const clamp01 = t => Math.max(0, Math.min(1, t));
@@ -239,7 +241,8 @@ WS.Scene = (() => {
     const k = eIn * (1 - eOut);
     const s = (0.38 + 0.62 * k) * CUST_SCALE;
     let w = spr.w * s, h = spr.h * s;
-    const finalY = counterTop + (spr.isSheet ? 10 : 18) - spr.h * CUST_SCALE;
+    // 손님은 카운터 위로 가슴께까지 보이게 (흉상 그림의 아랫단 몇 px 만 카운터 뒤로 숨긴다)
+    const finalY = counterTop + (spr.isSheet ? 2 : 10) - spr.h * CUST_SCALE;
     const farY = floorTop - h + 2;
     let x = 72 - w / 2;
     let y = farY + (finalY - farY) * k;

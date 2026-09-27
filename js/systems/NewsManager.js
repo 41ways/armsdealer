@@ -49,7 +49,7 @@ WS.sys.News = (() => {
     const st = S();
     const C = WS.sys.Items.canon;
     const within = spec.withinDays ?? 1;
-    const byItem = {}, buyers = {};
+    const byItem = {}, buyers = {}, entries = [];
     for (const e of st.ledger || []) {
       if (e.action !== 'sell' || !e.item || st.day - e.day > within) continue;
       if (spec.faction && (spec.claimed ? e.faction : e.trueFaction) !== spec.faction) continue;
@@ -59,11 +59,12 @@ WS.sys.News = (() => {
       const id = C(e.item);
       byItem[id] = (byItem[id] || 0) + (e.qty || 0);
       buyers[e.tpl] = buyers[e.tpl] || e.name;
+      entries.push(e);
     }
     const top = Object.keys(byItem).sort((a, b) => byItem[b] - byItem[a])[0];
     const it = top && WS.sys.Items.get(top);
     const who = Object.values(buyers)[0];
-    return { item: it ? it.name : spec.name || '무기', who: who || '손님', tpls: Object.keys(buyers) };
+    return { item: it ? it.name : spec.name || '무기', who: who || '손님', tpls: Object.keys(buyers), entries };
   }
 
   // 이벤트 · 효과가 남긴 기사 한 건을 오늘 실을 문구로
@@ -72,7 +73,11 @@ WS.sys.News = (() => {
     let text = n.text;
     for (const a of n.alt || []) {
       const buyerOk = !a.buyer || [].concat(a.buyer).some(t => found.tpls.includes(t));
-      if (buyerOk && (!a.when || WS.sys.Conditions.check(a.when))) { text = a.text; break; }
+      if (buyerOk && (!a.when || WS.sys.Conditions.check(a.when))) {
+        text = a.text;
+        if (a.buyer) found.entries = found.entries.filter(e => [].concat(a.buyer).includes(e.tpl)); // 손님을 콕 집은 기사면 그 손님 거래에만 잇는다
+        break;
+      }
     }
     if (Array.isArray(text)) {
       const m = meta(), key = text[0];
@@ -81,6 +86,7 @@ WS.sys.News = (() => {
     }
     const out = { cat: n.cat, text: fill(text, found) };
     if (n.big) out.big = true;
+    if (found.entries && found.entries.length) out.entries = found.entries; // 이 기사를 낳은 내 거래 — 실리면 장부에 잇는다 (compose 끝)
     return out;
   }
 
@@ -192,7 +198,9 @@ WS.sys.News = (() => {
     for (const m of market) if (list.length < MARKET_ROOM) list.push({ ...m, key: true });
     // 4) 확인할 기사가 하나도 없으면 채움 기사 1건만
     list = list.concat(filler(FILLER_TO - list.length));
-    list = list.map(n => ({ cat: n.cat, text: n.text, ...(n.big ? { big: true } : {}), ...(n.key ? { key: true } : {}), ...(n.rumor ? { rumor: n.rumor } : {}) }));
+    // 내 거래에서 나온 기사: 그 거래(장부 줄)에 오늘 기사를 적어 두고(e.echo), 기사에는 장부 표시(mine)만 — 무엇 때문인지는 장부를 펼쳐 봐야 안다
+    list.forEach(n => (n.entries || []).forEach(e => { e.echo = (e.echo || []).filter(x => x.day !== st.day).concat({ day: st.day, text: n.text }).slice(-3); }));
+    list = list.map(n => ({ cat: n.cat, text: n.text, ...(n.big ? { big: true } : {}), ...(n.key ? { key: true } : {}), ...(n.rumor ? { rumor: n.rumor } : {}), ...(n.entries && n.entries.length ? { mine: true } : {}) }));
     st.newsArchive[st.day] = list;
     return list;
   }

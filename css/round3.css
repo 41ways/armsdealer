@@ -1206,3 +1206,11 @@ button.crumb-tab:hover { color: var(--brass-hi); text-decoration: underline; tex
   .crumb-tab, .crumb-tab.on { font-size: 14px; }
   .desk-head.crumb .crumb-back { font-size: 14px; padding: 0 10px 0 8px; }
 }
+
+/* ── 장부 ↔ 신문: 내 거래에서 나온 기사 (NewsManager e.echo / n.mine) ── */
+.lg-list li .lg-echo { grid-column: 1 / -1; }
+.drawer-body.ledger-paper .ledger li:has(.lg-echo) { flex-wrap: wrap; }
+.lg-echo { display: block; flex-basis: 100%; margin: 1px 0 0 14px; font-size: 12px; font-style: italic; line-height: 1.35; color: #7a4a1a; }
+.news-mine { display: inline-block; margin-left: 4px; padding: 0 5px; font: 700 10.5px/1.5 var(--sans); font-style: normal; color: #7a4a1a;
+  border: 1px solid #a0703a; border-radius: 2px; transform: rotate(-3deg); vertical-align: 1px; }
+.drawer-body.ledger-paper .ledger .lg-echo { margin-left: 72px; }
