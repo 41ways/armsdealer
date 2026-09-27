@@ -1016,11 +1016,28 @@ WS.UI = (() => {
       ? `${sealArt(sealRef, false)}<b class="seal-name">${m.icon} ${U.esc(m.name)}</b>`
       : '<p class="small muted seal-pick-hint">아래에서 대조해 볼 문장을 고른다</p>';
   };
+  // 규정집 메모 — 고른 문장의 세력이 어디 살고, 요즘 기세가 어떻고, 누구와 부딪치는지 (WS.sys.Intel.brief). 모르는 세력이면 한 줄만
+  const ARW_TXT = { 1: '▲ 오르는 중', '-1': '▼ 꺾이는 중', 0: '' };
+  function sealNoteHtml() {
+    if (!sealRef) return '';
+    const m = sealMeta(sealRef);
+    const b = WS.sys.Intel && WS.sys.Intel.brief ? WS.sys.Intel.brief(sealRef) : null;
+    if (!b) return m ? `<p class="small muted">${U.esc(m.name)} — 아직 이 세력에 대해 들은 게 없다.</p>` : '';
+    const rows = [];
+    if (b.region) rows.push(['사는 곳', U.esc(b.region)]);
+    rows.push(['요즘 기세', b.blur ? '가늠할 수 없다' : `${U.esc(b.word)} ${ARW_TXT[b.arrow] ? `<small>${ARW_TXT[b.arrow]}</small>` : ''}`]);
+    if (b.rel) rows.push(['우리 가게와', U.esc(b.rel.word)]);
+    rows.push(['부딪치는 곳', b.fronts.length ? b.fronts.map(U.esc).join(' · ') : '<span class="muted">들리는 충돌 없음</span>']);
+    if (b.news) rows.push([`최근 소식 <small>${b.news.day}일</small>`, U.esc(b.news.text)]);
+    return `<dl class="seal-note">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>`;
+  }
   // 규정집에서 문장을 바꿀 때는 전체를 다시 그리지 않고 원본 칸만 바꿔 끼운다 (깜빡임 없이 바로)
   function swapSealRef() {
     const slot = document.querySelector('.seal-check .seal-ref-slot');
     if (!slot) return false;
     slot.innerHTML = sealRefHtml();
+    const note = document.querySelector('.seal-check .seal-note-slot');
+    if (note) note.innerHTML = sealNoteHtml();
     document.querySelectorAll('.seal-check .seal-ref').forEach(b => b.classList.toggle('on', b.dataset.id === sealRef));
     return true;
   }
@@ -1047,6 +1064,7 @@ WS.UI = (() => {
         <div class="magnify-side"><small class="muted">규정집 원본</small><div class="seal-ref-slot">${sealRefHtml()}</div></div>
         <div class="magnify-side"><small class="muted">손님이 내민 인장</small>${theirs}</div>
       </div>
+      <div class="seal-note-slot">${sealNoteHtml()}</div>
       <div class="seal-book"><small class="muted">규정집 — 세력 문장</small><div class="seal-refs">${picks}</div></div>
       <div class="btn-row"><button class="pbtn grow" data-act="seal-close">인장을 돌려준다</button></div>
     </div>`;
@@ -1406,10 +1424,10 @@ WS.UI = (() => {
   const cellBlank = () => '<div class="cell blank"></div>';
   const cellBack = () => '<button class="cell back" data-act="nav-back"><span class="cell-ic">◀</span><b>뒤로</b></button>';
 
+  // 경로 탭: 창고 › 무기 거치대 — 지금 있는 곳은 밝은 탭, 앞의 '창고' 탭을 누르면 창고로 돌아간다
   function crumbHtml() {
-    const parts = ['창고'];
-    if (nav.place) parts.push(PLACE_NAME[nav.place]);
-    return parts.map((p, i) => i === parts.length - 1 ? `<b>${U.esc(p)}</b>` : `<span>${U.esc(p)}</span>`).join('<i>›</i>');
+    if (!nav.place) return '<b class="crumb-tab on">창고</b>';
+    return `<button type="button" class="crumb-tab" data-act="nav-root">창고</button><i>›</i><b class="crumb-tab on">${U.esc(PLACE_NAME[nav.place])}</b>`;
   }
 
   // 서류함에 꽂힌 것: 지금 손님의 인장 서류, 오늘 신문의 수배·인상서 기사
@@ -1446,16 +1464,15 @@ WS.UI = (() => {
   }
 
   // 거치대·선반·궤짝 — 같은 3×3 칸이지만 장소마다 생김새가 다르다 (theme-*).
-  // 칼·활·전투도끼처럼 종류 하나가 칸 하나. 9번 칸은 뒤로가기.
+  // 칼·활·전투도끼처럼 종류 하나가 칸 하나.
   const THEME = { ore: 'material', goods: 'material' };
   function containerGrid(place) {
-    // 어느 화면이든 3×3 = 9칸 (물건 최대 9종). 뒤로가기는 칸 밖 아래 한 줄
+    // 어느 화면이든 3×3 = 9칸 (물건 최대 9종). 돌아가기는 위 머리줄의 버튼 하나로만 (아래 '뒤로'와 겹쳐 헷갈렸다)
     const ids = shelfItems(place);
     const leaf = i => (ids[i] ? (WS.sys.Inventory.discovered(ids[i]) ? cellLeaf(ids[i], false) : cellUnknown()) : cellBlank());
     const cells = [];
     for (let i = 0; i < 9; i++) cells.push(leaf(i));
-    return `<div class="grid-wrap"><div class="grid9 theme-${THEME[place] || place}">${cells.join('')}</div>
-      <button class="pbtn grid-back" data-act="nav-back">◀ 뒤로</button></div>`;
+    return `<div class="grid-wrap"><div class="grid9 theme-${THEME[place] || place}">${cells.join('')}</div></div>`;
   }
 
   // 보석함 — 뚜껑을 연 벨벳 칸에 보석이 하나씩 놓여 있다. 끌어서 테이블로.
@@ -1756,7 +1773,7 @@ WS.UI = (() => {
       <div class="counter-actions">${actionBar(c, waiting)}</div>
     </div>`;
     const right = `<div class="desk storage">
-      <div class="desk-head crumb">${nav.place ? '<button class="back-tab sm" data-act="nav-back" aria-label="돌아가기">돌아가기</button>' : '<i class="ei ei-stock"></i>'} <div class="crumb-path">${crumbHtml()}</div></div>
+      <div class="desk-head crumb">${nav.place ? '<button class="back-tab sm crumb-back" data-act="nav-back" aria-label="돌아가기">◀ 돌아가기</button>' : '<i class="ei ei-stock"></i>'} <div class="crumb-path">${crumbHtml()}</div></div>
       <div class="shelf-body">${storageView(c)}</div>
       ${actionBar(c, waiting)}
     </div>`;
@@ -3100,6 +3117,7 @@ WS.UI = (() => {
         WS.sys.Save.autosave && WS.sys.Save.autosave();
         break;
       }
+      case 'nav-root': nav = { place: null, sub: null }; break;
       case 'nav-back':
         // 막 받은 인상서를 닫으면 서랍에 넣고 창고로 — 서류함이 빛나 어디 넣었는지 알려 준다
         if (docsHint && nav.sub && nav.sub.startsWith('poster:')) nav = { place: null, sub: null };

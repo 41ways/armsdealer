@@ -426,6 +426,13 @@ button { font: inherit; color: inherit; }
 .seal-check .seal-name { display: block; margin-top: 4px; font-size: 12px; }
 .seal-pick-hint { margin: 30px 4px; }
 .seal-book { margin: 2px 0 8px; }
+/* 규정집 메모 — 고른 문장의 세력 요약 (Intel.brief) */
+.seal-note-slot:empty { display: none; }
+.seal-note { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0 0 8px; padding: 7px 9px; font-size: 12px; line-height: 1.35;
+  border: 1px solid var(--edge); border-radius: 2px; background: rgba(0,0,0,.28); }
+.seal-note dt { color: var(--ink-dim); white-space: nowrap; }
+.seal-note dt small, .seal-note dd small { color: var(--ink-dim); font-size: 10.5px; }
+.seal-note dd { margin: 0; color: var(--ink); }
 .seal-book > small { display: block; margin-bottom: 4px; }
 .seal-refs { display: flex; flex-wrap: wrap; gap: 4px; }
 .seal-ref {

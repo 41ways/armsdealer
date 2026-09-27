@@ -1188,3 +1188,21 @@ tr.key td:first-child, li.key { font-weight: 800; }
 .gz-quiet { text-align: center; margin: 14px 0; }
 .gz-quiet:empty { display: none; }
 .gz-cell.c-sky .gz-say { text-align: left; }
+
+/* ── 창고 경로줄: 돌아가기 버튼 하나만 (아래 '뒤로' 없앰) · 경로 글자를 크고 밝게 · 칸은 틀을 꽉 채운다 ── */
+.shelf-body > .grid-wrap { width: 100%; }
+.desk-head.crumb { gap: 12px; }
+.desk-head.crumb .crumb-back {
+  --c1: var(--bp-1); --c2: var(--bp-2); --cbd: var(--bp-bd); --cfg: var(--bp-fg);
+  min-height: 40px; padding: 0 14px 0 10px; font-size: 15px; text-shadow: 0 1px 0 rgba(255, 236, 180, .45);
+}
+.desk-head.crumb .crumb-path { display: flex; align-items: center; min-width: 0; white-space: nowrap; }
+.desk-head.crumb .crumb-path > i { font-style: normal; color: var(--brass); font-size: 18px; margin: 0 8px; }
+.crumb-tab { font: 700 16px/1.2 var(--serif); letter-spacing: .03em; color: var(--ink); text-shadow: 0 1px 0 #000; padding: 0; border: 0; background: none; }
+button.crumb-tab { cursor: pointer; }
+button.crumb-tab:hover { color: var(--brass-hi); text-decoration: underline; text-underline-offset: 3px; }
+.crumb-tab.on { color: var(--brass-hi); font-size: 17px; }
+@media (max-width: 759px), (max-aspect-ratio: 1/1) {
+  .crumb-tab, .crumb-tab.on { font-size: 14px; }
+  .desk-head.crumb .crumb-back { font-size: 14px; padding: 0 10px 0 8px; }
+}

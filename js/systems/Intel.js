@@ -142,5 +142,30 @@ WS.sys.Intel = (() => {
     };
   }
 
-  return { record, model, known, powerRow, reputation, kingdomEdge };
+  // 인장 대조 창의 규정집 메모 — 손님 세력 id 하나에 대해: 사는 곳 · 기세 · 우호도 · 걸린 충돌 · 최근 소식 한 줄.
+  // 정세 쪽과 같은 규칙으로, 아직 모르는 세력이면 null (규정집은 문장만 보여 준다). 평판지 없이도 말로만 보인다.
+  function brief(facId) {
+    const p = D().powers.find(x => x.fac === facId);
+    if (!p) return null;
+    const row = powerRow(p);
+    if (!row.known) return null;
+    const M = mapModel(D().powers.map(powerRow));
+    const mine = M.places.filter(pl => pl.power === p.id).map(pl => pl.id);
+    const place = M.places.find(pl => pl.power === p.id);
+    const fronts = M.fronts.filter(f => mine.includes(f.from) || mine.includes(f.to)).map(f => f.label);
+    // 최근 소식: 신문(받아 본 날만)에서 그 세력 이름·열쇠말이 든 사실 기사 중 가장 최근 것
+    const f = WS.data.factions[facId] || {};
+    const lit = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp([f.name, p.label].filter(Boolean).map(lit).concat(p.keys || []).join('|')); // keys 는 원래 정규식 조각 (known 과 같다)
+    const st = S(), skip = D().chronicleSkip;
+    let news = null;
+    const days = Object.keys(st.newsArchive || {}).map(Number).filter(d => d <= st.day && paperRead(d)).sort((a, b) => b - a);
+    for (const d of days) {
+      const a = (st.newsArchive[d] || []).find(n => !n.rumor && !skip.includes(n.cat) && re.test(n.text || ''));
+      if (a) { news = { day: d, text: a.text }; break; }
+    }
+    return { label: p.label, region: place ? place.label : '', word: row.word, arrow: row.arrow, blur: row.blur, rel: row.rel, fronts, news };
+  }
+
+  return { record, model, known, powerRow, reputation, kingdomEdge, brief };
 })();
