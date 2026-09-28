@@ -251,7 +251,7 @@
     // ════════════════════ 완벽한 장부 ════════════════════
     {
       // 금화를 두 배로 낸 종자 — 모른 척하면 이득, 돌려주면 한 줄 깨끗해진다
-      id: 'tr_overpay_squire', look: 'soldier', name: '종자 미켈', race: '인간', job: '갓 들어온 기사단 종자', faction: 'kingdom', portrait: '🪙', kind: 'talk',
+      id: 'tr_overpay_squire', look: 'soldier_b', name: '종자 미켈', race: '인간', job: '갓 들어온 기사단 종자', faction: 'kingdom', portrait: '🪙', kind: 'talk',
       spawn: { chance: 0.4, when: w({ day: { gte: 10 } }, { var: 'reputation', gte: 3 }, { noFlag: 'illegal_sale' }) },
       ask: { tag: '사 달라', items: { shield: 1 }, gold: 64, note: '방패값의 두 배를 냈다' },
       greet: '방패 하나 주세요! 여기 금화요. (셈도 안 하고 한 움큼을 내민다)',

@@ -237,7 +237,7 @@
       },
     },
     {
-      id: 'wd_grey_refugee', look: 'traveler', name: '피난민 오스카', race: '인간', job: '동쪽 마을에서 달아난 농부', faction: 'village', portrait: '🧺',
+      id: 'wd_grey_refugee', look: 'traveler_b', name: '피난민 오스카', race: '인간', job: '동쪽 마을에서 달아난 농부', faction: 'village', portrait: '🧺',
       spawn: { when: { all: [{ eventFired: 'dead_march' }, { not: { eventFired: 'dead_march_resolution' } }] }, chance: 0.5 },
       greet: '해골들이 밭을 가로질러 왔어요. 우리 옆집 영감도 그 줄에 섞여 있었어요. {item} {qty}병, {offer}골드뿐이에요.',
       request: { item: 'potion', qty: 2, offer: { mult: 0.7 }, partialOk: true },

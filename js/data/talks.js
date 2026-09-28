@@ -92,7 +92,7 @@
       ],
     },
     {
-      id: 'tk_ald_order', look: 'soldier2', name: '친위대 수레꾼', race: '인간', job: '알드릭 왕자파 친위대', faction: 'noble', portrait: '🪖',
+      id: 'tk_ald_order', look: 'soldier2_c', name: '친위대 수레꾼', race: '인간', job: '알드릭 왕자파 친위대', faction: 'noble', portrait: '🪖',
       spawn: { queuedOnly: true },
       greet: '오스문드 경이 보냈소. {item} {qty}자루, {offer}G.',
       request: { item: 'iron_spear', qty: 6, offer: { mult: 1.1 }, partialOk: true },
@@ -101,7 +101,7 @@
       onRefuse: { vars: { rel_noble: -2 } },
     },
     {
-      id: 'tk_ald_order2', look: 'soldier2', name: '친위대 수레꾼', race: '인간', job: '알드릭 왕자파 친위대', faction: 'noble', portrait: '🪖',
+      id: 'tk_ald_order2', look: 'soldier2_c', name: '친위대 수레꾼', race: '인간', job: '알드릭 왕자파 친위대', faction: 'noble', portrait: '🪖',
       spawn: { queuedOnly: true },
       greet: '왕자님 몫이오. {item} {qty}자루, 웃돈 얹어 {offer}G.',
       request: { item: 'iron_spear', qty: 6, offer: { mult: 1.3 }, partialOk: true },
@@ -148,7 +148,7 @@
       ],
     },
     {
-      id: 'tk_ser_order', look: 'priest', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', portrait: '🕯️',
+      id: 'tk_ser_order', look: 'priest_c', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', portrait: '🕯️',
       spawn: { queuedOnly: true },
       greet: '로살린 부인이 보냈어요. {item} {qty}병, {offer}G.',
       request: { item: 'potion', qty: 6, offer: { mult: 1.1 }, partialOk: true },
@@ -157,7 +157,7 @@
       onRefuse: { vars: { rel_noble: -2 } },
     },
     {
-      id: 'tk_ser_order2', look: 'priest', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', portrait: '🕯️',
+      id: 'tk_ser_order2', look: 'priest_c', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', portrait: '🕯️',
       spawn: { queuedOnly: true },
       greet: '공주님 몫이에요. {item} {qty}병, 값을 얹어 {offer}G.',
       request: { item: 'potion', qty: 6, offer: { mult: 1.3 }, partialOk: true },
@@ -168,7 +168,7 @@
 
     // ───── 뒤진 쪽의 절박한 제안: 알드릭이 앞서면 세레나 쪽이, 세레나가 앞서면 알드릭 쪽이 ─────
     {
-      id: 'tk_ser_plea1', look: 'noble_lady', name: '하녀장 이젤', race: '인간', job: '세레나 공주 저택 하녀장', faction: 'noble', portrait: '🧺', kind: 'talk',
+      id: 'tk_ser_plea1', look: 'noble_lady_b', name: '하녀장 이젤', race: '인간', job: '세레나 공주 저택 하녀장', faction: 'noble', portrait: '🧺', kind: 'talk',
       spawn: { when: woo('leaning_aldric', [after('interregnum', 2)]), chance: 0.6 },
       summary: '세레나 공주파 — 왕자 쪽으로 기울자 웃돈 얹은 비밀 납품을 청한다',
       greet: '섭정 회의가 왕자님 쪽으로 기울면서 길드 상인들이 우리 주문을 안 받아요. 웃돈을 얹을게요. 물약 여덟 병, 내일 저녁에 뒷문으로. 장부엔 수도원 이름으로 적어 주세요.',
@@ -178,7 +178,7 @@
       ],
     },
     {
-      id: 'tk_ser_secret', look: 'priest', name: '두건 쓴 수녀', race: '인간', job: '수도원 심부름', faction: 'church', trueFaction: 'noble', portrait: '🕯️', late: true,
+      id: 'tk_ser_secret', look: 'priest_b', name: '두건 쓴 수녀', race: '인간', job: '수도원 심부름', faction: 'church', trueFaction: 'noble', portrait: '🕯️', late: true,
       spawn: { queuedOnly: true },
       greet: '수도원 심부름이에요. {item} {qty}병, {offer}G. 이름은 적지 말아 주세요.',
       request: { item: 'potion', qty: 8, offer: { mult: 1.5 }, partialOk: true },
@@ -186,7 +186,7 @@
       onSell: { vars: { succession: -2 }, flags: ['armed_princess_secret', 'tk_ser_secret_sold'] },
     },
     {
-      id: 'tk_ser_plea2', look: 'noble_lady', name: '하녀장 이젤', race: '인간', job: '세레나 공주 저택 하녀장', faction: 'noble', portrait: '🧺', kind: 'talk',
+      id: 'tk_ser_plea2', look: 'noble_lady_b', name: '하녀장 이젤', race: '인간', job: '세레나 공주 저택 하녀장', faction: 'noble', portrait: '🧺', kind: 'talk',
       spawn: { when: woo('leaning_aldric', [{ customerSeen: 'tk_ser_plea1' }, { since: { flag: 'tk_ser_plea_yes', days: 2 } }]), chance: 0.5 },
       summary: '세레나 공주파 — 금고가 비었다, 구호소 물약을 외상으로 (대관식 뒤 두 배)',
       greet: '공주님 금고가 바닥났어요. 구호소 물약 열 병, 값은 대관식 뒤에 두 배로 치를게요. 공주님이 왕관을 못 쓰시면… 그땐 저도 드릴 말이 없어요.',
@@ -196,7 +196,7 @@
       ],
     },
     {
-      id: 'tk_ser_credit', look: 'priest', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', trueFaction: 'noble', portrait: '🕯️',
+      id: 'tk_ser_credit', look: 'priest_c', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', trueFaction: 'noble', portrait: '🕯️',
       spawn: { queuedOnly: true },
       greet: '하녀장님이 보냈어요. {item} {qty}개, 값은 대관식 뒤 {offer}G.',
       request: { item: 'potion', qty: 10, offer: { mult: 2 }, partialOk: true },
@@ -233,7 +233,7 @@
       ],
     },
     {
-      id: 'tk_ald_credit', look: 'soldier2', name: '친위대 수레꾼', race: '인간', job: '알드릭 왕자파 친위대', faction: 'noble', portrait: '🪖',
+      id: 'tk_ald_credit', look: 'soldier2_c', name: '친위대 수레꾼', race: '인간', job: '알드릭 왕자파 친위대', faction: 'noble', portrait: '🪖',
       spawn: { queuedOnly: true },
       greet: '크로그가 보냈소. {item} {qty}자루, 값은 원정 뒤 {offer}G.',
       request: { item: 'iron_spear', qty: 8, offer: { mult: 1.8 }, partialOk: true },
@@ -265,7 +265,7 @@
       ],
     },
     {
-      id: 'tk_war_ald_cart', look: 'soldier2', name: '서부 토벌대 보급병', race: '인간', job: '왕자 깃발 아래 토벌대', faction: 'kingdom', portrait: '🪖',
+      id: 'tk_war_ald_cart', look: 'soldier2_b', name: '서부 토벌대 보급병', race: '인간', job: '왕자 깃발 아래 토벌대', faction: 'kingdom', portrait: '🪖',
       spawn: { queuedOnly: true },
       greet: '왕자님 이름으로 왔소. {item} {qty}자루, {offer}G.',
       request: { item: 'iron_spear', qty: 8, offer: { mult: 1 }, partialOk: true },
@@ -621,7 +621,7 @@
           open: '공주님 쪽 사람이에요.', plea: '대관식까지 광장 구호소 줄이 끊기면 안 돼요. 공주님은 이 가게를 기억하세요.', ask: '내일 물약 여덟 병, 구호소 수레를 보낼게요.',
           yesReply: '고마워요. 구호소 천막에 공주님 문장이 걸릴 거예요.', noLabel: '물약은 못 대겠소', noReply: '…공주님께 그대로 전할게요.',
           mutter: '…구호소를 빈손으로 돌려보내면, 왕좌 다툼에서 이 가게 자리는 없다.', noEffects: { vars: { rel_noble: -1 } },
-          cart: { who: { look: 'priest', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', portrait: '🕯️' },
+          cart: { who: { look: 'priest_c', name: '구호소 수녀', race: '인간', job: '세레나 공주파 구호소', faction: 'church', portrait: '🕯️' },
             greet: '로살린 부인이 보냈어요. {item} {qty}병, {offer}G.', item: 'potion', qty: 8, mult: 1.15, onSell: { vars: { succession: -3, church_authority: 1 }, flags: ['backed_serena'] },
             lines: { sold: '구호소 줄이 오늘은 짧아지겠어요.', partial: '이만큼이라도 고마워요.', refused: '…어제는 된다고 하셨는데요.' } } },
       ],
@@ -667,7 +667,7 @@
           open: '레온이오.', plea: '서부 초소가 비었소. 계약서 밖의 부탁이라 미안하오.', ask: '내일 방패 여섯, 보급관을 보내겠소.',
           yesReply: '고맙소. 초소에 이 가게 방패를 걸겠소.', noLabel: '이번엔 못 대겠소', noReply: '…알겠소. 다른 데를 알아보겠소.',
           mutter: '…레온을 빈손으로 보내면, 기사단 보급 장부에서 이 가게 이름이 흐려진다.', noEffects: { vars: { leon_bond: -1 } },
-          cart: { who: { look: 'soldier', name: '보급관 에드윈', race: '인간', job: '제7기사단 보급관', faction: 'kingdom', portrait: '📦' },
+          cart: { who: { look: 'soldier_b', name: '보급관 에드윈', race: '인간', job: '제7기사단 보급관', faction: 'kingdom', portrait: '📦' },
             item: 'shield', qty: 6, mult: 1, onSell: { vars: { rel_kingdom: 1, kingdom_power: 1 } },
             lines: { sold: '단장님이 고맙다 전하랍니다.', partial: '모자라도 초소 하나는 채우겠소.', refused: '단장님께 뭐라 전하라는 거요.' } } },
       ],
@@ -1142,7 +1142,7 @@
   const weakJoin = '…한쪽에 선 가게가 다른 쪽에도 선다. 누가 왕관을 쓰든 둘 다 이 가게를 기억하겠지.';
   C.push(
     {
-      id: 'tk_weak_ser', look: 'noble_lady', name: '하녀장 이젤', race: '인간', job: '세레나 공주 저택 하녀장', faction: 'noble', portrait: '🧺', kind: 'talk', spawn: { queuedOnly: true },
+      id: 'tk_weak_ser', look: 'noble_lady_b', name: '하녀장 이젤', race: '인간', job: '세레나 공주 저택 하녀장', faction: 'noble', portrait: '🧺', kind: 'talk', spawn: { queuedOnly: true },
       summary: '세레나 공주파 — 밀리자 안개 상단과 손잡았다, 이 가게도 함께하자 (내일 물약)',
       greet: '섭정 회의가 왕자님 쪽으로 기울었어요. 그래서 공주님이 안개 상단과 손을 잡으셨어요. 밤 시장 물약 줄이 구호소로 이어져요. 이 가게도 함께해 주세요. 내일부터 물약을 대 주시면 돼요.',
       choices: [

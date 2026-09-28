@@ -184,6 +184,23 @@ WS.data.events = [
     effects: { flags: ['kingdom_victory'], unflags: ['war'], vars: { goblin_power: -15, kingdom_morale: 10 } },
     news: { cat: '속보', text: '왕국군, 서부 숲 평정… 고블린 부족들 뿔뿔이', big: true },
   },
+  // 끝물 몰아치기(전쟁): war_progress(밤마다 goblin_power−kingdom_power 로 기우는 추세, 3.4 참고)가
+  // 실제 27일이 지나도록 ±10 안(진짜 우유부단)이면 전쟁이 영영 안 끝난다 — 새 변수 없이 그 순간의 부호만 본다.
+  // priority 75라 war_goblin_victory/war_kingdom_victory(85) 가 같은 밤 먼저 평가돼 이미 ±20 을 넘겼으면
+  // war 플래그가 그때 이미 꺼져 있어 이 사건은 안 뜬다. war_outbreak(80) 보다도 낮게 둬서, 전쟁이 27일이
+  // 지나서야 막 터진 판(그래서 war_progress 가 밤에 한 번도 못 움직인 판)도 그날 안에 바로 가른다.
+  {
+    id: 'war_stalemate_tiebreak_goblin', once: true, priority: 75,
+    when: { all: [{ flag: 'war' }, { realDay: { gte: 27 } }, { var: 'war_progress', gte: 0 }, { var: 'war_progress', lte: 10 }, { noFlag: 'closed_goblin' }] },
+    effects: { flags: ['goblin_victory'], unflags: ['war'], vars: { kingdom_power: -6, kingdom_morale: -10 } },
+    news: { cat: '속보', text: '서부 전선 지루한 교착 끝… 왕국 쪽 보급이 먼저 끊긴 쪽이 물러났다, 고블린 연합 사실상 서부 장악', big: true },
+  },
+  {
+    id: 'war_stalemate_tiebreak_kingdom', once: true, priority: 75,
+    when: { all: [{ flag: 'war' }, { realDay: { gte: 27 } }, { var: 'war_progress', lt: 0 }, { var: 'war_progress', gte: -10 }, { noFlag: 'closed_goblin' }] },
+    effects: { flags: ['kingdom_victory'], unflags: ['war'], vars: { goblin_power: -15, kingdom_morale: 10 } },
+    news: { cat: '속보', text: '서부 전선 지루한 교착 끝… 고블린 쪽 보급이 먼저 끊긴 쪽이 물러났다, 왕국군 서부 숲 사실상 평정', big: true },
+  },
 
   // ───────── 오우거 위협 (같은 사건, 다른 결말) ─────────
   {

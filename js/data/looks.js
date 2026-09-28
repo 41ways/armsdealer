@@ -43,6 +43,11 @@ WS.data.looks = {
     helmet: 'widehat', hatColor: '#5a4030',
     body: 'armor', bodyColor: '#8a5040', trim: '#c0a060', mouth: 'plain',
   },
+  // soldier2_b 만으로 모자라 더 나눈다 — 투구 없이 짧은 검은 머리, 가죽 갑주는 짙은 청회색
+  soldier2_c: {
+    skin: '#a97350', eyes: '#1a2418', ears: 'human', hair: 'short', hairColor: '#1a1a1a',
+    helmet: 'none', body: 'leather', bodyColor: '#2a3a4a', mouth: 'plain', scar: true,
+  },
   adventurer: {
     skins: ['#f0c2a0', '#e3ae88', '#b97d58'], eyes: '#2f6a3a', ears: 'elf',
     hair: 'long', hairColors: ['#d8b25a', '#6a3a1e', '#2a1a14', '#b5541e', '#e6e0d0'],
@@ -234,6 +239,11 @@ WS.data.looks = {
     skin: '#a87050', eyes: '#1a1210', ears: 'human', helmet: 'none',
     body: 'leather', bodyColor: '#3a1414', tabard: '#1a1a1a', trim: '#5a1414', mouth: 'plain', scar: true,
   },
+  // 이야기 손님 몇이 mercenary 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 투구 없이 대머리, 가죽 갑주는 짙은 청갈색
+  mercenary_b: {
+    skin: '#c98f68', eyes: '#2a1810', ears: 'human', helmet: 'none',
+    body: 'leather', bodyColor: '#4a3a2a', mouth: 'plain', scar: true,
+  },
   merc_captain: {
     skin: '#c98f68', eyes: '#2a1a12', ears: 'human', hair: 'long', hairColor: '#3a2a22', beard: 'small', beardColor: '#3a2a22',
     body: 'armor', bodyColor: '#4a4440', tabard: '#8a2a1e', trim: '#c8a040', eyepatch: true, mouth: 'plain', scar: true,
@@ -308,6 +318,11 @@ WS.data.looks = {
     skin: '#e6c8ac', eyes: '#2a2a2a', ears: 'human', helmet: 'hood', hoodColor: '#4a4650',
     body: 'robe', bodyColor: '#5a5660', trim: '#8a8690', mouth: 'plain',
   },
+  // priest_b 만으로 모자라 더 나눈다 — 모자 없이 짧은 흑갈 머리, 어린 얼굴, 짙은 녹색 수도복
+  priest_c: {
+    skin: '#c8a888', eyes: '#5a3a2a', ears: 'human', hair: 'short', hairColor: '#3a3630',
+    helmet: 'none', body: 'robe', bodyColor: '#2a4a3a', trim: '#8a9868', mouth: 'plain', wrinkles: true,
+  },
   inquisitor: {
     skin: '#d8b090', eyes: '#e8e0c0', ears: 'none', helmet: 'hood', hoodColor: '#6a0e14',
     body: 'robe', bodyColor: '#5a0e14', trim: '#e0c050',
@@ -340,6 +355,11 @@ WS.data.looks = {
   noble_lady_rosalind: {
     skin: '#ecb894', eyes: '#3a6a5a', ears: 'human', hair: 'long', hairColor: '#d8d4cc',
     helmet: 'none', body: 'noble', bodyColor: '#1e5a52', trim: '#c0c8b0', mouth: 'plain',
+  },
+  // 이야기 손님 몇이 noble_lady 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 관 없이 짙은 갈색 긴 머리, 짙은 남색 수수한 옷
+  noble_lady_b: {
+    skin: '#ecb894', eyes: '#2a4a3a', ears: 'human', hair: 'long', hairColor: '#3a2a1a',
+    helmet: 'none', body: 'robe', bodyColor: '#2a3a5a', trim: '#8a9ac0', mouth: 'plain',
   },
   prince: {
     skin: '#ecb894', eyes: '#3a6ab0', ears: 'human', hair: 'short', hairColor: '#c8a050', helmet: 'crown',

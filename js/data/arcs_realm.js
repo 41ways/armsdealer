@@ -417,7 +417,7 @@
 // ───────── 대화 손님 예시 (설계 docs/DESIGN_CONVERGENCE.md 3.A) — 요약 한 줄 · 이어지는 질문(follow) · 혼잣말(mutter) ─────────
 WS.data.customers.push(
   {
-    id: 'rl_merc_join', look: 'mercenary', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺', kind: 'talk',
+    id: 'rl_merc_join', look: 'mercenary_b', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺', kind: 'talk',
     spawn: { when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }, { var: 'merc_strength', gte: 9 }] }, chance: 0.6 },
     summary: '붉은 늑대 용병단 — 알드릭 왕자 쪽 합류 예정, 내일 칼 주문',
     greet: '내일 우리 단이 왕자님 깃발 아래 들어가오. 칼 열 자루, 내일 준비해 줄 수 있소?',
@@ -429,7 +429,7 @@ WS.data.customers.push(
     ],
   },
   {
-    id: 'rl_merc_buyer', look: 'mercenary', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺',
+    id: 'rl_merc_buyer', look: 'mercenary_b', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺',
     spawn: { queuedOnly: true },
     greet: '어제 말한 칼이오. {item} {qty}자루, {offer}골드.',
     request: { item: 'iron_sword', qty: 8, offer: { mult: 1.1 } },
