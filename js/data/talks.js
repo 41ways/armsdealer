@@ -304,8 +304,10 @@
     news: { ...news, big: true },
   });
   const reportHooks = key => ({ suspicious: true, caughtFlag: `tk_${key}_b_caught`, onReport: { flags: [`tk_${key}_b_caught`] } });
+  // 기본 인사말은 "약속한 물건이오" — extra.greet 로 늘 덮어써 맥락에 맞는 인사를 쓴다. 빠뜨려도 "undefined"가 뜨진 않는다
   const buyer = (id, base, req, supFlag, onSell, lines, extra) => ({
     id, ...base, spawn: { queuedOnly: true }, request: { ...req, partialOk: true }, lines,
+    greet: '어제 약속한 물건이오. {item} {qty}개, {offer}G.',
     onSell: { ...onSell, flags: [supFlag].concat((onSell && onSell.flags) || []) }, ...(extra || {}),
   });
 
@@ -331,7 +333,8 @@
     },
     buyer('tk_gc_guard_cart', guardBase, { item: 'iron_spear', qty: 8, offer: { mult: 1 } }, 'tk_gc_a_sup',
       { vars: { kingdom_power: 1, border_tension: -1 } },
-      { sold: '초소에 오늘 밤 안에 걸겠소.', partial: '모자라도 이게 어디요.', refused: '어제는 준비한다더니…' }),
+      { sold: '초소에 오늘 밤 안에 걸겠소.', partial: '모자라도 이게 어디요.', refused: '어제는 준비한다더니…' },
+      { greet: '초소로 보낼 창이오. {item} {qty}자루, {offer}G.' }),
     {
       id: 'tk_gc_envoy', ...zrakBase, kind: 'talk', spawn: { queuedOnly: true }, ...reportHooks('gc'),
       reportDetail: '서부 숲 부족 전령이었소. 공세 날짜까지 캐냈소.',
@@ -351,7 +354,8 @@
     },
     buyer('tk_gc_envoy_cart', zrakBase, { item: 'iron_sword', qty: 10, offer: { mult: 1.15 } }, 'tk_gc_b_sup',
       { vars: { goblin_unity: 2, border_tension: 1 } },
-      { sold: '킥킥! 초소 지붕에 이 칼 꽂아 두고 올 거라구!', partial: '모자라! 그래도 간다구!', refused: '어제는 준다며! 숲은 다 기억한다구!' }),
+      { sold: '킥킥! 초소 지붕에 이 칼 꽂아 두고 올 거라구!', partial: '모자라! 그래도 간다구!', refused: '어제는 준다며! 숲은 다 기억한다구!' },
+      { greet: '킥킥! 약속한 칼 받으러 왔다구! {item} {qty}자루, {offer}골드!' }),
   );
   caughtEvent('gc', 'rel_goblin', { cat: '왕국', text: '경비대, 서부 숲 부족 전령 붙잡아… "공세 날짜 캐냈다"' });
   pair('gc', 'court', 'goblin', ['tk_gc_guard', 'tk_gc_envoy'], {
@@ -382,7 +386,8 @@
       ],
     },
     buyer('tk_dg_scout_cart', godwinBase, { item: 'bow', qty: 6, offer: { mult: 1.05 } }, 'tk_dg_a_sup', { vars: { dragon_stir: -1 } },
-      { sold: '돌아오면 무엇을 봤는지 신문에서 보시오.', partial: '모자라도 가겠소.', refused: '맨손으로 산에 오르라는 거요?' }),
+      { sold: '돌아오면 무엇을 봤는지 신문에서 보시오.', partial: '모자라도 가겠소.', refused: '맨손으로 산에 오르라는 거요?' },
+      { greet: '정찰대 몫이오. {item} {qty}자루, {offer}G.' }),
     {
       id: 'tk_dg_marshal', ...bartolBase, kind: 'talk', spawn: { queuedOnly: true },
       summary: '서부 원정대 — 산이 아니라 서방 고블린부터, 내일 창 8',
@@ -394,7 +399,8 @@
       ],
     },
     buyer('tk_dg_marshal_cart', bartolBase, { item: 'iron_spear', qty: 8, offer: { mult: 1.05 } }, 'tk_dg_b_sup', { vars: { kingdom_power: 1 } },
-      { sold: '원정대 깃발 아래 서겠소.', partial: '모자란 건 징발하겠소.', refused: '어제는 준비한다더니.' }),
+      { sold: '원정대 깃발 아래 서겠소.', partial: '모자란 건 징발하겠소.', refused: '어제는 준비한다더니.' },
+      { greet: '원정대 몫이오. {item} {qty}자루, {offer}G.' }),
   );
   pair('dg', 'goblin', 'dragon', ['tk_dg_scout', 'tk_dg_marshal'], {
     when: { all: [{ noFlag: 'goblin_victory' }, { noFlag: 'west_goblin' }, { noFlag: 'dragon_awake' }, { noFlag: 'dragon_slain' }, { noFlag: 'dragon_razed' }, { noFlag: 'dragon_pact' }] },
@@ -422,7 +428,8 @@
       ],
     },
     buyer('tk_dc_wall_cart', brandtBase, { item: 'shield', qty: 6, offer: { mult: 1 } }, 'tk_dc_a_sup', { vars: { dragon_defense: 60 } },
-      { sold: '성벽 망루마다 하나씩 걸겠소.', partial: '이것도 받겠소.', refused: '용이 오면 기억하시오.' }),
+      { sold: '성벽 망루마다 하나씩 걸겠소.', partial: '이것도 받겠소.', refused: '용이 오면 기억하시오.' },
+      { greet: '성벽 몫이오. {item} {qty}개, {offer}G.' }),
     {
       id: 'tk_dc_clerk', ...felixBase, kind: 'talk', spawn: { queuedOnly: true },
       summary: '섭정 회의 — 대관식 의장대 무장, 내일 칼 6 (웃돈)',
@@ -434,7 +441,8 @@
       ],
     },
     buyer('tk_dc_clerk_cart', felixBase, { item: 'iron_sword', qty: 6, offer: { mult: 1.25 } }, 'tk_dc_b_sup', { vars: { rel_noble: 1 } },
-      { sold: '의장대장이 흡족해하겠소.', partial: '모자라지만 앞줄은 채우겠소.', refused: '섭정 회의에 그대로 올리겠소.' }),
+      { sold: '의장대장이 흡족해하겠소.', partial: '모자라지만 앞줄은 채우겠소.', refused: '섭정 회의에 그대로 올리겠소.' },
+      { greet: '의장대 몫이오. {item} {qty}자루, 넉넉히 쳐서 {offer}G.' }),
   );
   pair('dc', 'dragon', 'court', ['tk_dc_wall', 'tk_dc_clerk'], {
     when: { all: [{ noFlag: 'dragon_awake' }, { noFlag: 'dragon_slain' }, { noFlag: 'dragon_razed' }, { noFlag: 'dragon_pact' }] },
@@ -466,7 +474,8 @@
       ],
     },
     buyer('tk_dk_fort_cart', evanBase, { item: 'shield', qty: 6, offer: { mult: 1 } }, 'tk_dk_a_sup', { vars: { kingdom_power: 1, invasion_risk: -2 } },
-      { sold: '요새 셋이 한 줄로 서겠소.', partial: '이것만이라도.', refused: '어제는 된다더니.' }),
+      { sold: '요새 셋이 한 줄로 서겠소.', partial: '이것만이라도.', refused: '어제는 된다더니.' },
+      { greet: '요새로 보낼 방패요. {item} {qty}개, {offer}G.' }),
     {
       id: 'tk_dk_black', ...morgasBase, kind: 'talk', spawn: { queuedOnly: true }, ...reportHooks('dk'),
       reportDetail: '검은 깃발 사절이었소. 북부 요새 문을 열 날짜를 들고 있었소.',
@@ -480,7 +489,8 @@
       ],
     },
     buyer('tk_dk_black_cart', morgasBase, { item: 'iron_sword', qty: 10, offer: { mult: 0.45 } }, 'tk_dk_b_sup', blackPay,
-      { sold: '금화는 그만큼이다. 나머지는 이 돌들로 받아라. 폐하의 돈은 늘 이렇다.', partial: '모자라군. 값도 그만큼이다.', refused: '폐하는 숫자를 기억하신다.' }),
+      { sold: '금화는 그만큼이다. 나머지는 이 돌들로 받아라. 폐하의 돈은 늘 이렇다.', partial: '모자라군. 값도 그만큼이다.', refused: '폐하는 숫자를 기억하신다.' },
+      { greet: '폐하의 몫이다. {item} {qty}자루. 값은 금화 조금과 마석으로 치르겠다.' }),
     {
       id: 'tk_dgo_goblin', ...krakBase, kind: 'talk', spawn: { queuedOnly: true },
       summary: '고블린 부족 — 검은 깃발이 숲을 내놓으라 한다, 내일 활 8',
@@ -493,7 +503,8 @@
       ],
     },
     buyer('tk_dgo_goblin_cart', krakBase, { item: 'bow', qty: 8, offer: { mult: 1.1 } }, 'tk_dgo_a_sup', { vars: { goblin_unity: 2 } },
-      { sold: '킥! 검은 놈들 등짝에 꽂아 줄 거라구!', partial: '모자라! 그래도 쏜다구!', refused: '어제는 준다며!' }),
+      { sold: '킥! 검은 놈들 등짝에 꽂아 줄 거라구!', partial: '모자라! 그래도 쏜다구!', refused: '어제는 준다며!' },
+      { greet: '킥! 약속한 활 받으러 왔다구! {item} {qty}자루, {offer}골드!' }),
     {
       id: 'tk_dgo_black', ...morgasBase, kind: 'talk', spawn: { queuedOnly: true }, ...reportHooks('dgo'),
       reportDetail: '검은 깃발 사절이었소. 서부 숲을 칠 날짜를 들고 있었소.',
@@ -507,7 +518,8 @@
       ],
     },
     buyer('tk_dgo_black_cart', morgasBase, { item: 'iron_sword', qty: 10, offer: { mult: 0.45 } }, 'tk_dgo_b_sup', blackPay,
-      { sold: '금화는 그만큼이다. 나머지는 이 돌들로 받아라.', partial: '모자라군. 값도 그만큼이다.', refused: '폐하는 숫자를 기억하신다.' }),
+      { sold: '금화는 그만큼이다. 나머지는 이 돌들로 받아라.', partial: '모자라군. 값도 그만큼이다.', refused: '폐하는 숫자를 기억하신다.' },
+      { greet: '폐하의 몫이다. {item} {qty}자루. 값은 마석으로 치르겠다.' }),
   );
   caughtEvent('dk', 'rel_demonlord', { cat: '왕국', text: '경비대, 검은 깃발 사절 붙잡아… "북부 요새 문 열 날짜 캐냈다"' });
   caughtEvent('dgo', 'rel_demonlord', { cat: '왕국', text: '경비대, 검은 깃발 사절 붙잡아… "서부 숲 칠 날짜 캐냈다"' });
@@ -555,7 +567,8 @@
       ],
     },
     buyer('tk_gg_foreman_cart', hepaBase, { item: 'iron_ore', qty: 15, offer: { mult: 1.05 } }, 'tk_gg_a_sup', { vars: { golem_tech: 2, rel_golem: 1, fairy_grace: -1 } },
-      { sold: '(톱니가 째깍인다) 광맥 길목에 골렘 열 기를 세우겠소.', partial: '모자라도 다리 몇 개는 되겠소.', refused: '어제는 준비한다더니.' }),
+      { sold: '(톱니가 째깍인다) 광맥 길목에 골렘 열 기를 세우겠소.', partial: '모자라도 다리 몇 개는 되겠소.', refused: '어제는 준비한다더니.' },
+      { greet: '공방으로 보낼 광석이오. {item} {qty}개, {offer}G.' }),
     {
       id: 'tk_gg_envoy', ...zrakBase, kind: 'talk', spawn: { queuedOnly: true }, ...reportHooks('gg'),
       reportDetail: '서부 숲 부족 전령이었소. 광맥 길목 매복 자리까지 캐냈소.',
@@ -569,7 +582,8 @@
       ],
     },
     buyer('tk_gg_envoy_cart', zrakBase, { item: 'iron_spear', qty: 8, offer: { mult: 1.1 } }, 'tk_gg_b_sup', { vars: { goblin_unity: 2, border_tension: 1 } },
-      { sold: '킥킥! 광맥 길목에 이 창을 세워 둘 거라구!', partial: '모자라! 그래도 간다구!', refused: '어제는 준다며! 숲은 다 기억한다구!' }),
+      { sold: '킥킥! 광맥 길목에 이 창을 세워 둘 거라구!', partial: '모자라! 그래도 간다구!', refused: '어제는 준다며! 숲은 다 기억한다구!' },
+      { greet: '킥킥! 광맥 길목에 세울 창 받으러 왔다구! {item} {qty}자루, {offer}골드!' }),
   );
   caughtEvent('gg', 'rel_goblin', { cat: '왕국', text: '경비대, 서부 숲 부족 전령 붙잡아… "광맥 길목 매복 자리 캐냈다"' });
   pair('gg', 'golem', 'goblin', ['tk_gg_foreman', 'tk_gg_envoy'], {
