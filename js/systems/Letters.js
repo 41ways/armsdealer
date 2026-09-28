@@ -605,14 +605,22 @@ WS.sys.Letters = (() => {
       c.dialog.push({ who: 'p', text: P.playerLine });
       c.dialog.push({ who: 'c', text: txt(react.conf[react.kind], {}) });
       if (react.kind === 'partial') {
-        // 있는 만큼만 사 가겠다 — 요구 수량과 값을 그만큼으로 줄이고 그대로 거래 화면
+        // 있는 만큼만 사 가겠다 — 요구 수량과 값을 그만큼으로 줄이고 그대로 거래 화면 (askQty: 처음 찾은 수 — 수요 메모가 모자란 몫을 센다)
         const r = c.request, was = r.qty;
+        r.askQty = r.askQty || was;
         r.qty = react.have;
         if (r.offer != null) r.offer = Math.round(r.offer * react.have / was);
         return ok(`${c.name}은(는) 기다리지 않고, 있는 것만 ${react.have}개 사 가겠다고 한다.`);
       }
       c.status = 'done';
       c.result = 'left';
+      // 장부에 결렬로 남긴다 — 없어서 못 판 몫 (수요 메모). 거래가 아니므로 choices 는 건드리지 않는다
+      const r = c.request, short = r.qty - haveOf(r);
+      st.ledger.push({
+        day: st.day, time: st.time, name: c.name, tpl: c.tpl, faction: c.faction, trueFaction: c.trueFaction,
+        action: 'left', item: r.item || null, category: r.category || null, qty: r.qty, price: 0,
+        ...(short > 0 && !c.tutorial ? { short, want: { item: r.item || null, category: r.category || null, preferSubtype: r.preferSubtype || null } } : {}),
+      });
       const rv = relVarOf(c.faction);
       if (rv) WS.sys.Effects.apply({ vars: { [rv]: -1 } });
       return ok(`${c.name}은(는) "다른 데 가겠다"며 돌아섰다.`);
@@ -629,6 +637,45 @@ WS.sys.Letters = (() => {
     c.status = 'done';
     c.result = 'promised';
     return ok(`${c.name}이(가) 내일 아침 다시 오기로 했다. ${requestLabel(c.request)} ${c.request.qty}개를 구해 두자.`);
+  }
+
+  // ───────── 아침 도매상의 수요 메모 ─────────
+  // missed: 어제 장부에서 없어서 못 판 몫(거절 · 결렬 · 모자라게 판 것의 short) — 찾은 것별로 모은다
+  // due: 오늘 다시 오는 손님(약속 · 기별)이 찾는 것 — 대기열에서 아직 안 만난 손님만
+  //   [{ key, want: { item, category, preferSubtype }, label, qty, who, names, supplied }] — 개수 많은 순
+  const wantKey = w => (w.item ? WS.sys.Items.canon(w.item) : `${w.category}/${w.preferSubtype || ''}`);
+  // 이 물건이 그 요청에 맞는가 (분류형 요청이면 선호 소분류가 있으면 그것만)
+  function wantMatches(w, id) {
+    if (w.item) return WS.sys.Items.canon(w.item) === WS.sys.Items.canon(id);
+    const it = WS.sys.Items.get(id);
+    if (!it || it.newCategory !== w.category) return false;
+    if (w.preferSubtype) return it.subtype === w.preferSubtype;
+    const o = WS.sys.Trade.offerForCategoryItem({ request: { ...w, qty: 1 } }, id);
+    return !!(o && o.accepted);
+  }
+  function demandMemo() {
+    const st = S();
+    const supply = WS.sys.Market.supplyList();
+    const group = (list, add) => {
+      const m = {};
+      list.forEach(x => {
+        const k = wantKey(x.want);
+        const g = (m[k] = m[k] || { key: k, want: x.want, label: requestLabel(x.want), qty: 0, who: 0, names: [] });
+        g.qty += x.qty; g.who++; if (x.name && !g.names.includes(x.name)) g.names.push(x.name);
+        if (add) add(g, x);
+      });
+      return Object.values(m).map(g => ({ ...g, supplied: supply.some(id => wantMatches(g.want, id)) })).sort((a, b) => b.qty - a.qty);
+    };
+    const missed = group(st.ledger.filter(e => e.day === st.day - 1 && e.short > 0 && e.want).map(e => ({ want: e.want, qty: e.short, name: e.name })));
+    const due = group((st.queue || []).filter(c => c.returning && c.status === 'waiting' && c.kind === 'buy' && c.request)
+      .map(c => ({ want: { item: c.request.item || null, category: c.request.category || null, preferSubtype: c.request.preferSubtype || null }, qty: c.request.qty, name: c.name })));
+    return { missed, due };
+  }
+  // 도매상 목록의 물건 하나에 붙일 표시 — { missed: 어제 모자랐던 개수, due: 오늘 약속한 개수 }
+  function memoFor(id, memo) {
+    memo = memo || demandMemo();
+    const sum = list => list.filter(g => wantMatches(g.want, id)).reduce((s, g) => s + g.qty, 0);
+    return { missed: sum(memo.missed), due: sum(memo.due) };
   }
 
   // CustomerManager.buildQueue 가 부른다: 오늘 다시 오는 손님들 (대기열 맨 앞) — 약속 손님 + 기별 받은 손님
@@ -880,6 +927,7 @@ WS.sys.Letters = (() => {
   }
 
   // 증축 의뢰 — 선불 후 이틀 뒤 아침에 답장과 함께 확장 (nightly → deliverExpand)
+  const expandWhen = () => (D().expand.days === 1 ? '내일 아침' : `${D().expand.days}일 뒤 아침`);
   function sendExpand() {
     const st = S();
     if (!crowReady()) return no(NO_CROW);
@@ -888,8 +936,8 @@ WS.sys.Letters = (() => {
     const X = WS.sys.Inventory.nextStep();
     if (!WS.sys.Inventory.payExpand()) return no('금화가 모자라오.');
     L().expandOrder = { day: st.day, doneDay: st.day + D().expand.days };
-    record('expand', D().expand.to, D().expand.title, `삯 ${X.cost}G를 미리 냈다. ${D().expand.days}일 뒤 완공.`, X.cost);
-    return ok(`까마귀가 목수에게 날아갔다. 삯 ${X.cost}G는 선불, ${D().expand.days}일 뒤 아침에 답장이 온다.`);
+    record('expand', D().expand.to, D().expand.title, `삯 ${X.cost}G를 미리 냈다. ${expandWhen()} 완공.`, X.cost);
+    return ok(`까마귀가 목수에게 날아갔다. 삯 ${X.cost}G는 선불, ${expandWhen()}에 답장이 온다.`);
   }
   function deliverExpand() {
     const o = L().expandOrder;
@@ -970,7 +1018,7 @@ WS.sys.Letters = (() => {
     if (type === 'expand') {
       const X = WS.sys.Inventory.nextStep();
       const why = !X ? '창고 확장은 끝났소.' : L().expandOrder ? '증축 공사 중이오.' : S().gold < X.cost ? `삯 ${X.cost}G가 모자라오.` : '';
-      return { ok: crowReady() && !why, cost: X ? X.cost : 0, msg: why || `목수에게 증축을 맡긴다 (${WS.sys.Inventory.level() + 1}/${WS.sys.Inventory.maxLevel()}단계) — 용량 +${X.slots * WS.data.config.slotVolume} · ${D().expand.days}일 뒤 완공 · 삯 ${X.cost}G (선불)` };
+      return { ok: crowReady() && !why, cost: X ? X.cost : 0, msg: why || `목수에게 증축을 맡긴다 (${WS.sys.Inventory.level() + 1}/${WS.sys.Inventory.maxLevel()}단계) — 용량 +${X.slots * WS.data.config.slotVolume} · ${expandWhen()} 완공 · 삯 ${X.cost}G (선불)` };
     }
     if (type === 'rumor') {
       const RC = D().rumorCheck, r = WS.sys.Rumors && WS.sys.Rumors.askable().find(x => x.id === p.rumor);
@@ -1166,6 +1214,6 @@ WS.sys.Letters = (() => {
   return {
     insuranceOffer, initState, inbox, outbox, unreadCount, markRead, act, templates, quote, send,
     promiseReturn, canPromise, checkArrival, angerGift, takeReturners, nightly, debts, crowLoan, loanOwed, loanLeftText, owedOf, posters, crowReady, crowArrived, handPosters,
-    addWish, wishes,
+    addWish, wishes, haveOf, demandMemo, memoFor,
   };
 })();

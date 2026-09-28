@@ -299,6 +299,7 @@ WS.UI = (() => {
     const y = st.day - 1;
     const label = { sell: '판매', refuse: '거절', left: '결렬', buy: '매입', trade: '교환' };
     const rows = st.ledger.filter(e => e.day === y);
+    const shortTxt = e => (e.short > 0 ? ` <small class="lg-short">${e.action === 'sell' ? `${e.short}개 모자람` : '없어서'}</small>` : '');
     const deal = rows.filter(e => label[e.action]);
     const income = rows.filter(e => e.price > 0).reduce((s, e) => s + e.price, 0);
     const spend = rows.filter(e => e.price < 0).reduce((s, e) => s - e.price, 0);
@@ -306,7 +307,7 @@ WS.UI = (() => {
     const line = e => {
       const it = e.item ? item(e.item) : null;
       const what = e.action === 'trade' ? tradeText(e) : it ? `${U.esc(it.name)}×${e.qty}` : '—';
-      return `<li class="${e.action}"><span class="lg-who">${WS.ui.emblem(e.faction)}${U.esc(e.name)}</span><span class="lg-what">${label[e.action]} · ${what}</span><b class="lg-g ${e.price > 0 ? 'pos' : e.price < 0 ? 'neg' : ''}">${e.price ? (e.price > 0 ? '+' : '') + e.price + 'G' : '—'}</b>${echoHtml(e)}</li>`;
+      return `<li class="${e.action}"><span class="lg-who">${WS.ui.emblem(e.faction)}${U.esc(e.name)}</span><span class="lg-what">${label[e.action]} · ${what}${shortTxt(e)}</span><b class="lg-g ${e.price > 0 ? 'pos' : e.price < 0 ? 'neg' : ''}">${e.price ? (e.price > 0 ? '+' : '') + e.price + 'G' : '—'}</b>${echoHtml(e)}</li>`;
     };
     const ps = pledges();
     return `<h2 class="bk-title">장부 <small>${st.day}일째 아침</small></h2>
@@ -429,6 +430,50 @@ WS.UI = (() => {
   // +/− 로 주문서에 담기만 하고, 오른쪽 쪽 아래 '구매'를 눌러야 실제로 사고판다 (DayManager.confirmCart).
   // 구매하지 않고 문을 열면 담아 둔 주문은 없던 일이 된다.
   let buyNote = null; // 방금 구매한 결과 한 줄 { text } — 주문서를 다시 만지면 지운다
+  let cartBlock = null; // 방금 + 가 막힌 까닭 'space' | 'gold' (Day.cartAdjust) — 창고 확장 안내를 띄운다
+  let prepMail = false; // 도매상 쪽에서 연 까마귀 편지(증축 의뢰) 창
+
+  // 수요 메모 — 어제 없어서 못 판 것 · 오늘 약속한 것 (Letters.demandMemo). 없으면 빈 문자열
+  function demandMemoHtml(memo) {
+    if (!memo.missed.length && !memo.due.length) return '';
+    const Inv = WS.sys.Inventory;
+    const haveOf = w => (w.item ? Inv.count(w.item) : WS.sys.Letters.haveOf({ ...w, qty: 999 }));
+    const miss = memo.missed.map(g => `<span class="dm-it">${U.esc(g.label)} <b>${g.qty}개</b>${g.who > 1 ? `<small>${g.who}명</small>` : ''}${g.supplied ? '' : '<small class="dm-no">도매상에 없음</small>'}</span>`).join('');
+    const due = memo.due.map(g => {
+      const h = haveOf(g.want);
+      return `<span class="dm-it ${h < g.qty ? 'short' : 'ok'}">${U.esc(g.label)} <b>${g.qty}개</b><small>${U.esc(g.names.join(' · '))} · 보유 ${h}</small>${g.supplied || h >= g.qty ? '' : '<small class="dm-no">도매상에 없음</small>'}</span>`;
+    }).join('');
+    return `<div class="dm-memo" role="note">
+      ${memo.missed.length ? `<div class="dm-row"><b class="dm-h">어제 없어서 못 판 것</b><div class="dm-list">${miss}</div></div>` : ''}
+      ${memo.due.length ? `<div class="dm-row due"><b class="dm-h">오늘 약속한 것</b><div class="dm-list">${due}</div></div>` : ''}
+    </div>`;
+  }
+  // 창고 확장 안내 한 줄 — + 가 자리 때문에 막혔거나, 아침 창고(담은 주문 포함)가 85% 넘게 찼을 때
+  function storageHint(pv, cap) {
+    const Inv = WS.sys.Inventory, st = S();
+    const full = cap ? pv.slots / cap : 0;
+    if (cartBlock !== 'space' && full < 0.85) return '';
+    const pctTxt = `창고 ${Math.min(100, Math.round(full * 100))}% 참`;
+    const X = Inv.nextStep(), L = WS.sys.Letters;
+    let msg, btn = '';
+    if (st.letters && st.letters.expandOrder) msg = `${pctTxt}. 증축 공사 중 — 내일 아침이면 넓어진다.`;
+    else if (!X) msg = `${pctTxt}. 창고 확장은 끝났다. 안 팔리는 물건은 − 로 도매상에 넘겨 자리를 비울 수 있다.`;
+    else {
+      const days = WS.data.letters.expand.days;
+      msg = `${cartBlock === 'space' ? '자리가 없어 더 담을 수 없다' : pctTxt}. 목수에게 까마귀를 보내면 ${days === 1 ? '내일 아침' : days + '일 뒤'} 부피 +${X.slots * WS.data.config.slotVolume} — 삯 ${X.cost}G.`;
+      if (L && L.crowReady()) btn = `<button class="mini sh-btn" data-act="prep-mail" ${st.gold >= X.cost ? '' : 'disabled title="금고가 모자라다"'}>✒ 목수에게 편지</button>`;
+    }
+    return `<div class="storage-hint ${cartBlock === 'space' ? 'hot' : ''}" role="status"><span>${msg}</span>${btn}</div>`;
+  }
+  // 도매상 쪽에서 여는 까마귀 편지 창 — 창고 뒷방까지 가지 않고 증축 의뢰를 바로 쓴다 (composePane 그대로)
+  function prepMailHtml() {
+    return `<div class="pm-bg" data-act="prep-mail-close"></div>
+    <div class="pm-box" role="dialog" aria-label="까마귀 서신">
+      <div class="pm-head"><b>🐦 까마귀 서신</b><button class="mini" data-act="prep-mail-close">닫기</button></div>
+      ${mail.flash ? `<div class="mail-flash">${U.esc(mail.flash)}</div>` : ''}
+      ${mail.compose ? composePane() : mail.flash ? '' : '<p class="pm-done">까마귀가 창밖으로 날아갔다.</p>'}
+    </div>`;
+  }
   const cartOn = () => Object.values(S().cart || {}).some(n => n);
   function prep() {
     const st = S();
@@ -438,6 +483,13 @@ WS.UI = (() => {
     // 도매상이 동나 못 사는 물건(철광석 품절 등)은 목록에서 사라지지 않고 '품절'로 남겨 이유를 알 수 있게 한다
     const soldOut = st.flags && st.flags.ore_shortage && P().isUnlocked('ore') && !supply.includes('iron_ore') ? ['iron_ore'] : [];
     const ids = [...new Set([...supply, ...soldOut, ...Object.keys(st.inventory)])];
+    const memo = WS.sys.Letters && WS.sys.Letters.demandMemo ? WS.sys.Letters.demandMemo() : { missed: [], due: [] };
+    const memoTags = id => {
+      if (!memo.missed.length && !memo.due.length) return '';
+      const m = WS.sys.Letters.memoFor(id, memo);
+      return (m.due ? `<span class="dm-tag due" title="오늘 다시 오는 손님이 찾는 수">약속 ${m.due}</span>` : '')
+        + (m.missed ? `<span class="dm-tag" title="어제 없어서 못 판 수">어제 ${m.missed}개 찾음</span>` : '');
+    };
     const rowOf = id => {
       const it = item(id);
       const n = st.cart[id] || 0;
@@ -445,7 +497,7 @@ WS.UI = (() => {
       return `<div class="shop-row ${n ? 'hl' : ''}">
         <div class="sr-ico">${ico(id)}<span class="sr-cat">${catName(it.category)}</span></div>
         <div class="sr-main">
-          <div class="sr-name">${U.esc(it.name)} <span class="muted small"> 보유 ${WS.sys.Inventory.count(id)}</span><span class="sr-cat small">개당 부피 ${WS.sys.Inventory.unitSize(id)}</span>${!sup && soldOut.includes(id) ? '<span class="oos" title="철광석 도매가 동났다 — 길드가 광석을 사들이는 중이다">품절</span>' : ''}</div>
+          <div class="sr-name">${U.esc(it.name)} <span class="muted small"> 보유 ${WS.sys.Inventory.count(id)}</span><span class="sr-cat small">개당 부피 ${WS.sys.Inventory.unitSize(id)}</span>${memoTags(id)}${!sup && soldOut.includes(id) ? '<span class="oos" title="철광석 도매가 동났다 — 길드가 광석을 사들이는 중이다">품절</span>' : ''}</div>
           <div class="sr-prices small"><span>시세 <b>${WS.sys.Market.price(id)}</b></span><span>매입 ${sup ? WS.sys.Market.cost(id) : '—'}</span><span>처분 ${WS.sys.Market.wholesale(id)}</span></div>
         </div>
         <div class="stepper">
@@ -461,6 +513,7 @@ WS.UI = (() => {
     const rent = WS.sys.Day.rent();
     const pending = cartOn();
     const left = `<h2 class="bk-title">도매상 <small>${st.day}일째 주문서</small></h2>
+      ${demandMemoHtml(memo)}
       <p class="bk-note">+ 매입 · − 도매상에 처분(매입가의 ${Math.round(WS.data.config.wholesaleSellRate * 100)}%, 보석·귀한 물건은 ${Math.round(Math.max(...Object.values(WS.data.config.wholesaleSellRateByShelf || {}), WS.data.config.wholesaleSellRate) * 100)}%). 담은 뒤 '거래 진행'을 눌러야 거래된다.<br>창고 용량은 ${cap} — 물건마다 개당 부피가 다르다(큰 물건일수록 큼).</p>
       <div class="shop-list">${ids.map(rowOf).join('')}</div>`;
     const right = `<div class="bk-run"><span>도매상</span><span>${st.day}일째 주문서</span></div>
@@ -474,6 +527,7 @@ WS.UI = (() => {
         </div>
         ${guildRepayBox()}
         ${pv.gold < rent ? `<div class="warn-strip">⚠ 이대로 사면 오늘 밤 임대료 ${rent}G를 못 낸다 — 오늘 ${rent - pv.gold}G 이상 팔아야 한다</div>` : ''}
+        ${storageHint(pv, cap)}
         <div class="buy-row">
           ${buyNote && !pending ? `<span class="buy-done" role="status"><i class="buy-stamp">거래 완료</i>${U.esc(buyNote.text)}</span>` : `<span class="buy-hint">${pending ? '담은 주문 — 거래 진행을 눌러야 거래된다' : '담은 주문이 없다'}</span>`}
           <button class="pbtn primary buy-btn ${pending ? 'hot' : ''}" data-act="buy-cart" ${pending ? '' : 'disabled'}>거래 진행</button>
@@ -483,7 +537,8 @@ WS.UI = (() => {
     return `${hud()}
     ${book('prep', left, right)}
     <div class="cart-warn" role="note" ${pending ? '' : 'style="visibility:hidden"'}>거래 진행을 누르지 않은 주문은 취소된다</div>
-    ${pageBar()}`;
+    ${pageBar()}
+    ${prepMail ? prepMailHtml() : ''}`;
   }
   // 주문서 확정 — 산 것 · 판 것을 한 줄로 남기고 동전 소리
   function buyCart() {
@@ -1901,6 +1956,13 @@ WS.UI = (() => {
       : level === 'warn'
         ? `⚠ 금고가 얇다. 이대로면 임대료 <b>${days}일치</b>밖에 안 남았다. 도매상에서 너무 많이 사지 말 것.`
         : `금고에 임대료 ${days}일치가 있다.`;
+    // 임대료를 못 낼 때 — 창고 물건을 도매상에 되팔면 메울 수 있는지 (맡아 둔 물건은 빼고)
+    let sellBack = '';
+    if (level === 'danger') {
+      const held = id => (WS.sys.Progress && WS.sys.Progress.deposited ? WS.sys.Progress.deposited(id) : 0);
+      const worth = Object.entries(st.inventory).reduce((s, [id, n]) => s + Math.max(0, n - held(id)) * WS.sys.Market.wholesale(id), 0);
+      if (worth >= rent - st.gold) sellBack = `<p class="sb-tip">창고 물건을 도매상에 되팔면 약 <b>${worth}G</b>가 된다. 내일 아침 도매상 쪽에서 − 로 넘길 수 있다.</p>`;
+    }
     const rescue = st.today && st.today.rescue
       ? `<div class="rescue-note">🪙 <b>상인회가 모자란 임대료를 대신 냈다.</b><br>“회원은 한 번 봐주는 게 규칙이오. 이자는 없소. 대신 ${st.guildLoan.due}일째까지 ${st.guildLoan.amount}G를 돌려주시오.”</div>` : '';
     return `<div class="safe-box ${level}">
@@ -1908,7 +1970,7 @@ WS.UI = (() => {
       <div class="sb-row"><span>지금 금고</span><b>${st.gold}G</b></div>
       <div class="sb-row"><span>내일 밤 임대료</span><b>${rent}G</b></div>
       ${guildLoanRow()}
-      <p>${msg}</p></div>`;
+      <p>${msg}</p>${sellBack}</div>`;
   }
 
   function guildRepayBox() {
@@ -3041,14 +3103,14 @@ WS.UI = (() => {
     const before = c && c.result;
     if (act !== 'choice') confirmChoice = null;
     // 장면이 크게 바뀌는 행동은 검은 막으로 덮고 넘어간다 (중간 상태가 보이지 않게)
-    const toMorning = () => { paperNote = ''; crowTutStep = 0; D.nextDay(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = true; };
+    const toMorning = () => { paperNote = ''; crowTutStep = 0; cartBlock = null; prepMail = false; D.nextDay(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = true; };
     const morningCard = () => ({ day: S().day });
     const curtained = {
       new: [() => { WS.Scene.reset(); WS.Game.newGame(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; visited = {}; nav = { place: null, sub: null }; dawnPending = true; },
         () => ({ day: 1 }), 0, 'kd'],
       continue: [() => { WS.Scene.reset(); if (!WS.Game.continueGame()) WS.Game.newGame(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = S().phase === 'morning'; },
         () => ({ day: S().day }), 0, 'kd'],
-      open: [() => { D.openShop(); resetDealState(); visited = {}; nav = { place: null, sub: null }; },
+      open: [() => { prepMail = false; cartBlock = null; D.openShop(); resetDealState(); visited = {}; nav = { place: null, sub: null }; },
         () => ({ sub: '영업 시작' }), 0, 'kd-plain'],
       'next-day': [toMorning, morningCard, 0, 'kd'],
       'night-in': [() => { if (!D.startNight()) toMorning(); }, () => (S().phase === 'night' ? null : morningCard()), 0, 'kd'],
@@ -3085,7 +3147,9 @@ WS.UI = (() => {
       case 'back-morning': S().phase = 'morning'; morningSub = 'news'; break;
       case 'page-prev': stepMorning(-1); return;
       case 'page-next': stepMorning(1); return;
-      case 'cart': D.cartAdjust(id, Number(b.dataset.n)); buyNote = null; break;
+      case 'cart': cartBlock = D.cartAdjust(id, Number(b.dataset.n)) || null; buyNote = null; break;
+      case 'prep-mail': prepMail = true; mail = { sel: null, compose: 'expand', params: {}, flash: '' }; break;
+      case 'prep-mail-close': prepMail = false; mail.flash = ''; mail.compose = null; break;
       case 'buy-cart': buyCart(); break;
       case 'repay-guild': D.repayGuild(Number(b.dataset.n)); break;
       case 'next': D.nextCustomer(); { const cc = D.current(); if (cc && cc.angry) WS.Sfx.play('door_close', 0.25); } mobileView = 'counter'; /* 폰: 새 손님이 오면 응대 책상부터 보여 준다 */ magnifyOpen = false; sealOpen = false; resetDealState(); break;
@@ -3295,6 +3359,7 @@ WS.UI = (() => {
         if (collOpen && ph !== 'loading') { collOpen = false; render(); return; }
         if (menu) { if (menu.page !== 'main' && !(ph === 'title' && menu.page === 'load')) setMenu('main'); else closeMenu(); return; }
         if (!ph || ph === 'loading' || ph === 'ending' || transitioning) return;
+        if (prepMail && ph === 'prep') { prepMail = false; mail.compose = null; mail.flash = ''; render(); return; }
         setMenu('main');
         return;
       }
@@ -3312,7 +3377,7 @@ WS.UI = (() => {
         }
       }
       if (menu) return;
-      if ((ph === 'morning' || ph === 'prep') && !transitioning && !e.repeat) {
+      if ((ph === 'morning' || ph === 'prep') && !transitioning && !e.repeat && !prepMail) {
         const dir = ['>', '.', 'ArrowRight'].includes(e.key) ? 1 : ['<', ',', 'ArrowLeft'].includes(e.key) ? -1 : 0;
         if (dir) {
           e.preventDefault();

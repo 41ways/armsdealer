@@ -1,6 +1,6 @@
 // 게임 전역 설정과 세계 상태 변수 정의 (데이터)
 WS.data.config = {
-  version: 'v0.9.3',   // 우상단에 항상 표시 — 배포할 때 올린다
+  version: 'v0.9.4',   // 우상단에 항상 표시 — 배포할 때 올린다
   title: 'Next!',
   startGold: 300,
   rent: 20,
@@ -12,8 +12,8 @@ WS.data.config = {
     { from: 11, rent: 45 },
     { from: 21, rent: 70 },
   ],
-  shopSlots: 20,
-  storageExpand: { steps: [{ cost: 250, slots: 10 }, { cost: 400, slots: 10 }, { cost: 600, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (20+30)칸 × 24 = 1200. v0.9.2: 300/500/700 → 250/400/600 (design/qa_report_4.md)
+  shopSlots: 25, // 창고 기본 칸 수. v0.9.4: 20 → 25 (부피 480 → 600). 9일째부터 손님이 늘어 아침마다 창고가 차서 못 들이는 날이 많았다 (design/qa_report_4.md)
+  storageExpand: { steps: [{ cost: 250, slots: 10 }, { cost: 400, slots: 10 }, { cost: 600, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (25+30)칸 × 24 = 1320. v0.9.2: 300/500/700 → 250/400/600 (design/qa_report_4.md)
   slotVolume: 24, // 창고 한 칸의 부피. 물건 1개의 부피 = slotVolume ÷ stack (창고 용량 = shopSlots × slotVolume)
   campaignDays: 30, // v0.9.3: 40 → 30일. 결말은 30일째 밤이 지난 뒤(= "31일째") 판정. 이야기 날짜는 아래 campaignPresets[30] 의 dayWarp 로 40일 눈금을 그대로 쓴다
   // 이야기 날짜 보정: [[실제일, 이야기일], ...] — 조건 DSL 의 { day } 와 세계 변수의 밤 변화가 이야기일(옛 40일 눈금) 기준이 된다 (Conditions.eday).

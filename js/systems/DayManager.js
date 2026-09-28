@@ -78,7 +78,9 @@ WS.sys.Day = (() => {
     st.cart[id] = next;
     const p = cartPreview();
     // 불가능하면 되돌림. 뒷문 배달로 이미 칸이 넘친 창고에서도 덜어 내는(칸을 늘리지 않는) 조정은 된다
-    if (p.gold < 0 || (p.slots > WS.sys.Inventory.capacity() && p.slots > before.slots)) st.cart[id] = cur;
+    // 막힌 까닭을 돌려준다: 'gold' | 'space' (UI 가 창고 확장 안내를 띄운다) — 되면 undefined
+    if (p.gold < 0) { st.cart[id] = cur; return 'gold'; }
+    if (p.slots > WS.sys.Inventory.capacity() && p.slots > before.slots) { st.cart[id] = cur; return 'space'; }
   }
 
   function confirmCart() {

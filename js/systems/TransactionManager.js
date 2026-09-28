@@ -33,6 +33,15 @@ WS.sys.Trade = (() => {
     if (!c.random) st.choices[c.tpl] = action;
   }
 
+  // 없어서 못 판 몫 — 아침 도매상의 수요 메모(Letters.demandMemo)가 어제 장부에서 읽는다.
+  //   short: 모자란 개수, want: 손님이 찾은 것 { item, category, preferSubtype }. 모자라지 않았으면 빈 객체
+  function shortFields(c, sold) {
+    const r = c.request;
+    if (c.kind !== 'buy' || !r || c.tutorial) return {};
+    const short = (r.askQty || r.qty) - sold;
+    return short > 0 ? { short, want: { item: r.item || null, category: r.category || null, preferSubtype: r.preferSubtype || null } } : {};
+  }
+
   // 장부의 얼룩 — 가짜 인장을 내민 손님이나 위장·수배된 자(틀의 stain)와 거래하면 남는다.
   // 결말(완벽한 장부)만 이 흔적을 본다. 화면에는 어디에도 보이지 않는다.
   function stain(c) {
@@ -96,7 +105,7 @@ WS.sys.Trade = (() => {
     WS.sys.Effects.apply(tpl(c).onSell);
     stain(c);
     offBooks(c);
-    record(c, 'sell', { item: r.item, qty, price });
+    record(c, 'sell', { item: r.item, qty, price, ...shortFields(c, qty) });
     c.dialog.push({ who: 'p', text: partial ? `(${qty}개만 건넨다)` : '(물건을 건넨다)' });
     finish(c, 'sold', partial && qty < r.qty ? line(c, 'partial') : line(c, 'sold'));
   }
@@ -113,11 +122,12 @@ WS.sys.Trade = (() => {
     lines = lines.filter(l => !l.gift && l.qty > 0 && have(l) >= l.qty);
     if (!lines.length) return;
     let total = 0, totalQty = 0;
+    const shortF = shortFields(c, lines.filter(l => !l.extra).reduce((s, l) => s + l.qty, 0));
     lines.forEach((l, i) => {
       if (l.stash) X.remove(l.item, l.qty);
       else WS.sys.Inventory.remove(l.item, l.qty);
       applyWorld(c, l.item, l.qty, 'sell', i > 0);
-      record(c, 'sell', { item: l.item, qty: l.qty, price: l.price, ...(l.stash ? { stolen: true } : {}) });
+      record(c, 'sell', { item: l.item, qty: l.qty, price: l.price, ...(l.stash ? { stolen: true } : {}), ...(i === 0 ? shortF : {}) });
       total += l.price;
       totalQty += l.qty;
     });
@@ -168,7 +178,8 @@ WS.sys.Trade = (() => {
     applyWorld(c, c.request ? c.request.item : null, 0, 'refuse');
     WS.sys.Effects.apply(tpl(c).onRefuse);
     S().today.refused++;
-    record(c, 'refuse', c.request ? { item: c.request.item, qty: c.request.qty, price: 0 } : {});
+    const have = c.kind === 'buy' && c.request && WS.sys.Letters && WS.sys.Letters.haveOf ? WS.sys.Letters.haveOf(c.request) : 0;
+    record(c, 'refuse', c.request ? { item: c.request.item, qty: c.request.qty, price: 0, ...shortFields(c, have) } : {});
     c.dialog.push({ who: 'p', text: { sell: '사지 않겠소.', trade: '바꾸지 않겠소.' }[c.kind] || '팔 수 없소.' });
     const grumble = outOfStockGrumble(c);
     finish(c, 'refused', grumble || line(c, c.kind === 'sell' ? 'declined' : 'refused'));

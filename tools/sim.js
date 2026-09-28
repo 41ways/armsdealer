@@ -4,10 +4,13 @@
 // 쓰는 법:
 //   nice -n 10 node tools/sim.js N [--policy=beginner|intermediate|expert|natural|merchant|kind] [--buyall] [--seed=S]
 //                                  [--cfg='{"rentSchedule":[...]}'] [--set='{"shop.guard.wage":15}']
-//                                  [--paper=0|1] [--buffer=일수] [--dump=0|1] [--loan=0] [--midday] [--json=out.json] [--quiet] [--trace]
+//                                  [--stockcap=N] [--paper=0|1] [--buffer=일수] [--dump=0|1] [--loan=0] [--midday] [--json=out.json] [--quiet] [--trace]
 //   --buyall  돈 쓰는 곳을 다 쓴다: 신문 구독 · 경비 고용 · 가게 물품 전부 · 창고 확장 3단계 (모두 Letters.send, UI 의 mail-send 와 같은 호출)
 //             초보는 오늘 밤 낼 돈만 남으면 곧장 / 중수는 임대료 이틀치 + 곧 올 할부를 남기고 / 고수는 거기에 200G 더 남기고 산다
 //   --set     WS.data 아래 경로의 값을 덮어쓴다 (배열은 번호나 id: "shop.goods.sign.cost", "config.storageExpand.steps.0.cost")
+//   --stockcap=N  무기 · 방어구 한 가지를 N개 넘게 들이지 않는다 (창고 칸이 아까워 적게 쌓는 버릇)
+//   --assort[=K]  지난 7일 두 번 넘게 찾은 물건은 하루 평균 요구량 × K(기본 1.5)를 늘 갖춰 둔다
+//   (품절로 놓친 손님 · 창고 찬 정도는 늘 센다: 9일째부터 새로 온 사러 온 손님 중 요구를 다 못 채운 비율. 약속하고 돌아와 채우면 놓친 게 아니다)
 //   --loan=0  초보의 대출을 끈다 / --midday 초보가 영업 중에도 한 번 더 주문한다 (기본 꺼짐)
 //   --buffer  도매·매입 때 금고에 남길 (임대료+구독료) 일수 (기본 natural·kind 2, merchant 1.5)
 //   --dump=0  금고가 오늘 밤 임대료에 못 미칠 때 도매상에 처분하는 규칙을 끈다
@@ -87,6 +90,8 @@ function parseArgs(argv) {
     else if (k === 'set') o.set = JSON.parse(v);
     else if (k === 'midday') o.midday = v !== '0';
     else if (k === 'loan') o.loan = v !== '0';
+    else if (k === 'stockcap') o.stockcap = +v;
+    else if (k === 'assort') o.assort = v == null ? 1.5 : +v;
   }
   if (!o.cfg && process.env.WS_CFG) o.cfg = JSON.parse(process.env.WS_CFG);
   if (!POLICIES.includes(o.policy)) throw new Error('policy: ' + POLICIES.join('|'));
@@ -172,9 +177,13 @@ function playRun(seed, opt) {
   const P = { beginner: 'natural', intermediate: 'natural', expert: 'merchant' }[TIER] || TIER; // 판매·선택 규칙의 바탕
   const BEG = TIER === 'beginner';
   const res = { seed, ending: null, bankruptDay: null, days: 0, gold: {}, error: null, stuck: 0, noEnding: false, over60: false,
-    promised: 0, sold: 0, refused: 0, minGold: Infinity, loans: 0, sink: 0 };
+    promised: 0, sold: 0, refused: 0, minGold: Infinity, loans: 0, sink: 0,
+    // 품절로 놓친 손님 (9일째부터 · 새로 온 사러 온 손님 기준. 약속하고 돌아와 채우면 놓친 게 아니다)
+    lost: { req: 0, short: 0, lost: 0, lostSup: 0, units: 0, lostUnits: 0, busyReq: 0, busyLost: 0 }, dayReq: {}, dayLost: {}, fill: [], spaceBlockDays: 0 };
+  const pendingShort = {}; // 약속하고 간 손님 uid → 처음 온 날
   const noteLow = () => { if (S().day >= 4) res.minGold = Math.min(res.minGold, S().gold); };
   const demand = {}; // 물건 id → 최근 요구 수량 (지수 감쇠)
+  const hist = []; // --assort: [날, 물건 id, 수량] 최근 7일 요구 (감쇠 없이)
   const pickOne = list => list[Math.floor(rnd() * list.length)];
   // 되돌릴 수 없는 선택(ch.confirm — 열쇠를 넘긴다 등)은 다른 게 없을 때만. 빚 수금원에게는 낼 수 있으면(오늘 밤 임대료를 남기고) 낸다
   const choosePolicy = (list, c) => {
@@ -213,11 +222,11 @@ function playRun(seed, opt) {
   function noteDemand(c) {
     const r = c.request;
     if (!r || c.kind !== 'buy') return;
-    if (r.item) { demand[r.item] = (demand[r.item] || 0) + r.qty; return; }
+    if (r.item) { demand[r.item] = (demand[r.item] || 0) + r.qty; hist.push([S().day, r.item, r.qty]); return; }
     const ids = M.supplyList().filter(id => acceptOf(r, id));
     const pref = ids.filter(id => acceptOf(r, id).preferred);
     const use = pref.length ? pref : ids;
-    use.forEach(id => { demand[id] = (demand[id] || 0) + r.qty / use.length; });
+    use.forEach(id => { demand[id] = (demand[id] || 0) + r.qty / use.length; hist.push([S().day, id, r.qty / use.length]); });
   }
 
   // UI tableDeal/linePrice 와 같은 값으로 테이블 줄을 만든다. 재고로 채울 수 있는 만큼 (r.qty 한도)
@@ -278,9 +287,39 @@ function playRun(seed, opt) {
     res.sold++;
   }
 
+  // 이 요청을 도매상에서 살 수 있는 물건으로 채울 수 있었나 (이야기 물건처럼 도매상에 없는 것은 따로 센다)
+  const supplied = r => M.supplyList().some(id => (r.item ? id === r.item : !!acceptOf(r, id)));
   function handleBuy(c) {
     const r = c.request;
     if (!r) return T.refuse(c);
+    const st0 = S(), d9 = st0.day >= 9, qty0 = r.qty;
+    const have0 = qtyOf(planLines(c));
+    const fresh = !c.returning;
+    if (fresh && d9) {
+      res.lost.req++; res.lost.units += qty0; res.dayReq[st0.day] = (res.dayReq[st0.day] || 0) + 1;
+      if (have0 < qty0) res.lost.short++;
+      const k0 = r.item || `${r.category}/${r.preferSubtype || '*'}`;
+      (res.reqBy = res.reqBy || {})[k0] = (res.reqBy[k0] || 0) + 1;
+      if (opt.reqlog) (res.reqLog = res.reqLog || []).push([st0.day, r.item || `${r.category}/${r.preferSubtype || '*'}`, qty0, have0]);
+    }
+    handleBuyInner(c);
+    if (!d9 || (!fresh && !pendingShort[c.uid])) return;
+    if (c.result === 'promised') { pendingShort[c.uid] = st0.day; return; }
+    if (have0 < qty0) {
+      const soldQ = S().ledger.filter(e => e.day === st0.day && e.name === c.name && e.action === 'sell').reduce((a, e) => a + (e.qty || 0), 0);
+      res.lost.lost++; res.lost.lostUnits += Math.max(0, qty0 - soldQ);
+      if (!soldQ) res.lost.empty = (res.lost.empty || 0) + 1; // 빈손으로 돌아감
+      if (supplied(r)) res.lost.lostSup++;
+      if (have0 === 0) res.lost.zero = (res.lost.zero || 0) + 1;
+      const key = r.item || `${r.category}/${r.preferSubtype || '*'}`;
+      (res.lostBy = res.lostBy || {})[key] = (res.lostBy[key] || 0) + 1;
+      const day = pendingShort[c.uid] || st0.day;
+      res.dayLost[day] = (res.dayLost[day] || 0) + 1;
+    }
+    delete pendingShort[c.uid];
+  }
+  function handleBuyInner(c) {
+    const r = c.request;
     if (c.angry && !c.calmed && P === 'kind' && Object.values(S().inventory).some(n => n > 0)) L.angerGift(c);
     let lines = planLines(c);
     let q = qtyOf(lines);
@@ -414,8 +453,18 @@ function playRun(seed, opt) {
       const id = ids.filter(i => supply.includes(i)).sort((a, b) => M.cost(a) - M.cost(b))[0];
       if (id) want[id] = (want[id] || 0) + r.qty;
     }
+    // --assort=K: 지난 7일 두 번 넘게 찾은 물건은 하루 평균 요구량 × K 만큼 늘 갖춰 둔다 (장부 · 수요 메모를 보고 기본 구색을 잡는 사람)
+    if (opt.assort) {
+      const agg = {};
+      hist.filter(([d]) => st.day - d <= 7).forEach(([, id, q]) => { const a = (agg[id] = agg[id] || { n: 0, q: 0 }); a.n++; a.q += q; });
+      for (const [id, a] of Object.entries(agg)) if (a.n >= 2 && supply.includes(id)) want[id] = Math.max(want[id] || 0, Math.ceil(a.q / 7 * opt.assort));
+    }
+    // --stockcap=N: 한 물건을 N개 넘게 쌓아 두지 않는 버릇 (창고 칸이 아까워서)
+    //   무기 · 방어구만 (광석 · 물약처럼 한 자루에 여럿 드는 것은 사람도 넉넉히 쌓는다)
+    if (opt.stockcap) for (const id of Object.keys(want)) if (['weapon', 'defense'].includes(WS.sys.Items.get(id).newCategory)) want[id] = Math.min(want[id], opt.stockcap);
     const floor = buffer() + (BEG ? 0 : debtReserve());
     const margin = id => M.price(id) - M.cost(id);
+    let spaceBlocked = false;
     for (let guard = 0; guard < 400; guard++) {
       const pv = D.cartPreview();
       const cands = Object.keys(want).filter(id => (pv.inv[id] || 0) < want[id] && (BEG || margin(id) > 0) && pv.gold - M.cost(id) >= floor);
@@ -428,10 +477,15 @@ function playRun(seed, opt) {
         D.cartAdjust(id, 1);
         if ((st.cart[id] || 0) !== before) { moved = true; break; }
         delete want[id]; // 자리가 없다
+        spaceBlocked = true;
       }
       if (!moved) break;
     }
     D.confirmCart();
+    if (st.day >= 9) {
+      res.fill.push(Inv.usedSlots() / Inv.capacity());
+      if (spaceBlocked) res.spaceBlockDays++;
+    }
     // merchant: 7일째 이후 넉넉하면 간판 (까마귀 서신 가게 물품)
     if (TIER === 'merchant' && st.day >= 7 && L.crowReady() && !WS.sys.Shop.owned('sign')) {
       const g = WS.sys.Shop.goods().find(x => x.id === 'sign');
@@ -515,6 +569,7 @@ const median = a => {
   return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
 };
 
+const BUSY = 6;
 const pctl = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x, y) => x - y); return s[Math.floor(q * (s.length - 1))]; };
 function summarize(runs, opt) {
   const n = runs.length;
@@ -543,6 +598,28 @@ function summarize(runs, opt) {
     loanRuns: runs.filter(r => r.loans > 0).length / n, sinkMedian: median(runs.map(r => r.sink)),
     marks: Object.fromEntries(MARKS.map(f => [f, runs.filter(r => (r.marks || []).includes(f)).length])),
     markBankrupt: Object.fromEntries(MARKS.map(f => [f, runs.filter(r => (r.marks || []).includes(f) && r.ending === 'bankrupt').length])),
+    lostSale: (() => {
+      const sum = k => runs.reduce((a, r) => a + (r.lost ? r.lost[k] : 0), 0);
+      const fills = runs.flatMap(r => r.fill || []);
+      // 바쁜 날: 새로 온 사러 온 손님이 BUSY 명 이상인 날 (9일째부터)
+      let bReq = 0, bLost = 0, bDays = 0, days = 0;
+      runs.forEach(r => Object.entries(r.dayReq || {}).forEach(([d, q]) => { days++; if (q >= BUSY) { bDays++; bReq += q; bLost += (r.dayLost || {})[d] || 0; } }));
+      const req = sum('req');
+      // 주력 물건 (이 묶음에서 가장 많이 찾은 다섯 가지) 의 놓침 — 드물게 찾는 물건(긴 꼬리)과 나눠 본다
+      const by = (k, o) => runs.forEach(r => Object.entries(r[k] || {}).forEach(([i, v]) => { o[i] = (o[i] || 0) + v; }));
+      const rq = {}, lo = {}; by('reqBy', rq); by('lostBy', lo);
+      const top = Object.keys(rq).sort((a, b) => rq[b] - rq[a]).slice(0, 5);
+      const tReq = top.reduce((a, k) => a + rq[k], 0), tLost = top.reduce((a, k) => a + (lo[k] || 0), 0);
+      return {
+        top, topLostRate: tReq ? tLost / tReq : 0, tailLostRate: req - tReq ? (sum('lost') - tLost) / (req - tReq) : 0, tailShare: req ? (req - tReq) / req : 0,
+        emptyRate: req ? sum('empty') / req : 0,
+        req, shortRate: req ? sum('short') / req : 0, lostRate: req ? sum('lost') / req : 0, lostSup: req ? sum('lostSup') / req : 0,
+        unitLostRate: sum('units') ? sum('lostUnits') / sum('units') : 0, busyShare: days ? bDays / days : 0, busyLostRate: bReq ? bLost / bReq : 0,
+        fillMean: fills.length ? fills.reduce((a, b) => a + b, 0) / fills.length : 0, fill85: fills.length ? fills.filter(f => f >= 0.85).length / fills.length : 0,
+        spaceBlockDays: runs.reduce((a, r) => a + (r.spaceBlockDays || 0), 0) / Math.max(1, fills.length),
+        reqPerDay: days ? req / days : 0,
+      };
+    })(),
     endingMax: Object.entries(endings).filter(([k]) => k !== 'bankrupt').reduce((b, e) => (e[1] > b[1] ? e : b), ['-', 0]),
   };
 }
@@ -555,6 +632,10 @@ function print(sum) {
   console.log(`금고 중앙값(마감 뒤) ${SAMPLE_DAYS.map(d => `${d}일 ${sum.gold[d].median ?? '-'}(n${sum.gold[d].n})`).join(' · ')}`);
   console.log(`예외 ${sum.exceptions} · 엔딩 없음 ${sum.noEnding} · 60일 초과 ${sum.over60} · 막힌 손님 ${sum.stuckCustomers}`);
   console.log(`최저 금고(4일째~) 중앙값 ${sum.minGold} · 하위10% ${sum.minGoldP10} · 50G 밑 ${pct(sum.dipUnder50)} · 대출 쓴 판 ${pct(sum.loanRuns)} · 돈 쓴 곳 합 중앙값 ${sum.sinkMedian}G · 최다 엔딩 ${sum.endingMax[0]} ${pct(sum.endingMax[1] / sum.n)}`);
+  { const x = sum.lostSale;
+    console.log(`품절(9~30일, 새 손님 ${x.req}명 · 하루 ${x.reqPerDay.toFixed(1)}명): 올 때 재고 모자람 ${pct(x.shortRate)} · 놓침 ${pct(x.lostRate)} (도매상에 있는 물건 ${pct(x.lostSup)}) · 놓친 수량 ${pct(x.unitLostRate)} · 바쁜 날(${BUSY}명+, ${pct(x.busyShare)}) 놓침 ${pct(x.busyLostRate)}`);
+    console.log(`  빈손으로 돌아감 ${pct(x.emptyRate)} · 주력 다섯(${x.top.join('/')}) 놓침 ${pct(x.topLostRate)} · 나머지(요청의 ${pct(x.tailShare)}) 놓침 ${pct(x.tailLostRate)}`);
+    console.log(`창고(9일째~ 아침 도매 뒤): 평균 ${pct(x.fillMean)} 참 · 85% 넘는 날 ${pct(x.fill85)} · 자리 없어 못 산 날 ${pct(x.spaceBlockDays)}`); }
   console.log('플래그(판 수 / 그중 파산): ' + Object.entries(sum.marks).filter(([, v]) => v).map(([k, v]) => `${k} ${v}/${sum.markBankrupt[k]}`).join(', '));
   console.log('엔딩: ' + Object.entries(sum.endings).map(([k, v]) => `${k} ${v}`).join(', '));
   for (const [m, k] of Object.entries(sum.errors)) console.log(`  예외 ×${k}: ${m}`);

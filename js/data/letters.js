@@ -21,10 +21,11 @@ WS.data.letters = {
     mapmaker:   { name: '지도 공방 "나침반"', icon: '🧭' },
     gazetter:   { name: '평판지 서기 "잉크"', icon: '📜' },
   },
-  // 증축 의뢰 — 창고를 늘린다 (config.storageExpand). 보낼 때 선불, 2일 뒤 아침 답장과 함께 공사 끝
+  // 증축 의뢰 — 창고를 늘린다 (config.storageExpand). 보낼 때 선불, 다음 날 아침 답장과 함께 공사 끝
+  //   v0.9.4: 2일 → 1일. 다른 까마귀 편지처럼 이튿날 아침에 답이 온다 (까마귀 안내 "편지를 보내면 다음 날 아침에 결과가 온다")
   expand: {
-    title: '증축 의뢰', to: 'carpenter', days: 2,
-    desc: '창고를 넓힌다. 삯은 선불, 공사는 이틀',
+    title: '증축 의뢰', to: 'carpenter', days: 1,
+    desc: '창고를 넓힌다. 삯은 선불, 공사는 하룻밤',
     doneSubject: '증축 끝났소',
     // 단계별 목수 답장 (드워프 퉁명 하오체)
     done: [
