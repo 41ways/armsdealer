@@ -52,6 +52,9 @@
     const cur = WS.sys.Day.current && WS.sys.Day.current();
     let i = cur ? st.queue.indexOf(cur) + 1 : st.queue.findIndex(q => q.status === 'waiting');
     if (i < 0) i = st.queue.length;
+    // 도착 시각 — 바로 앞 손님(없으면 지금) 뒤로. 비어 있으면 시계가 NaN 이 된다
+    const prev = st.queue[i - 1];
+    c.arrival = Math.max(st.time || WS.data.config.openTime, prev && prev.arrival ? prev.arrival : 0) + 5;
     st.queue.splice(i, 0, c);
     if (!last.spawn.includes(id)) last.spawn.push(id);
     say(`${id} → 다음 손님${st.phase === 'shop' ? ' (「다음」을 누르면 온다)' : ' (영업을 열면 온다)'}`);

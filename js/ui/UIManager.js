@@ -1278,14 +1278,14 @@ WS.UI = (() => {
   function choiceButtons(c) {
     // needs: 'poster' — 인상서를 꺼내 대조해 본 뒤에만 (그 전엔 경비대를 부를 근거가 없다)
     const list = WS.sys.Trade.availableChoices(c).filter(ch => ch.needs !== 'poster' || c.sawPoster);
-    const tones = list.map(ch => choiceTone(ch, !!ch.confirm && confirmChoice === `${c.uid}:${ch.id}`));
+    const tones = list.map(ch => choiceTone(ch, !!(ch.confirm || ch.mutter) && confirmChoice === `${c.uid}:${ch.id}`));
     // 판매 화면에서는 판매(황동)·거절(붉음)과 이웃하므로 철색으로 두고, 대화 화면에서만 이웃끼리 색을 어긋나게 한다
     if (c.kind === 'talk') tones.forEach((t, i) => { if (i && t === tones[i - 1] && t !== 'no') tones[i] = t === 'yes' ? 'plain' : 'brass'; });
     const out = list.map((ch, i) => {
-      const armed = !!ch.confirm && confirmChoice === `${c.uid}:${ch.id}`;
+      const armed = !!(ch.confirm || ch.mutter) && confirmChoice === `${c.uid}:${ch.id}`;
       const t = tones[i];
       const cls = c.kind !== 'talk' ? (t === 'no' ? 'danger no' : 'ghost') : t === 'no' ? 'danger no' : t === 'yes' ? 'yes' : t === 'brass' ? 'primary' : '';
-      return `<button class="pbtn ${cls}" data-act="choice" data-id="${ch.id}">${ch.needs === 'poster' ? '📜 ' : ''}${U.esc(armed ? ch.confirm : goldLabel(ch))}</button>`;
+      return `<button class="pbtn ${cls}" data-act="choice" data-id="${ch.id}">${ch.needs === 'poster' ? '📜 ' : ''}${U.esc(armed ? ch.confirm || `그래도 — ${goldLabel(ch)}` : goldLabel(ch))}</button>`;
     });
     // 조건이 안 맞아 못 고르는 선택지 중 lockedHint 가 있는 것은 흐리게 보여 준다 (왜 안 되는지 한 줄)
     const t = WS.sys.Customers.tplById(c.tpl) || {};
@@ -1882,12 +1882,37 @@ WS.UI = (() => {
       ${c ? sceneBubbles(c) + reqCard(c) + tutGuide(c, 'counter') + affilButton(c) : ''}
       <div class="counter-actions">${actionBar(c, waiting)}</div>
     </div>`;
+    // 대화 손님 — 물건을 주고받지 않으니 창고 칸 자리를 대화창이 차지한다 (요약 한 줄 · 주고받은 말). 선택지는 아래 버튼 줄 그대로
+    if (c && c.kind === 'talk' && c.status !== 'done') {
+      const right = `<div class="desk storage talk-desk"><div class="desk-head"><span class="dh-t">대화</span> <small>물건은 오가지 않는다</small></div>
+        <div class="shelf-body talk-body">${talkPanel(c)}</div>${actionBar(c, waiting)}</div>`;
+      return shopFrame(c, waiting, left, right);
+    }
     const right = `<div class="desk storage">
       <div class="desk-head crumb">${nav.place ? '<button class="back-tab sm crumb-back" data-act="nav-back" aria-label="돌아가기">◀ 돌아가기</button>' : '<i class="ei ei-stock"></i>'} <div class="crumb-path">${crumbHtml()}</div></div>
       <div class="shelf-body">${storageView(c)}</div>
       <div class="tg-anchor">${tutGuide(c, 'storage')}</div>
       ${actionBar(c, waiting)}
     </div>`;
+    return shopFrame(c, waiting, left, right);
+  }
+
+  // 대화창 — 맨 위 요약 한 줄(틀의 summary, 없으면 부탁 쪽지로 만든다), 그 아래 주고받은 말
+  function talkSummary(c) {
+    const t = WS.sys.Customers.tplById(c.tpl) || {};
+    if (t.summary) return c.fillCtx ? U.fill(t.summary, c.fillCtx) : t.summary;
+    const f = WS.ui.shownFaction ? fac(WS.ui.shownFaction(c)) : null;
+    const a = t.ask || {};
+    return [`${c.name}${f && f.name ? ` (${f.name})` : ''}`, a.tag, a.note].filter(Boolean).join(' — ');
+  }
+  function talkPanel(c) {
+    const lines = (c.dialog || []).slice(-10).map(d => d.thought
+      ? `<p class="tk-line thought">${U.esc(d.text)}</p>`
+      : `<p class="tk-line ${d.who}"><b>${d.who === 'p' ? '나' : U.esc(c.name)}</b>${U.esc(d.text)}</p>`).join('');
+    return `<div class="talk-panel"><div class="tk-sum">${U.esc(talkSummary(c))}</div><div class="tk-log">${lines}</div></div>`;
+  }
+
+  function shopFrame(c, waiting, left, right) {
     return `${hud()}
       <div class="queue-tag">대기 ${waiting}명</div>
       <button class="desk-toggle" data-act="toggle-desk" data-view="${mobileView}">${mobileView === 'counter' ? '창고 보기' : '응대 보기'}${waiting ? `<b class="dt-n">${waiting}</b>` : ''}</button>
@@ -3185,7 +3210,12 @@ WS.UI = (() => {
       case 'choice': {
         // 되돌릴 수 없는 선택은 두 번 눌러야 한다 — 첫 번째는 "정말?"로 바뀔 뿐
         const cc = c && T.availableChoices(c).find(x => x.id === id);
-        if (cc && cc.confirm && confirmChoice !== `${c.uid}:${id}`) { confirmChoice = `${c.uid}:${id}`; break; }
+        // 한쪽 줄기를 닫을 수 있는 선택(mutter)은 처음 누르면 주인의 혼잣말이 먼저 — 한 번 더 눌러야 정해진다
+        if (cc && (cc.confirm || cc.mutter) && confirmChoice !== `${c.uid}:${id}`) {
+          confirmChoice = `${c.uid}:${id}`;
+          if (cc.mutter) c.dialog.push({ who: 'p', text: `(${cc.mutter})`, thought: true });
+          break;
+        }
         confirmChoice = null;
         T.choose(c, id);
         // 아직 한 번도 펼쳐 보지 않은 인상서가 있으면(방금 전령에게 받은 것) 바로 펼친다

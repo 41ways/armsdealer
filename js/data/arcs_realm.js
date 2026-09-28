@@ -410,3 +410,64 @@
   say('goblin_ledger', { flag: 'rl_goblin_ledger' }, 'goblin', '인간! 족장님 명부에 이 가게 이름 있다구! 숲에선 다 안다구, 킥!');
   say('aldric_levy', { flag: 'rl_aldric_levied' }, 'kingdom', '친위대가 서부 숲 길목에서 매일 행군 연습이오. 정벌이 머지않았소.');
 })();
+
+// ───────── 대화 손님 예시 (설계 docs/DESIGN_CONVERGENCE.md 3.A) — 요약 한 줄 · 이어지는 질문(follow) · 혼잣말(mutter) ─────────
+WS.data.customers.push(
+  {
+    id: 'rl_merc_join', look: 'mercenary', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺', kind: 'talk',
+    spawn: { when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }, { var: 'merc_strength', gte: 9 }] }, chance: 0.6 },
+    summary: '붉은 늑대 용병단 — 알드릭 왕자 쪽 합류 예정, 내일 칼 주문',
+    greet: '내일 우리 단이 왕자님 깃발 아래 들어가오. 칼 열 자루, 내일 준비해 줄 수 있소?',
+    choices: [
+      { id: 'yes', label: '준비해 두겠소', reply: '좋소. 내일 해 뜨면 애들 데리고 오지.',
+        effects: { vars: { succession: 2, rel_merc: 1 }, flags: ['rl_merc_joined'], spawn: [{ customer: 'rl_merc_buyer', inDays: 1 }] } },
+      { id: 'no', label: '그런 일엔 안 끼겠소', mutter: '…용병단을 돌려보내면 왕자 쪽은 칼을 잃는다. 그래도?', reply: '흥. 칼 파는 집이 여기뿐인 줄 아나. …입단은 없던 일이오.',
+        effects: { vars: { succession: -2, rel_merc: -3, merc_strength: -2 }, flags: ['rl_merc_refused'] } },
+    ],
+  },
+  {
+    id: 'rl_merc_buyer', look: 'mercenary', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺',
+    spawn: { queuedOnly: true },
+    greet: '어제 말한 칼이오. {item} {qty}자루, {offer}골드.',
+    request: { item: 'iron_sword', qty: 8, offer: { mult: 1.1 } },
+    lines: { sold: '왕자님 깃발 아래서 쓰겠소.', refused: '어제는 준비한다더니. 기억하겠소.' },
+    onSell: { vars: { succession: 2, merc_strength: 1 } },
+  },
+  {
+    id: 'rl_mist_serena', look: 'guild_merchant', name: '안개 상단 중개인', race: '???', job: '안개 낀 밤의 상단', faction: 'demon', portrait: '🌫️', kind: 'talk',
+    spawn: { when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }, { var: 'demon_influence', gte: 6 }] }, chance: 0.5 },
+    summary: '안개 상단 — 세레나 공주와 손잡음, 당신이 누구 편인지 묻는다',
+    greet: '우리 상단은 공주님과 계약을 맺었소. 주인장은… 설마 왕자 편은 아니겠지?',
+    choices: [
+      { id: 'none', label: '누구 편도 아니오', reply: '그렇다면 다행이오. 공주님께 좋은 말씀 전하겠소.',
+        effects: { flags: ['rl_mist_asked'], spawn: [{ customer: 'rl_serena_courter', inDays: 1 }] } },
+      { id: 'prince', label: '왕자 편이오', reply: '…그렇군. 기억해 두지.',
+        effects: { vars: { succession: 1, rel_demon: -2 }, flags: ['rl_told_mist_prince'], spawn: [{ customer: 'rl_aldric_interrogator', inDays: 1 }] } },
+    ],
+  },
+  {
+    id: 'rl_serena_courter', look: 'noble_lady', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
+    spawn: { queuedOnly: true },
+    summary: '세레나 공주파 — 공주 쪽으로 오라는 회유',
+    greet: '상단에서 들었어요. 누구 편도 아니시라고요. 그럼 공주님 편이 되어 주시면 어때요? 구호소 물약 납품을 맡기고 싶어요.',
+    choices: [
+      { id: 'accept', label: '공주님 쪽 일을 맡겠소', reply: '고마워요. 공주님이 기억하실 거예요.', effects: { vars: { succession: -3, rel_noble: 1 }, flags: ['rl_backed_serena_talk'] } },
+      { id: 'decline', label: '아직은 누구 편도 들지 않겠소', reply: '…그래요. 마음이 바뀌면 불러 주세요.', effects: {} },
+    ],
+  },
+  {
+    id: 'rl_aldric_interrogator', look: 'noble_lord', name: '베른 경', race: '인간', job: '알드릭 왕자파 기사', faction: 'noble', portrait: '🛡️', kind: 'talk',
+    spawn: { queuedOnly: true },
+    summary: '알드릭 왕자파 — 안개 상단이 다녀간 일을 추궁',
+    greet: '안개 상단 놈들이 다녀갔다지. 왕자님 편이라 했다고 들었소.',
+    choices: [
+      { id: 'yes', label: '그렇소', reply: '좋소.',
+        follow: { say: '그럼 묻겠소. 그놈들 말고 공주 쪽 사람은 없었소?',
+          choices: [
+            { id: 'tell', label: '사실대로 말한다', reply: '역시. 왕자님께 전하겠소.', effects: { vars: { succession: 2, rel_demon: -3 }, flags: ['rl_informed_aldric'] } },
+            { id: 'deny', label: '모르는 일이오', reply: '…그렇다면 그런 거겠지.', effects: { flags: ['rl_aldric_suspects'] } },
+          ] } },
+      { id: 'no', label: '그냥 해 본 말이오', mutter: '…말을 바꾸면 왕자 쪽은 이 가게를 믿지 않겠지.', reply: '말을 바꾸는 상인은 오래 못 가오.', effects: { vars: { succession: -1 }, flags: ['rl_aldric_distrust'] } },
+    ],
+  },
+);

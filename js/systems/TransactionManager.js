@@ -265,9 +265,21 @@ WS.sys.Trade = (() => {
   // 대화 선택지 / 추가 선택지(extraChoices)
   // extraChoices 는 정보만 캐는 선택지라 손님이 그대로 남는다. 단 ends: true 면 손님이 그 말을 듣고 떠난다
   // ("들어오면 기별하겠소"(효과 notify) · "생각해 보겠소"(stall — 까마귀 밀고 포상금↑) — Letters.js)
+  // 대화 손님의 여러 번 주고받기 — 선택지에 follow: { say, choices: [...] } 가 있으면 고른 뒤 손님이 follow.say 를 말하고
+  // 그 아래 선택지가 이어진다 (한 방문 안에서). c.talkPath = 지금까지 고른 follow 선택지 id 들 (저장되는 문자열 배열)
+  function talkList(c) {
+    let list = tpl(c).choices || [];
+    for (const id of c.talkPath || []) {
+      const ch = list.find(x => x.id === id);
+      if (!ch || !ch.follow) break;
+      list = ch.follow.choices || [];
+    }
+    return list;
+  }
+
   function choose(c, choiceId) {
     const t = tpl(c);
-    const all = (t.choices || []).concat(t.extraChoices || []);
+    const all = (c.kind === 'talk' ? talkList(c) : t.choices || []).concat(t.extraChoices || []);
     const ch = all.find(x => x.id === choiceId);
     if (!ch) return;
     const say = s => (c.fillCtx && s ? WS.util.fill(s, c.fillCtx) : s);
@@ -275,6 +287,14 @@ WS.sys.Trade = (() => {
     WS.sys.Effects.apply(ch.effects, c);
     c.usedChoices.push(ch.id);
     if (ch.grate) collectGrate(c, ch.grate);
+    if (ch.follow && c.kind === 'talk') {
+      // 이어지는 질문 — 손님이 대답하고 한 번 더 묻는다. 고른 것은 기록해 두어(조건 choice) 나중 손님이 기억할 수 있게
+      if (ch.reply) c.dialog.push({ who: 'c', text: say(ch.reply) });
+      if (ch.follow.say) c.dialog.push({ who: 'c', text: say(ch.follow.say) });
+      c.talkPath = (c.talkPath || []).concat(ch.id);
+      record(c, ch.id, {});
+      return;
+    }
     if ((t.extraChoices || []).includes(ch) && !ch.ends) {
       // 정보만 캐는 선택지 — 손님은 그대로 남는다
       c.dialog.push({ who: 'c', text: say(ch.reply) });
@@ -286,7 +306,7 @@ WS.sys.Trade = (() => {
 
   function availableChoices(c) {
     const t = tpl(c);
-    const list = c.kind === 'talk' ? t.choices || [] : t.extraChoices || [];
+    const list = c.kind === 'talk' ? talkList(c) : t.extraChoices || [];
     // 기별 받고 다시 온 손님·약속하고 다시 온 손님에게는 떠나보내는 선택지(ends)를 다시 내밀지 않는다
     return list.filter(ch => !(ch.once && c.usedChoices.includes(ch.id)) && !(c.returning && ch.ends) && !(ch.needs === 'inspect' && !c.inspected) && WS.sys.Conditions.check(ch.when))
       .map(ch => (c.fillCtx ? { ...ch, label: WS.util.fill(ch.label, c.fillCtx) } : ch)); // {top} 자리표 (천칭단)
