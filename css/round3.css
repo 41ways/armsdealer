@@ -1248,8 +1248,13 @@ button.crumb-tab:hover { color: var(--brass-hi); text-decoration: underline; tex
 }
 @media (prefers-reduced-motion: reduce) { .tut-guide { animation: none; } }
 
-/* ── 레온 소개 (손님 읽기) — 짚는 곳에 빛나는 테두리, 오른쪽 카드에서 '다음' ── */
-.tut-guide.tg-intro { pointer-events: auto; }
+/* ── 레온 소개 (손님 읽기) — 짚는 곳에 빛나는 테두리, 요구 카드(이름표) 바로 아래에 붙는다 ──
+   창고 칸과는 다른 자리라 tg-storage/tg-counter 를 쓰지 않는다. top 은 UIManager.placeIntroCard() 가 이름표 높이를 재서 맞춘다 */
+.tut-guide.tg-intro {
+  position: absolute; left: 5%; right: 5%; width: auto; z-index: 5; pointer-events: auto;
+  animation: tgIn .5s cubic-bezier(.2, .9, .3, 1.15) var(--delay, 0ms) both, tgGlow 2.4s ease-in-out calc(var(--delay, 0ms) + .6s) infinite;
+}
+@media (max-width: 759px), (max-aspect-ratio: 1/1) { .tut-guide.tg-intro { left: 4%; right: 4%; } }
 .tg-body { margin: 6px 0 0; font-size: 13px; line-height: 1.45; }
 .tg-body b { color: #7a2a0c; }
 .tg-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
@@ -1308,3 +1313,12 @@ button.crumb-tab:hover { color: var(--brass-hi); text-decoration: underline; tex
 .tk-line.c { border-left: 3px solid var(--brass); }
 .tk-line.p { align-self: flex-end; max-width: 85%; background: rgba(200, 147, 74, .14); border-right: 3px solid #6a8a4a; }
 .tk-line.thought { align-self: center; max-width: 92%; background: none; color: #d8c89a; font-style: italic; text-align: center; border: 1px dashed rgba(200, 147, 74, .45); }
+
+/* ── HUD: 튜토리얼 건너뛰기 (우측 상단, 초반 며칠만 보인다) ── */
+.pill.tut-skip-hud { font-size: 12px; color: var(--ink-dim); border-style: dashed; }
+.pill.tut-skip-hud:hover { color: var(--brass-hi); border-color: var(--brass); }
+@media (max-width: 759px), (max-aspect-ratio: 1/1) {
+  /* 안내 끄기 버튼만 제 줄로 내려간다 — 나머지 HUD 줄(날짜·시각·금화·창고·음소거·메뉴)은 그대로 한 줄 */
+  .hud { flex-wrap: wrap; row-gap: 4px; }
+  .pill.tut-skip-hud { flex-basis: 100%; order: 99; font-size: 11px; padding: 3px 8px; justify-content: center; }
+}
