@@ -1,6 +1,6 @@
 // 게임 전역 설정과 세계 상태 변수 정의 (데이터)
 WS.data.config = {
-  version: 'v0.9.1',   // 우상단에 항상 표시 — 배포할 때 올린다
+  version: 'v0.9.2',   // 우상단에 항상 표시 — 배포할 때 올린다
   title: 'Next!',
   startGold: 300,
   rent: 20,
@@ -12,7 +12,7 @@ WS.data.config = {
     { from: 31, rent: 100 },
   ],
   shopSlots: 20,
-  storageExpand: { steps: [{ cost: 300, slots: 10 }, { cost: 500, slots: 10 }, { cost: 700, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (20+30)칸 × 24 = 1200
+  storageExpand: { steps: [{ cost: 250, slots: 10 }, { cost: 400, slots: 10 }, { cost: 600, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (20+30)칸 × 24 = 1200. v0.9.2: 300/500/700 → 250/400/600 (design/qa_report_4.md)
   slotVolume: 24, // 창고 한 칸의 부피. 물건 1개의 부피 = slotVolume ÷ stack (창고 용량 = shopSlots × slotVolume)
   campaignDays: 40, // 4막 구조 (1~10 개점 / 11~22 확장 / 23~32 격변 / 33~40 결산). 1~20일 콘텐츠는 그대로 둔다
   // 이야기 날짜 보정 (기본 없음 = 40일 그대로). 캠페인을 줄일 때만 쓴다: [[실제일, 이야기일], ...] — "N일 이후" 조건·임대료 단계가 이야기일 기준이 된다.
