@@ -3445,6 +3445,22 @@ WS.UI = (() => {
 
   // 개발 패널: 상태는 그대로 두고 날짜 전환만 재생
   const previewDawn = c => transition(() => {}, c, 0, 'kd');
+  // 이벤트 테스트 패널(tools/dev.js)이 쓰는 화면 바로가기 — 'street'|'letters'|'news'|'ledger'|'prep'|'shop'|'night'|'ending'
+  function devGoto(to, opt = {}) {
+    devReset();
+    const st = S(), D = WS.sys.Day;
+    turnDir = '';
+    if (['street', 'letters', 'news', 'ledger'].includes(to)) {
+      st.phase = 'morning'; morningSub = to;
+      if (to === 'news') npSide = 1;
+      if (to === 'letters') ltIdx = 0;
+      if (to === 'ledger') { bkSpread = 0; bkSide = 'l'; }
+    } else if (to === 'prep') { bkSpread = 0; bkSide = 'l'; D.toPrep(); }
+    else if (to === 'shop') { if (st.phase !== 'shop') D.openShop(); }
+    else if (to === 'night') { if (st.phase === 'shop') D.closeShop(); if (D.nightDue()) D.startNight(); }
+    else if (to === 'ending') { st.ending = opt.ending || st.ending || 'neutral'; st.phase = 'ending'; }
+    render();
+  }
   const openCollection = () => { collOpen = true; collSel = null; render(); };
-  return { init, render, boot, openCollection, trayLines, trayOffer, devReset, previewDawn };
+  return { init, render, boot, openCollection, trayLines, trayOffer, devReset, previewDawn, devGoto };
 })();
