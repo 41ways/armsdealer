@@ -22,6 +22,14 @@
   const FEE = WS.data.letters.crowFee;
   const cost = id => WS.data.items[id].cost;
   const after = (flag, days) => ({ all: [{ flag }, { since: { flag, days } }] });
+  // 을/를, 은/는 — 이 파일은 NewsManager.js 보다 먼저 읽히므로 WS.sys.News.josa 를 못 쓴다. 받침 유무만 보는 축약판
+  const josa = (word, j) => {
+    const PAIRS = { 을: ['을', '를'], 를: ['을', '를'], 은: ['은', '는'], 는: ['은', '는'], 이: ['이', '가'], 가: ['이', '가'], 과: ['과', '와'], 와: ['과', '와'] };
+    const code = String(word).charCodeAt(String(word).length - 1);
+    const jong = code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 : 0;
+    const p = PAIRS[j];
+    return p ? word + (jong ? p[0] : p[1]) : word + j;
+  };
   // 왕실 조달청 감사관 (③ 대가 · ④ 왕국 줄기의 호소 손님)
   const odricBase = { look: 'noble_quartermaster', name: '감사관 오드릭', race: '인간', job: '왕실 조달청 감사관', faction: 'kingdom', portrait: '📜',
     affil: { claim: 'royal', seal: 'real', sealOf: 'royal', line: '왕실 조달청이오. 인장을 보시오.' } };
@@ -1119,8 +1127,8 @@
   for (const en of WS.data.regencyEnemies) {
     C.push({
       id: `tk_rg_captain_${en.id}`, ...capBase, late: true, spawn: { queuedOnly: true },
-      greet: `재상이 다녀갔다지. 왕은 결국 정해지오. 지금은 ${en.short}을(를) 소탕하는 게 먼저요. 소탕하지 않으면 위험하오. {item} {qty}자루, {offer}G.`,
-      greetWhen: [{ when: { flag: 'tk_rg_mild' }, text: `재상이 다녀갔다지. 왕은 결국 정해지오. 아직 크지는 않지만, ${en.short}은(는) 왕좌가 빈 틈을 노리오. 지금 쳐 두는 게 먼저요. {item} {qty}자루, {offer}G.` }],
+      greet: `재상이 다녀갔다지. 왕은 결국 정해지오. 지금은 ${josa(en.short, '을')} 소탕하는 게 먼저요. 소탕하지 않으면 위험하오. {item} {qty}자루, {offer}G.`,
+      greetWhen: [{ when: { flag: 'tk_rg_mild' }, text: `재상이 다녀갔다지. 왕은 결국 정해지오. 아직 크지는 않지만, ${josa(en.short, '은')} 왕좌가 빈 틈을 노리오. 지금 쳐 두는 게 먼저요. {item} {qty}자루, {offer}G.` }],
       request: { item: 'iron_sword', qty: 10, offer: { mult: 1 }, partialOk: true },
       lines: { sold: `이 칼로 ${en.short}부터 치겠소. 섭정 회의엔 "전쟁이 먼저"라 올리겠소.`, partial: '모자라도 소탕대는 나가오.', refused: '…내사가 먼저라. 섭정 회의에 그대로 전하겠소.' },
       extraChoices: [{ id: 'internal', label: '내사가 먼저요', ends: true, reply: '…왕좌부터라. 그사이 적이 기다려 줄지는 모르겠소.', effects: { flags: ['tk_rg_refused'] } }],

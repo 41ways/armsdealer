@@ -111,7 +111,7 @@ WS.sys.Clash = (() => {
         flags: ['tk_clash_active', `tk_clvs_${a.id}_${b.id}`, `tk_clvs_${b.id}_${a.id}`],
         spawn: [{ customer: who(a), inDays: 0 }, { customer: who(b), inDays: fast ? 0 : 1 }],
       });
-      news.push({ cat: '소문', text: `${a.tag}와(과) ${b.tag}, 같은 물자를 두고 맞선다는 말… 상점가 무기점마다 양쪽 사람이 다녀간다` });
+      news.push({ cat: '소문', text: `${WS.sys.News.josa(a.tag, '과')} ${b.tag}, 같은 물자를 두고 맞선다는 말… 상점가 무기점마다 양쪽 사람이 다녀간다` });
     }
     return { c, news };
   }
