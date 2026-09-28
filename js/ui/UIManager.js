@@ -1079,7 +1079,7 @@ WS.UI = (() => {
     if (!c || c.status === 'done') return '';
     const st = S();
     const seen = st.progress && st.progress.tutorialsSeen && st.progress.tutorialsSeen.affil;
-    const glow = !seen && st.day === 1 && st.queue && st.queue[0] === c;
+    const glow = tutFocus(c) === 'mag' || (!seen && !introOn(c) && st.day === 1 && st.queue && st.queue[0] === c);
     return `<button class="affil-hit ${glow ? 'tut-glow' : ''}" data-act="affil-ask" title="확대경 — 소속을 묻고 인장을 본다" aria-label="소속 묻기 · 인장 보기"></button>`;
   }
   // 캔버스는 무대 크기에 맞춰 늘어나므로, 그려진 확대경 자리에 맞춰 누름 자리를 옮긴다 (렌더·크기 변경 때마다)
@@ -1400,7 +1400,7 @@ WS.UI = (() => {
 
   // 튜토리얼 손님이 있을 때 "지금 눌러야 할 곳" — 자리 → 물건 칸 → 판매 버튼 순으로 하나만 빛난다
   function tutStep(c) {
-    if (!c || !c.tutorial || c.status === 'done') return null;
+    if (!c || !c.tutorial || c.status === 'done' || introOn(c)) return null; // 손님 읽기 소개 중엔 거래 단계를 짚지 않는다
     if (c.kind === 'talk') return { choice: true };
     const want = c.request && c.request.item;
     if (want && onTableQty(want) > 0) return { confirm: true };
@@ -1744,7 +1744,8 @@ WS.UI = (() => {
   function reqCard(c) {
     if (!c || c.status === 'done') return '';
     const { lines, total, totalLabel } = dealLines(c);
-    const rows = lines.map(l => `<div class="rc-row">
+    const fc = tutFocus(c);
+    const rows = lines.map((l, i) => `<div class="rc-row ${fc === 'ask' && i === 0 ? 'tut-focus' : ''}">
       ${l.tag ? `<span class="rc-tag ${/팔아|줄 것|돌려|대신/.test(l.tag) ? 'out' : ''}">${U.esc(l.tag)}</span>` : '<span class="rc-tag gap"></span>'}
       ${l.id ? `<img class="rc-ico" src="${WS.Sprites.itemIcon(l.id)}" alt=""><b class="${l.miss ? 'miss' : ''}">${U.esc(item(l.id).name)} ×${l.qty}</b>` : ''}
       ${l.text ? `<b>${U.esc(l.text)}</b>` : ''}
@@ -1756,27 +1757,54 @@ WS.UI = (() => {
       ${l.note ? `<small class="rc-note">${U.esc(l.note)}</small>` : ''}
     </div>`).join('');
     const tot = total === null || total === undefined ? ''
-      : `<div class="rc-total ${total < 0 ? 'neg' : 'pos'}"><small>${totalLabel || '마진'}</small>${signG(total)}G</div>`;
+      : `<div class="rc-total ${total < 0 ? 'neg' : 'pos'} ${fc === 'margin' ? 'tut-focus' : ''}"><small>${totalLabel || '마진'}</small>${signG(total)}G</div>`;
     // 튜토리얼 손님은 요구 카드 대신 따로 뜨는 안내 카드(tutGuide)로 — 여기엔 일반 손님 힌트만
     const hint = !c.tutorial && c.hint ? `<div class="tut-hint">💡 ${U.esc(c.hint)}</div>` : '';
     const st = sayState(c); // 말풍선이 떠 있는 동안은 숨었다가, 끝나면 나타난다 (다시 듣기 때도)
     const shownF = WS.ui.shownFaction(c);
     return `<div class="req-card" style="--delay:${st ? Math.round(st.left) : -9999}ms;--fc:${WS.ui.factionColor(shownF)}">
       ${c.angry ? '<div class="rc-angry">화가 났다</div>' : ''}
-      <div class="rc-body"><div class="rc-head"><b>${WS.ui.emblem(shownF)}${U.esc(c.name)}</b><span>${U.esc(c.race)} · ${U.esc(c.job)}</span></div>${rows}</div>
+      <div class="rc-body"><div class="rc-head ${tutFocus(c) === 'head' ? 'tut-focus' : ''}"><b>${WS.ui.emblem(shownF)}${U.esc(c.name)}</b><span>${U.esc(c.race)} · ${U.esc(c.job)}</span></div>${rows}</div>
       ${tot}${hint}</div>`;
   }
 
   // 튜토리얼 손님 안내 카드 — 알림보다는 또렷하고 까마귀 안내보다는 가볍게: 화면을 막지 않고 오른쪽에서 밀려 들어와
   // 창고 칸 한 귀퉁이에 걸린다 (테이블·손님은 가리지 않는다). 지금 할 단계만 밝힌다 — tutStep: 자리 열기 → 물건 올리기 → 판매.
   // side: 'storage' = 넓은 화면(창고 칸 오른쪽 아래) · 'counter' = 폰(응대 화면 오른쪽) — CSS 가 화면 폭에 맞는 쪽만 보인다
+  // 첫 손님(레온) 소개 — 거래 단계 앞에 요구 카드를 한 칸씩 짚어 준다: 이름·소속 → 돋보기(인장) → 요구 → 마진.
+  // c.tutIntro: 지금 몇 번째 소개인가 (손님 객체에 저장 — 저장 왕복). INTRO 를 다 넘기면 거래 단계(①②③)로
+  const INTRO = ['head', 'mag', 'ask', 'margin'];
+  const introOn = c => !!c && !!c.tutorial && c.tutorial.id === 'tut_weapon' && c.status !== 'done' && (c.tutIntro || 0) < INTRO.length;
+  const tutFocus = c => (introOn(c) ? INTRO[c.tutIntro || 0] : null);
+  function introCard(c, side, delay) {
+    const i = c.tutIntro || 0;
+    const a = affilOf(c), f = a.claim && sealMeta(a.claim);
+    const r = c.request || {};
+    const want = r.item ? item(r.item).name : '물건';
+    const total = dealLines(c).total;
+    const body = [
+      `맨 위 줄은 손님이 누구인지다. ${f ? `${U.esc(f.icon)} <b>${U.esc(f.name)}</b> 문장` : '문장'} · <b>${U.esc(c.race)}</b> · <b>${U.esc(c.job)}</b> — ${U.esc(f ? f.name : '')} 기사단 소속 ${U.esc(c.race)} <b>${U.esc(c.name)}</b>이라는 뜻이다.`,
+      `그런데 소속은 <b>손님이 한 말일 뿐</b>이다. 정말인지 보려면 ${side === 'counter' ? '아래' : '왼쪽 아래'} <b>돋보기</b>를 눌러 손님의 인장을 규정집 원본과 대조해 본다.`,
+      `<b>팔아 달라 · ${U.esc(want)} ×${r.qty || 1}</b> — 손님이 원하는 것이다. ${U.esc(want)} ${r.qty || 1}개를 팔면 된다.`,
+      `오른쪽 초록 숫자는 <b>예상 마진</b>이다. 이대로 팔면 <b>${total > 0 ? '+' : ''}${total}G</b>가 남는다.`,
+    ][i];
+    return `<div class="tut-guide tg-${side} tg-intro${tgSteady(c, side)}" style="${delay}" role="status">
+      <div class="tg-head"><span class="tg-tag">처음 해 보는 일 · 손님 읽기 ${i + 1}/${INTRO.length}</span></div>
+      <p class="tg-body">${body}</p>
+      <div class="tg-btns"><button type="button" class="tg-skip" data-act="tut-skip">건너뛰기</button><button type="button" class="tg-next" data-act="tut-next">${i === INTRO.length - 1 ? '장사 시작 →' : '다음 →'}</button></div>
+    </div>`;
+  }
+  // 안내 카드는 손님마다 처음 한 번만 밀려 들어온다 — 다시 그려질 때(물건 올리기 등)는 제자리에 (steady)
+  const tgSeen = new Set();
+  const tgSteady = (c, side) => { const k = c.uid + side, on = tgSeen.has(k); if (!on && (!sayState(c) || sayState(c).left <= 0)) tgSeen.add(k); return on ? ' steady' : ''; };
   function tutGuide(c, side) {
     if (!c || !c.tutorial || c.status === 'done' || !c.tutorial.hint) return '';
+    if (introOn(c)) { const st0 = sayState(c); return introCard(c, side, `--delay:${st0 ? Math.round(st0.left) : -9999}ms`); }
     const t = tutStep(c) || {};
     const st = sayState(c);
     const delay = `--delay:${st ? Math.round(st.left) : -9999}ms`;
     const head = `<div class="tg-head"><span class="tg-tag">처음 해 보는 일</span><b>${U.esc(c.tutorial.hint)}</b></div>`;
-    const wrap = body => `<div class="tut-guide tg-${side}" style="${delay}" role="status">${body}</div>`;
+    const wrap = body => `<div class="tut-guide tg-${side}${tgSteady(c, side)}" style="${delay}" role="status">${body}</div>`;
     if (c.kind === 'talk' || t.choice) return wrap(head);
     const place = PLACE_NAME[[].concat(c.tutorial.place || c.tutorial.places || [])[0]] || '창고';
     const want = c.request && c.request.item ? item(c.request.item).name : '물건';
@@ -3036,7 +3064,7 @@ WS.UI = (() => {
         els.forEach(el => el.classList.add('out'));
         document.querySelectorAll('[data-act$="-close"]').forEach(el => { el.dataset.closing = '1'; });
         WS.Sfx.play('page', 0.35);
-        setTimeout(() => { if (act === 'drawer-close') drawer = null; else if (act === 'magnify-close') magnifyOpen = false; else sealOpen = false; render(); }, 190);
+        setTimeout(() => { if (act === 'drawer-close') drawer = null; else if (act === 'magnify-close') magnifyOpen = false; else { sealOpen = false; const cc = WS.sys.Day.current(); if (tutFocus(cc) === 'mag') cc.tutIntro = 2; } render(); }, 190);
         return;
       }
     }
@@ -3109,11 +3137,13 @@ WS.UI = (() => {
       case 'magnify': magnifyOpen = true; break;
       case 'magnify-close': magnifyOpen = false; break;
       case 'affil-ask': askAffil(c); break;
+      case 'tut-next': if (c) c.tutIntro = (c.tutIntro || 0) + 1; break;
+      case 'tut-skip': if (c) c.tutIntro = INTRO.length; break;
       case 'seal-ref':
         sealRef = id;
         if (swapSealRef()) { playSfx(act, c, before); return; } // 원본 칸만 바꿔 끼운다 — 전체를 다시 그리지 않는다
         break;
-      case 'seal-close': sealOpen = false; break;
+      case 'seal-close': sealOpen = false; if (tutFocus(c) === 'mag') c.tutIntro = 2; break; // 인장을 보고 닫으면 다음 소개로
       case 'magnify-pass': resolveDocCheck(c, 'pass'); break;
       case 'magnify-accuse': resolveDocCheck(c, 'accuse'); break;
       case 'to-title': { const rp = S().replay; WS.Game.toTitle(); collOpen = !!rp; break; }

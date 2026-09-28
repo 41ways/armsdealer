@@ -6,7 +6,8 @@
 // (글자·점·눈금·별·밧줄), 가운데 문장(왕관·떡갈잎·망치와 모루·밀 다발 …).
 // 진짜(forged:false)는 항상 규정집 원본과 100% 같고, 위조(forged:true)는 딱 한 군데만 어긋난다
 // — 점/눈금 하나 더·덜, 글자 하나 닮은꼴로 바뀜, 문장 좌우 뒤집힘, 잔무늬 하나 빠짐,
-//   문장 속 개수(왕관 뾰족·꽃잎·톱니…) 하나 다름, 테두리 한 줄 빠짐/살짝 돌아감, 문장 살짝 기울어짐.
+//   문장 속 개수(왕관 뾰족·꽃잎·톱니…) 하나 다름, 안쪽 테두리가 살짝 좁음/테두리 살짝 돌아감, 문장 살짝 기울어짐,
+//   문장이 살짝 작음, 문장이 한쪽으로 살짝 밀림. (한눈에 보이지 않게 — 나란히 놓고 따져 봐야 보이는 정도로)
 // 어느 것이 어긋날지는 forgeSeed(위조범)마다 결정론적으로 정해진다.
 WS.sys.DocCheck = (() => {
   // 문자열 → 32bit 해시 (UIManager.hashHue 와 같은 계열의 결정론적 해시)
@@ -358,7 +359,7 @@ WS.sys.DocCheck = (() => {
     const em = EMBLEMS[spec.em];
     return {
       text: spec.border.s || '', n: spec.border.n || 0, rn: spec.rn || 0, emN: em.n || 0,
-      innerRim: true, rimRot: 0, mirror: false, emRot: 0, drop: -1,
+      innerRim: true, innerK: 0.87, rimRot: 0, mirror: false, emRot: 0, drop: -1, emK: 0.84, emDx: 0, emDy: 0,
     };
   }
   function mutateVariant(spec, base, seed) {
@@ -374,6 +375,7 @@ WS.sys.DocCheck = (() => {
     if (em.n) kinds.push('emN');
     kinds.push('rim');
     if (!em.rotsym) kinds.push('emRot');
+    kinds.push('emScale', 'shift');
     const type = kinds[Math.floor(r() * kinds.length)];
     const pm = r() < 0.5 ? -1 : 1;
     let detail = null;
@@ -387,9 +389,11 @@ WS.sys.DocCheck = (() => {
     else if (type === 'emN') v.emN = em.n <= 3 ? em.n + 1 : em.n + pm;
     else if (type === 'rim') {
       if (spec.rim === 'scallop' || spec.rim === 'spike' || spec.rim === 'pearl') v.rn += pm;
-      else if (spec.rim === 'oct' || spec.rim === 'hex') v.rimRot = 7 * pm;
-      else v.innerRim = false;
-    } else if (type === 'emRot') v.emRot = 9 * pm;
+      else if (spec.rim === 'oct' || spec.rim === 'hex') v.rimRot = 4 * pm;
+      else v.innerK = 0.84; // 안쪽 테두리가 조금 안으로 (예전엔 통째로 빠져 너무 쉬웠다)
+    } else if (type === 'emRot') v.emRot = 5 * pm;
+    else if (type === 'emScale') v.emK = 0.79;
+    else if (type === 'shift') { if (r() < 0.5) v.emDx = 2.4 * pm; else v.emDy = 2.4 * pm; }
     v._mutation = { type, detail };
     return v;
   }
@@ -405,11 +409,11 @@ WS.sys.DocCheck = (() => {
     const parts = em.fn(v.emN || undefined);
     const detail = parts.detail.filter((_, i) => i !== v.drop);
     const emb = [...parts.core, ...detail].join('');
-    let tr = 'translate(50 50) scale(0.84) translate(-50 -50)';
+    let tr = `translate(${50 + (v.emDx || 0)} ${50 + (v.emDy || 0)}) scale(${v.emK || 0.84}) translate(-50 -50)`;
     if (v.emRot) tr = `rotate(${v.emRot} 50 50) ` + tr;
     if (v.mirror) tr = 'translate(100 0) scale(-1 1) ' + tr;
     return rimShape(spec.rim, v.rn, 1, v.rimRot)
-      + (v.innerRim ? rimShape(spec.rim, v.rn, 0.87, v.rimRot) : '')
+      + (v.innerRim ? rimShape(spec.rim, v.rn, v.innerK || 0.87, v.rimRot) : '')
       + borderMarks(spec.border, v, spec.rim)
       + `<g transform="${tr}">${emb}</g>`;
   }
