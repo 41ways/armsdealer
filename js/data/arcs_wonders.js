@@ -85,7 +85,7 @@
       lines: { bought: '…이 비늘이 떨어진 자리에서 그 녀석이 눈을 떴어요.', declined: '그렇겠죠. 이런 걸 누가 사겠어요.' },
     },
     {
-      id: 'wd_ash_refugee', look: 'elder', name: '기슭 마을 노인 베른', race: '인간', job: '재의 산 기슭 마을에서 내려온 피난민', faction: 'village', portrait: '🧓',
+      id: 'wd_ash_refugee', look: 'elder_b', name: '기슭 마을 노인 베른', race: '인간', job: '재의 산 기슭 마을에서 내려온 피난민', faction: 'village', portrait: '🧓',
       spawn: { when: { all: [after('dragon_awake', 1), { not: { eventFired: 'dragon_descends' } }] }, chance: 0.5 },
       greet: '마을이 통째로 내려왔소. 등에 불똥을 맞은 아이가 있소. {item} {qty}병, 가진 게 {offer}골드뿐이오.',
       request: { item: 'potion', qty: 2, offer: { mult: 0.7 }, partialOk: true },
@@ -93,7 +93,7 @@
       lines: { sold: '고맙소. 산이 조용해지면 꼭 갚으러 오겠소.', partial: '한 병이라도 고맙소.', refused: '…성벽 쪽 구호소로 가 보겠소.' },
     },
     {
-      id: 'wd_ash_mason', look: 'soldier', name: '수비대 부관 이다', race: '인간', job: '성벽 수비대 부관', faction: 'merc', portrait: '🧱',
+      id: 'wd_ash_mason', look: 'soldier_b', name: '수비대 부관 이다', race: '인간', job: '성벽 수비대 부관', faction: 'merc', portrait: '🧱',
       spawn: { when: slot(0, after('dragon_slain', 1)), chance: 0.8 },
       greet: '브란트 대장이 인사 전하라 했소. 무너진 성가퀴에 새로 걸 {item} {qty}개, {offer}골드.',
       request: { item: 'shield', qty: 3, offer: { mult: 1.0 }, partialOk: true },
@@ -133,7 +133,7 @@
     // 집사가 붉은 보석을 사 간다 → 왕이 죽어 백작이 섭정 회의를 쥐면(night_regent — events.js king_dies) 사냥꾼 조합원이 도시를 떠난다
     // (v0.9.5: 대관식이 30일째 밤으로 옮겨 가 찬탈 vampire_regent 은 마지막 밤에만 켜진다 — 공위 기간의 손님은 night_regent 를 본다)
     {
-      id: 'wd_night_watchman', look: 'soldier', name: '야경꾼 한네스', race: '인간', job: '경비대 야경꾼', faction: 'kingdom', portrait: '🏮',
+      id: 'wd_night_watchman', look: 'soldier_b', name: '야경꾼 한네스', race: '인간', job: '경비대 야경꾼', faction: 'kingdom', portrait: '🏮',
       spawn: { when: slot(1, { all: [after('vampire_known', 1), { noFlag: 'night_regent' }, { noFlag: 'vampire_regent' }, { noFlag: 'vampire_court_fell' }] }), chance: 0.64 },
       greet: '하녀들이 사라진 골목을 밤마다 도오. 목에 이빨 자국이라니… {item} {qty}병, {offer}골드.',
       request: { item: 'holy_water', qty: 3, offer: { mult: 1.05 }, partialOk: true },
@@ -198,7 +198,7 @@
       onRefuse: { spawn: [{ customer: 'wd_grey_gravedigger', inDays: 2 }] },
     },
     {
-      id: 'wd_grey_gravedigger', look: 'elder', name: '묘지기 노인 베슬', race: '인간', job: '동쪽 공동묘지 묘지기', faction: 'village', portrait: '🪦', kind: 'talk',
+      id: 'wd_grey_gravedigger', look: 'elder_b', name: '묘지기 노인 베슬', race: '인간', job: '동쪽 공동묘지 묘지기', faction: 'village', portrait: '🪦', kind: 'talk',
       spawn: { queuedOnly: true },
       ask: { tag: '수소문', note: '방패를 사 간 자' },
       greet: '무덤을 다시 덮다가 새 방패가 나왔소. 이 가게 각인이더이다. 누가 사 갔소?',
@@ -328,7 +328,7 @@
       ],
     },
     {
-      id: 'wd_star_nun', look: 'priest', name: '수녀 아가타', race: '인간', job: '대성당 제단지기 수녀', faction: 'church', portrait: '🕯️', kind: 'talk',
+      id: 'wd_star_nun', look: 'priest_b', name: '수녀 아가타', race: '인간', job: '대성당 제단지기 수녀', faction: 'church', portrait: '🕯️', kind: 'talk',
       spawn: { when: slot(0, { all: [after('star_bought', 1), { noFlag: 'star_sent' }] }), chance: 0.8 },
       ask: { tag: '질문', note: '별이 떨어진 밤' },
       greet: '별이 떨어진 밤에 제단 촛불이 저절로 켜졌어요. 혹시… 이상한 손님이 오지 않았나요?',
@@ -346,7 +346,7 @@
       ],
     },
     {
-      id: 'wd_star_pilgrim', look: 'elder', name: '순례자 노인 마테오', race: '인간', job: '대성당 앞에 모인 순례자', faction: 'traveler', portrait: '🙏',
+      id: 'wd_star_pilgrim', look: 'elder_b', name: '순례자 노인 마테오', race: '인간', job: '대성당 앞에 모인 순례자', faction: 'traveler', portrait: '🙏',
       spawn: { when: { all: [after('star_to_church', 1), { noFlag: 'star_answered' }] }, chance: 0.7 },
       greet: '대성당이 사흘 밤낮 기도한다기에 왔소. 쓰러지는 이가 많소. {item} {qty}병, 가진 게 {offer}골드뿐이오.',
       request: { item: 'potion', qty: 3, offer: { mult: 0.72 }, partialOk: true },

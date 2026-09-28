@@ -14,10 +14,21 @@ WS.data.looks = {
     helmet: 'widehat', hatColor: '#2a2a40',
     body: 'noble', bodyColor: '#3a3a58', trim: '#c8a850', mouth: 'plain', wrinkles: true,
   },
+  // 서부 경비대장 하르트 (talks.js ②④⑤ — 여러 날 오는 이름 있는 손님, 정치극의 한 축). 볕에 그을린 얼굴에 검 자국, 챙 없는 투구 — knight_official 시트와 다르게
+  knight_official_hart: {
+    skin: '#b5825e', eyes: '#2a2418', ears: 'human', brows: '#3a2a10',
+    helmet: 'kettle', helmetColor: '#4a5048',
+    body: 'armor', bodyColor: '#3a4a3a', trim: '#8a7040', mouth: 'plain', scar: true,
+  },
   soldier: {
     skins: ['#e3ae88', '#c98f68', '#f0c2a0'], eyes: '#3a2a1a', ears: 'human', brows: '#4a3020',
     helmet: 'kettle', helmetColor: '#8d96a0',
     body: 'armor', bodyColor: '#7f8a96', tabard: '#2f58a8', trim: '#b8902e', mouth: 'plain',
+  },
+  // 이야기 손님 몇이 soldier 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 가죽 갑주, 두건 없이 짧은 머리, 짙은 녹색 계열
+  soldier_b: {
+    skin: '#c98f68', eyes: '#2a2010', ears: 'human', hair: 'short', hairColor: '#2a1a10',
+    helmet: 'none', body: 'leather', bodyColor: '#3a4a30', trim: '#6a7a50', mouth: 'plain',
   },
   // 왕국 병사 외형 다양화용 (factions.js k_soldier2) — soldier 대비 어둡고 다부진 색, 짧은 수염
   soldier2: {
@@ -25,6 +36,12 @@ WS.data.looks = {
     beard: 'small', beardColors: ['#2a1a10', '#6a4a2a', '#8a8a90'],
     helmet: 'kettle', helmetColor: '#6a747c',
     body: 'armor', bodyColor: '#63707a', tabard: '#2f58a8', trim: '#8a8060', mouth: 'plain', scar: true,
+  },
+  // 이야기 손님(talks.js/arcs_*.js) 몇이 soldier2 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 넓은 챙 투구, 녹슨 적갈 갑옷, 수염 없음
+  soldier2_b: {
+    skin: '#d8a878', eyes: '#3a2818', ears: 'human', brows: '#3a2818',
+    helmet: 'widehat', hatColor: '#5a4030',
+    body: 'armor', bodyColor: '#8a5040', trim: '#c0a060', mouth: 'plain',
   },
   adventurer: {
     skins: ['#f0c2a0', '#e3ae88', '#b97d58'], eyes: '#2f6a3a', ears: 'elf',
@@ -110,6 +127,11 @@ WS.data.looks = {
   elder: {
     skin: '#d8a080', eyes: '#3a2a1a', ears: 'human', hair: 'sides', hairColor: '#e8e2d6', brows: '#d8d0c4',
     beard: 'small', beardColor: '#e8e2d6', body: 'tunic', bodyColor: '#6a5a3a', wrinkles: true, mouth: 'plain',
+  },
+  // 이야기 손님 몇이 elder 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 수염 없이 대머리, 짙은 색 망토
+  elder_b: {
+    skin: '#c0906a', eyes: '#4a4038', ears: 'human', helmet: 'none', brows: '#c8c0b4',
+    body: 'cloak', bodyColor: '#4a4448', trim: '#8a8078', wrinkles: true, mouth: 'plain',
   },
   // 약초꾼 마사 (customers.js tut_goods) — 마을 약초꾼, 실용적이고 볕에 그을린 옷차림. 그림은 시트(assets/sprites/herbalist.png), 이건 대비용
   herbalist: {
@@ -207,6 +229,11 @@ WS.data.looks = {
     skins: ['#e3ae88', '#c98f68', '#a87050'], eyes: '#3a2a1a', ears: 'human', hair: 'short', hairColors: ['#2a1a14', '#6a3a1e', '#8a8070'],
     body: 'armor', bodyColors: ['#6a6058', '#5a5048', '#707880'], tabard: '#8a2a1e', trim: '#3a2a1a', mouth: 'plain', scar: true,
   },
+  // 알드릭 왕자파 뒷일꾼 크로그 (talks.js ①⑤ — 여러 날 오는 이름 있는 손님). 대머리에 안대처럼 짙은 눈가, 가죽 갑옷은 검붉게 — mercenary 시트와 다르게
+  mercenary_krogh: {
+    skin: '#a87050', eyes: '#1a1210', ears: 'human', helmet: 'none',
+    body: 'leather', bodyColor: '#3a1414', tabard: '#1a1a1a', trim: '#5a1414', mouth: 'plain', scar: true,
+  },
   merc_captain: {
     skin: '#c98f68', eyes: '#2a1a12', ears: 'human', hair: 'long', hairColor: '#3a2a22', beard: 'small', beardColor: '#3a2a22',
     body: 'armor', bodyColor: '#4a4440', tabard: '#8a2a1e', trim: '#c8a040', eyepatch: true, mouth: 'plain', scar: true,
@@ -276,6 +303,11 @@ WS.data.looks = {
     skins: ['#ecc0a0', '#e0b090'], eyes: '#3a4a6a', ears: 'human', hair: 'sides', hairColors: ['#d8d4cc', '#8a8070'],
     helmet: 'mitre', hatColor: '#f4f0e4', trim: '#d8a830', body: 'robe', bodyColor: '#f0ece0', mouth: 'plain', wrinkles: true,
   },
+  // 이야기 손님 하나(수녀 아가타)가 priest 시트와 겹치지 않게 — 두건 쓴 젊은 수녀, 짙은 회색 수도복
+  priest_b: {
+    skin: '#e6c8ac', eyes: '#2a2a2a', ears: 'human', helmet: 'hood', hoodColor: '#4a4650',
+    body: 'robe', bodyColor: '#5a5660', trim: '#8a8690', mouth: 'plain',
+  },
   inquisitor: {
     skin: '#d8b090', eyes: '#e8e0c0', ears: 'none', helmet: 'hood', hoodColor: '#6a0e14',
     body: 'robe', bodyColor: '#5a0e14', trim: '#e0c050',
@@ -283,6 +315,16 @@ WS.data.looks = {
   noble_lord: {
     skins: ['#ecb894', '#f0c8a8'], eyes: '#3a2a1a', ears: 'human', hair: 'short', hairColors: ['#5a3a22', '#c8a050', '#2a1a14'],
     beard: 'small', beardColors: ['#5a3a22', '#c8a050', '#2a1a14'], body: 'noble', bodyColors: ['#4a1a5a', '#1a2a5a', '#5a1a1a'], trim: '#e0c050', mouth: 'plain',
+  },
+  // 알드릭 왕자파 친위대 부관 오스문드 경 (talks.js ①④ — 여러 날 오는 이름 있는 손님). 짙은 적갈색 수염, 짙은 남색 예복 — noble_lord 시트와 다르게
+  noble_lord_osmund: {
+    skin: '#d8a888', eyes: '#4a2a1a', ears: 'human', hair: 'short', hairColor: '#7a3a1e',
+    beard: 'big', beardColor: '#7a3a1e', body: 'noble', bodyColor: '#1a2a4a', trim: '#8a94a8', mouth: 'plain', scar: true,
+  },
+  // 섭정 회의 재상 알베릭 (talks.js ⑤ — 21~22일 정치극의 핵심 인물). 늙고 야윈 문관 — 수염 없이 은발, 관복은 검게, 은빛 장식
+  noble_lord_alberic: {
+    skin: '#d0a080', eyes: '#3a3a3a', ears: 'human', hair: 'sides', hairColor: '#d8d4cc', brows: '#c8c0b4',
+    body: 'robe', bodyColor: '#242024', trim: '#b8b8c0', mouth: 'plain', wrinkles: true,
   },
   // 차려입은 신사 (customers.js court_physician) — 실은 왕궁 시의, 수수하고 단정한 의사 차림. 그림은 시트(assets/sprites/physician.png), 이건 대비용
   physician: {
@@ -292,6 +334,12 @@ WS.data.looks = {
   noble_lady: {
     skins: ['#f0c8a8', '#ecb894'], eyes: '#3a5a8a', ears: 'human', hair: 'long', hairColors: ['#c8a050', '#6a3a1e', '#1a1418'],
     helmet: 'circlet', body: 'noble', bodyColors: ['#6a2a6a', '#2a4a7a'], trim: '#e0c050', mouth: 'smile',
+  },
+  // 세레나 공주파 귀부인 로살린 (talks.js ①④ — 여러 날에 걸쳐 오는 이름 있는 손님이라 noble_lady 시트와 겹치지 않게 따로 둔다).
+  // 은발에 짙은 청록 예복, 눈매가 차분하다 — 다른 noble_lady 인물들과 확실히 다른 인상
+  noble_lady_rosalind: {
+    skin: '#ecb894', eyes: '#3a6a5a', ears: 'human', hair: 'long', hairColor: '#d8d4cc',
+    helmet: 'none', body: 'noble', bodyColor: '#1e5a52', trim: '#c0c8b0', mouth: 'plain',
   },
   prince: {
     skin: '#ecb894', eyes: '#3a6ab0', ears: 'human', hair: 'short', hairColor: '#c8a050', helmet: 'crown',
@@ -352,6 +400,11 @@ WS.data.looks = {
   traveler: {
     skins: ['#b07a58', '#c98f68', '#8a5a3a'], eyes: '#2a1a12', ears: 'human', beard: 'small', beardColors: ['#1a1210', '#e8e2d6'],
     helmet: 'turban', hatColor: '#e8dcc0', body: 'cloak', bodyColors: ['#b8883a', '#6a4a8a', '#3a6a6a'], mouth: 'smile',
+  },
+  // 이야기 손님 몇이 traveler 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 두건 없이 긴 머리, 수염 없음, 흙빛 옷
+  traveler_b: {
+    skin: '#8a5a3a', eyes: '#3a2a1a', ears: 'human', hair: 'long', hairColor: '#2a1a14',
+    helmet: 'none', body: 'tunic', bodyColor: '#5a4a34', mouth: 'plain',
   },
   stranger: {
     skin: '#c8d0e8', eyes: '#14121e', blankFace: true, ears: 'none',

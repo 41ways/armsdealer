@@ -358,10 +358,13 @@ function playRun(seed, opt) {
     doSell(c, lines);
   }
 
-  // 지금 충돌에서 다른 쪽에 "이쪽 수레를 채우겠소"라고 약속한 뒤 온 수레인가 (talks.js ④ 호소 손님의 follow 'ours' → tk_rt_<줄기>_pledged)
+  // 지금 충돌(들)에서 다른 쪽에 "이쪽 수레를 채우겠소"라고 약속한 뒤 온 수레인가 (talks.js ④ 호소 손님의 follow 'ours' → tk_rt_<줄기>_pledged)
+  //   v0.9.7: state.clash 는 배열(state.clashes)이 됐다 — 이 수레의 줄기가 낀 충돌을 찾아서 본다 (js/systems/Clash.js)
   function pledgedAway(c) {
-    const cl = S().clash, m = /^tk_rt_([a-z]+?)(?:_ald|_ser)?_cart$/.exec(c.tpl || '');
-    if (!cl || cl.key || !m || ![cl.a, cl.b].includes(m[1])) return false;
+    const m = /^tk_rt_([a-z]+?)(?:_ald|_ser)?_cart$/.exec(c.tpl || '');
+    if (!m) return false;
+    const cl = (S().clashes || []).find(x => !x.key && [x.a, x.b].includes(m[1]));
+    if (!cl) return false;
     const other = cl.a === m[1] ? cl.b : cl.a;
     return S().flags[`tk_rt_${other}_pledged`] !== undefined;
   }

@@ -55,7 +55,7 @@
     },
     {
       // 납품 두 번 뒤 — 강철수염 쇠가 다시 돈다는 소문이 왕국까지 닿았다
-      id: 'tr_steel_knight', look: 'soldier2', name: '기사 오웬', race: '인간', job: '왕국 기사 (강철검을 찾는다)', faction: 'kingdom', portrait: '⚔️',
+      id: 'tr_steel_knight', look: 'soldier2_b', name: '기사 오웬', race: '인간', job: '왕국 기사 (강철검을 찾는다)', faction: 'kingdom', portrait: '⚔️',
       spawn: { chance: 0.5, when: w(...dwarfContractLive, { var: 'dwarf_deliveries', gte: 2 }) },
       greet: '강철수염 쇠가 다시 돈다길래 왔소. 산채에 광석을 대는 집이 여기라지. {item} {qty}자루, {offer}G.',
       request: { item: 'iron_sword', qty: 2, offer: { mult: 1 }, partialOk: true },
@@ -167,7 +167,7 @@
     },
     {
       // 장물을 받은 뒤 — 왕국 경비대가 칼을 사러 온다. 여기에 장물을 섞어 넘기면 반드시 걸린다 (config.smuggling.detect)
-      id: 'tr_stash_guard', look: 'soldier', name: '경비병 한센', race: '인간', job: '왕국 경비대 장물 대조반', faction: 'kingdom', portrait: '📋',
+      id: 'tr_stash_guard', look: 'soldier_b', name: '경비병 한센', race: '인간', job: '왕국 경비대 장물 대조반', faction: 'kingdom', portrait: '📋',
       spawn: { chance: 0.5, when: w(...stashLive) },
       greet: '경비대 장물 대조반이오. 목록 돌리는 김에 {item} {qty}자루 사 가겠소. {offer}G. …각인은 하나하나 보겠소.',
       request: { item: 'iron_sword', qty: 2, offer: { mult: 1 }, partialOk: true },
@@ -203,7 +203,7 @@
     // ════════════════════ 두 번째 붉은여울 ════════════════════
     {
       // 옛 장부가 나온 뒤, 에다가 오기 전 — 그날을 기억하는 사람
-      id: 'tr_redford_veteran', look: 'elder', name: '늙은 파수꾼 오스', race: '인간', job: '붉은여울 옛 파수꾼', faction: 'village', portrait: '🏮',
+      id: 'tr_redford_veteran', look: 'elder_b', name: '늙은 파수꾼 오스', race: '인간', job: '붉은여울 옛 파수꾼', faction: 'village', portrait: '🏮',
       spawn: { chance: 0.45, when: w({ day: { gte: 15 } }, { customerSeen: 'carpenter_ledger' }, { not: { customerSeen: 'widow_eda' } }) },
       greet: '스무 해 전 붉은여울 파수꾼이었소. 불탄 칼자루마다 같은 각인이 있었지. …{item} {qty}병, {offer}G 주시오.',
       request: { item: 'potion', qty: 2, offer: { mult: 1 }, partialOk: true },
@@ -238,7 +238,7 @@
     },
     {
       // 습격이 난 뒤, 에다가 오기 전 — 시한이 짧아 쉬는 틈을 따지지 않는다
-      id: 'tr_raid_survivor', look: 'traveler', name: '그을린 피난민', race: '인간', job: '불탄 동쪽 마을에서 왔다', faction: 'village', portrait: '🔥',
+      id: 'tr_raid_survivor', look: 'traveler_b', name: '그을린 피난민', race: '인간', job: '불탄 동쪽 마을에서 왔다', faction: 'village', portrait: '🔥',
       spawn: { chance: 0.8, when: { all: [{ flag: 'garret_raid' }, { not: { customerSeen: 'eda_curse' } }] } },
       poor: { style: 'yo' },
       greet: '마을이 또 탔어요. 칼자루마다 같은 각인이 찍혀 있었대요. {item} {qty}병… {offer}G밖에 없어요.',
@@ -293,7 +293,7 @@
     // ════════════════════ 밀고자 ════════════════════
     {
       // 밀고가 처음 맞은 뒤, 제보처가 되기 전
-      id: 'tr_guard_thanks', look: 'soldier2', name: '경비병 로크', race: '인간', job: '왕국 경비대', faction: 'kingdom', portrait: '🛡️',
+      id: 'tr_guard_thanks', look: 'soldier2_b', name: '경비병 로크', race: '인간', job: '왕국 경비대', faction: 'kingdom', portrait: '🛡️',
       spawn: { chance: 0.5, when: w({ var: 'report_hits', gte: 1 }, { noFlag: 'informant_office' }) },
       greet: '지난번 까마귀 편지, 여기서 날린 거 맞소? 덕분에 한 놈 잡았소. {item} {qty}개, {offer}G.',
       request: { item: 'shield', qty: 2, offer: { mult: 1 }, partialOk: true },
@@ -315,7 +315,7 @@
     },
     {
       // 제보처가 된 뒤 밀고가 한 번 더 맞았을 때 — 끌려간 사람의 가족
-      id: 'tr_arrested_wife', look: 'traveler', name: '나래', race: '인간', job: '끌려간 짐꾼의 아내', faction: 'village', portrait: '🕯️', kind: 'talk',
+      id: 'tr_arrested_wife', look: 'traveler_b', name: '나래', race: '인간', job: '끌려간 짐꾼의 아내', faction: 'village', portrait: '🕯️', kind: 'talk',
       spawn: { chance: 0.6, when: w({ flag: 'informant_office' }, { var: 'report_hits_after', gte: 1 }) },
       ask: { tag: '하소연', note: '남편이 끌려갔다' },
       greet: '제 남편이 감찰청에 끌려갔어요. 여기서 뭘 봤다고 누가 적어 냈대요. …사장님은 아시죠?',
@@ -367,7 +367,7 @@
     // ════════════════════ 청출어람 ════════════════════
     {
       // 핀을 들인 뒤 — 동네가 핀을 알아본다
-      id: 'tr_pin_baker', look: 'traveler', name: '빵집 주인 모야', race: '인간', job: '광장 빵집 주인', faction: 'village', portrait: '🥖',
+      id: 'tr_pin_baker', look: 'traveler_b', name: '빵집 주인 모야', race: '인간', job: '광장 빵집 주인', faction: 'village', portrait: '🥖',
       spawn: { chance: 0.5, when: w(...pinHere, { day: { gte: 7 } }) },
       greet: '핀이 빵 배달을 거들어 줘서 고마워요. 발이 어찌나 빠른지. {item} {qty}병, {offer}G요.',
       request: { item: 'potion', qty: 2, offer: { mult: 1 }, partialOk: true },

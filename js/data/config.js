@@ -16,6 +16,10 @@ WS.data.config = {
   storageExpand: { steps: [{ cost: 250, slots: 10 }, { cost: 400, slots: 10 }, { cost: 600, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (25+30)칸 × 24 = 1320. v0.9.2: 300/500/700 → 250/400/600 (design/qa_report_4.md)
   slotVolume: 24, // 창고 한 칸의 부피. 물건 1개의 부피 = slotVolume ÷ stack (창고 용량 = shopSlots × slotVolume)
   campaignDays: 30, // v0.9.3: 40 → 30일. 결말은 30일째 밤이 지난 뒤(= "31일째") 판정. 이야기 날짜는 아래 campaignPresets[30] 의 dayWarp 로 40일 눈금을 그대로 쓴다
+  // 가닥 잡기(js/systems/Clash.js) 타이밍 손잡이. start~last 는 충돌이 열리는 실제 날짜 구간(기본 12~28),
+  //   forceDay 는 "이날부터 한 번도 충돌에 못 나와 본 열린 줄기를 확 앞세운다"(끝물 몰아치기) 기준일 — 기본 26.
+  //   시뮬에서 충돌 자체를 꺼 보려면 { start: 99 } 처럼 한 값만 덮어써도 된다.
+  clash: { start: 12, last: 28, forceDay: 26 },
   // 이야기 날짜 보정: [[실제일, 이야기일], ...] — 조건 DSL 의 { day } 와 세계 변수의 밤 변화가 이야기일(옛 40일 눈금) 기준이 된다 (Conditions.eday).
   // 기본값은 프리셋(campaignPresets[campaignDays])이 채운다. 실제 날짜 ↔ 이야기 날짜 표는 js/data/progress.js 맨 위 주석.
   dayWarp: null,

@@ -56,7 +56,7 @@
   C.push(
     // ───── 알드릭이 앞설 때: 왕자파의 회유 세 번 ─────
     {
-      id: 'tk_ald_woo1', look: 'noble_lord', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️', kind: 'talk',
+      id: 'tk_ald_woo1', look: 'noble_lord_osmund', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️', kind: 'talk',
       spawn: { when: woo('leaning_aldric', [after('interregnum', 1)]), chance: 0.7 },
       summary: '알드릭 왕자파 — 대세는 기울었다, 지금 오면 친위대 납품 자리를 약속',
       greet: '섭정 회의 귀족 태반이 왕자님 쪽에 섰소. 대세는 기울었소. 지금 오면 대관식 뒤 친위대 납품 자리를 약속하오. 우선 내일 창 여섯 자루를 받으러 오겠소.',
@@ -68,7 +68,7 @@
       ],
     },
     {
-      id: 'tk_ald_woo2', look: 'noble_lord', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️', kind: 'talk',
+      id: 'tk_ald_woo2', look: 'noble_lord_osmund', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️', kind: 'talk',
       spawn: { when: woo('leaning_aldric', [after('tk_ald_wait1', 2), { noFlag: 'tk_ald_joined' }]), chance: 0.8 },
       summary: '알드릭 왕자파 — 두 번째 회유, 서부 원정 보급을 통째로 맡기겠다',
       greet: '왕자님께 이 가게 얘기를 올렸소. 대관식 뒤 서부 원정 보급을 통째로 맡기시겠다 하오. 이번 창 값엔 웃돈도 얹겠소. 내일 여섯 자루, 어떻소?',
@@ -112,7 +112,7 @@
 
     // ───── 세레나가 앞설 때: 공주파의 회유 세 번 ─────
     {
-      id: 'tk_ser_woo1', look: 'noble_lady', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
+      id: 'tk_ser_woo1', look: 'noble_lady_rosalind', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
       spawn: { when: woo('leaning_serena', [after('interregnum', 1)]), chance: 0.7 },
       summary: '세레나 공주파 — 대세는 기울었다, 지금 오면 구호소 납품을 맡긴다',
       greet: '길드도 대성당도 공주님 쪽이에요. 대관식은 이제 날짜 문제죠. 지금 오시면 구호소 물약 납품을 맡길게요. 내일 여섯 병부터요.',
@@ -124,7 +124,7 @@
       ],
     },
     {
-      id: 'tk_ser_woo2', look: 'noble_lady', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
+      id: 'tk_ser_woo2', look: 'noble_lady_rosalind', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
       spawn: { when: woo('leaning_serena', [after('tk_ser_wait1', 2), { noFlag: 'tk_ser_joined' }]), chance: 0.8 },
       summary: '세레나 공주파 — 두 번째 회유, 상업세 면제를 약속',
       greet: '공주님이 새 치세 첫해 이 가게 상업세를 면해 주시겠대요. 그리고 이번 물약엔 값을 더 얹을게요. 내일 여섯 병, 어떠세요?',
@@ -205,7 +205,7 @@
       onSell: { vars: { succession: -2 }, flags: ['backed_serena', 'tk_ser_credit_sold'] },
     },
     {
-      id: 'tk_ald_plea1', look: 'mercenary', name: '용병 대리인 크로그', race: '인간', job: '알드릭 왕자파 뒷일꾼', faction: 'merc', trueFaction: 'noble', portrait: '🗝️', kind: 'talk',
+      id: 'tk_ald_plea1', look: 'mercenary_krogh', name: '용병 대리인 크로그', race: '인간', job: '알드릭 왕자파 뒷일꾼', faction: 'merc', trueFaction: 'noble', portrait: '🗝️', kind: 'talk',
       spawn: { when: woo('leaning_serena', [after('interregnum', 2)]), chance: 0.6 },
       summary: '알드릭 왕자파 — 공주 쪽으로 기울자 밤중 뒷문 납품에 웃돈',
       greet: '길드가 공주 편에 서면서 왕자님 쪽엔 칼 파는 가게가 씨가 말랐소. 웃돈을 얹겠소. 내일 해 진 뒤 칼 여섯 자루, 뒷문으로. 장부엔 사냥 모임이라 적으시오.',
@@ -223,7 +223,7 @@
       onSell: { vars: { succession: 2, merc_strength: 1 }, flags: ['armed_prince_secret', 'tk_ald_secret_sold'] },
     },
     {
-      id: 'tk_ald_plea2', look: 'mercenary', name: '용병 대리인 크로그', race: '인간', job: '알드릭 왕자파 뒷일꾼', faction: 'merc', trueFaction: 'noble', portrait: '🗝️', kind: 'talk',
+      id: 'tk_ald_plea2', look: 'mercenary_krogh', name: '용병 대리인 크로그', race: '인간', job: '알드릭 왕자파 뒷일꾼', faction: 'merc', trueFaction: 'noble', portrait: '🗝️', kind: 'talk',
       spawn: { when: woo('leaning_serena', [{ customerSeen: 'tk_ald_plea1' }, { since: { flag: 'tk_ald_plea_yes', days: 2 } }]), chance: 0.5 },
       summary: '알드릭 왕자파 — 금고가 비었다, 창을 외상으로 (서부 원정 전리품으로 갚음)',
       greet: '솔직히 말하겠소. 왕자님 금고가 비었소. 창 여덟 자루, 값은 대관식 뒤 서부 원정 전리품으로 두 배 가까이 치르겠소. 왕자님이 못 이기면… 그땐 나도 할 말이 없소.',
@@ -244,7 +244,7 @@
 
     // ───── 전시 섭정: 두 후계자가 서부 토벌 물자를 두고 다툰다 ─────
     {
-      id: 'tk_war_ald', look: 'noble_lord', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️', kind: 'talk',
+      id: 'tk_war_ald', look: 'noble_lord_osmund', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️', kind: 'talk',
       spawn: { queuedOnly: true },
       summary: '전시 섭정 — 서부 토벌 물자를 누가 대느냐, 왕자 이름으로 내일 창 8',
       greet: '적이 문 앞이라 섭정 회의가 왕좌 다툼을 접었소. 대신 서부 토벌 물자를 누가 대느냐로 대관식이 갈릴 거요. 왕자님 이름으로 내일 창 여덟 자루를 전선에 보내 주시오.',
@@ -254,7 +254,7 @@
       ],
     },
     {
-      id: 'tk_war_ser', look: 'noble_lady', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
+      id: 'tk_war_ser', look: 'noble_lady_rosalind', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒', kind: 'talk',
       spawn: { queuedOnly: true },
       summary: '전시 섭정 — 부상병 물약을 누가 대느냐, 공주 이름으로 내일 물약 8',
       greet: '전쟁은 창이 아니라 살아 돌아온 병사가 이겨요. 공주님은 부상병 구호소를 맡으셨어요. 공주님 이름으로 내일 물약 여덟 병, 전선에 보내 주세요.',
@@ -310,7 +310,7 @@
   });
 
   // ───── 충돌 1: 고블린 ↔ 궁정 (gc) — 서부 방어 물자 ─────
-  const guardBase = { look: 'knight_official', name: '서부 경비대장 하르트', race: '인간', job: '서부 국경 초소 경비대장', faction: 'kingdom', portrait: '🛡️' };
+  const guardBase = { look: 'knight_official_hart', name: '서부 경비대장 하르트', race: '인간', job: '서부 국경 초소 경비대장', faction: 'kingdom', portrait: '🛡️' };
   const zrakBase = { look: 'goblin_envoy', name: '부족 전령 즈락', race: '고블린', job: '서부 숲 부족 전령', faction: 'goblin', portrait: '👹' };
   C.push(
     {
@@ -609,14 +609,14 @@
       fall: '섭정 회의는 왕좌 다툼을 궁 문 안으로 거둬들였다 — 대관식은 이 가게와 상관없는 일이 되었다',
       win: { vars: { rel_noble: 1 } },
       scenes: [
-        { id: 'tk_rt_court_ald', who: { look: 'noble_lord', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️' },
+        { id: 'tk_rt_court_ald', who: { look: 'noble_lord_osmund', name: '오스문드 경', race: '인간', job: '알드릭 왕자파 친위대 부관', faction: 'noble', portrait: '🛡️' },
           summary: '알드릭 왕자파 — 대관식까지 친위대를 채워야 한다, 내일 창 6',
           open: '왕자님 쪽 부관이오.', plea: '대관식까지 친위대가 버텨야 하오. 왕자님은 이 가게를 기억하시오.', ask: '내일 창 여섯 자루, 친위대 수레를 보내겠소.',
           yesReply: '좋소. 대관식 행렬 맨 앞에 이 창이 서겠소.', noLabel: '창은 못 대겠소', noReply: '왕자님께 그대로 전하겠소.',
           mutter: '…친위대를 빈손으로 돌려보내면, 왕좌 다툼에서 이 가게 자리는 없다.', noEffects: { vars: { rel_noble: -1 } },
           cart: { greet: '오스문드 경이 보냈소. {item} {qty}자루, {offer}G.', item: 'iron_spear', qty: 6, mult: 1.15, onSell: { vars: { succession: 3, merc_strength: 1 }, flags: ['armed_aldric'] },
             lines: { sold: '왕자님이 이 가게 이름을 적으셨소.', partial: '모자라도 받아 가겠소.', refused: '어제는 댄다더니…' } } },
-        { id: 'tk_rt_court_ser', who: { look: 'noble_lady', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒' },
+        { id: 'tk_rt_court_ser', who: { look: 'noble_lady_rosalind', name: '로살린 부인', race: '인간', job: '세레나 공주파 귀부인', faction: 'noble', portrait: '👒' },
           summary: '세레나 공주파 — 대관식까지 구호소를 열어 둬야 한다, 내일 물약 8',
           open: '공주님 쪽 사람이에요.', plea: '대관식까지 광장 구호소 줄이 끊기면 안 돼요. 공주님은 이 가게를 기억하세요.', ask: '내일 물약 여덟 병, 구호소 수레를 보낼게요.',
           yesReply: '고마워요. 구호소 천막에 공주님 문장이 걸릴 거예요.', noLabel: '물약은 못 대겠소', noReply: '…공주님께 그대로 전할게요.',
@@ -741,6 +741,18 @@
         : '재의 산 정찰은 뒤로 밀리고 옛 갱도는 무너뜨려 막혔다 — 용 이야기는 산속에 묻혔다'),
       win: { vars: { dragon_stir: 3, dragon_defense: 100 } },
       supplyWin: { vars: { dragon_stir: 2 } },
+      // 「용」 삼형제 결말은 events.js dragon_descends(깨고 사흘 뒤)가 dragon_defense 시세로 가른다 — 용이 25일 가까이 늦게 깨면
+      // 그 사흘이 캠페인 끝(30일) 뒤로 밀려 셋 다 못 걸린다. 공급승을 한 번이라도 거뒀는데 여전히 안 갈렸으면(끝물, 26일+)
+      // events.js 가 쓰는 바로 그 문턱(900 · 골렘 있으면 450)으로 앞당겨 갈라 준다 — 새 규칙이 아니라 같은 셈을 늦지 않게 매길 뿐
+      clashClimax: { wins: 0, resolve: x => {
+        if (x.f('dragon_slain') || x.f('dragon_razed') || x.f('dragon_pact') || !x.f('dragon_awake')) return null;
+        const slain = x.v('dragon_defense') >= 900 || (x.f('golem_kingdom') && x.v('dragon_defense') >= 450);
+        return slain
+          ? { flags: ['dragon_slain'], vars: { economy: 6, kingdom_power: 4, kingdom_morale: 6, rel_dragon: -10 },
+            news: { cat: '속보', text: '붉은 용 추락! 뒤늦게 도착한 수비 물자가 그래도 성벽을 버텨 냈다' } }
+          : { flags: ['dragon_razed'], vars: { economy: -12, kingdom_morale: -8, kingdom_power: -4 },
+            news: { cat: '속보', text: '재의 산 이야기가 매듭짓지 못한 채 해가 저문다 — 용은 결국 상점가를 스쳐 지나며 불을 놓았다' } };
+      } },
       scenes: [
         { id: 'tk_rt_dragon', who: { look: 'wall_captain', name: '성벽 수비대장 브란트', race: '인간', job: '성벽 수비 용병대장', faction: 'merc', portrait: '🏰' },
           summary: '성벽 수비대 — 재의 산이 연기를 뿜는다, 내일 방패 6',
@@ -815,6 +827,9 @@
         ? '강철수염 장로는 연대기에서 이 가게 이름을 지웠다 — "약속보다 다른 일이 먼저인 인간"이라며'
         : '강철수염 용광로는 절반이 꺼졌다 — 드워프 강철의 시대는 오지 않는다'),
       win: { vars: { dwarf_tech: 3, rel_dwarf: 1 } },
+      // 공급으로 이겼을 때만 dwarf_deliveries 를 1 올린다 — 원래 있던 "납품 4회 → 황금기"(customers.js dwarf_porter) 문턱에 자연히 합류한다.
+      // 형세로 이긴 건(공급 없이) 안 친다 — 「실제로 광석을 댔느냐」가 여전히 기준
+      supplyWin: { vars: { dwarf_deliveries: 1 } },
       scenes: [
         { id: 'tk_rt_dwarf', who: { look: 'dwarf', name: '전령 도린', race: '드워프', job: '강철수염 씨족 전령', faction: 'dwarf', portrait: '⛏️' },
           summary: '강철수염 씨족 — 용광로를 더 지펴야 한다, 계약과 따로 내일 철광석 12',
@@ -830,6 +845,10 @@
       live: { all: [{ any: [{ flag: 'fairy_blessing' }, { flag: 'fairy_oath2' }, { flag: 'fairy_oath3' }, { flag: 'forest_remembers' }] }, { noFlag: 'fairy_betrayed' }, { noFlag: 'fairy_spurned' }] },
       score: x => ['fairy_blessing', 'fairy_oath2', 'fairy_oath2_kept', 'fairy_oath3'].filter(x.f).length * 2 + (x.f('forest_remembers') ? 5 : 0),
       power: x => x.v('fairy_grace') * 2,
+      // 「요정의 가호」는 원래 세 맹세(광석 두 번 · 사흘 무기 안 팖 — customers.js fairy_oath 흐름)를 다 지켜야만 forest_remembers 가 켜진다.
+      // 그 맹세는 충돌과 무관해서, 이 줄기만 거듭 이겨도(물약을 계속 대 줘도) 결말엔 못 닿았다 — 공급승 2번을 넘고 끝물(26일+)이면 숲이 그 헌신을 맹세로 쳐준다
+      clashClimax: { wins: 2, flags: ['forest_remembers'], vars: { fairy_grace: 3, rel_fairy: 2 },
+        news: { cat: '생활', text: '요정불이 밤마다 가게 문턱까지 내려온다 — 거듭 손을 내민 상인을, 숲은 맹세를 지킨 셈 치기로 했다' } },
       appeal: 'tk_rt_fairy',
       threat: '동쪽 숲 요정불이 숲 가장자리마다 경계를 친다',
       act: '요정들이 가게 물약으로 숲 가장자리를 되살리자', worldAct: '동쪽 숲이 제 힘으로 가장자리를 되살리자',
@@ -860,6 +879,16 @@
         ? '잿빛 행렬은 서쪽 가도 너머로 사라졌다 — 행렬의 방패에 이 가게 각인은 없다'
         : '잿빛 행렬은 흩어졌다 — 공동묘지 흙이 다시 굳었다'),
       win: { vars: { undead_power: 4 } },
+      // 「잿빛 행진」은 events.js dead_march(세력 22 문턱)가 뜬 이틀 뒤 dead_march_resolution 이 갈라 준다 — 세력이 22를 캠페인 막바지에야
+      // 넘으면 그 이틀이 30일 뒤로 밀려 아예 못 갈린다. 끝물(26일+)에 이미 22를 넘겼는데도 안 갈렸으면 그 사건이 쓰는 바로 그 문턱으로 앞당겨 매긴다
+      clashClimax: { wins: 0, resolve: x => {
+        if (x.f('undead_tide') || x.f('dead_repelled') || x.f('vampires_saved_city') || x.v('undead_power') < 22) return null;
+        if (x.v('undead_defense') >= 600 || x.v('church_authority') >= 36)
+          return { flags: ['dead_repelled'], vars: { undead_power: -20, church_authority: 6, reputation: 3 }, news: { cat: '속보', text: '뒤늦게 모인 성수와 은이 그래도 해골 행렬을 막았다! 대성당 종소리' } };
+        if (x.v('vampire_power') >= 18)
+          return { flags: ['vampires_saved_city'], vars: { undead_power: -16, vampire_power: 4, kingdom_morale: -2 }, news: { cat: '속보', text: '창백한 귀족들이 뒤늦게 해골 행렬을 부숴… "이 도시 피는 우리 것"' } };
+        return { flags: ['undead_tide', 'village_fell'], vars: { economy: -8, kingdom_morale: -8, undead_power: 6, rel_village: -3 }, news: { cat: '속보', text: '해골 행렬, 매듭짓지 못한 채 동쪽 마을을 삼켰다' } };
+      } },
       scenes: [
         { id: 'tk_rt_undead', late: true, who: { look: 'necromancer', name: '예언자 모라크', race: '인간', job: '잿빛 수의 교단 사제', faction: 'undead', portrait: '☠️' },
           summary: '잿빛 수의 교단 — 행렬이 서쪽으로 걷는다, 내일 방패 6',
@@ -877,6 +906,11 @@
       live: { all: [{ any: [{ flag: 'mist_second_contract' }, { all: [{ flag: 'demon_contract' }, { var: 'demon_influence', gte: 8 }] }] }, { noFlag: 'mist_contract_broken' }] },
       score: x => x.v('demon_influence') / 4 + (x.f('mist_second_contract') ? 3 : 0),
       power: x => x.v('demon_influence') * 3,
+      // 「안개가 드리운 마을」은 원래 두 번째 계약(customers.js mist_contract2 — 별도 서사 분기)에 서명해야만 닿는다.
+      // 그 계약 제안은 충돌과 무관해서, 첫 계약만 들고 이 줄기를 거듭 이겨도 결말엔 못 닿았다 — 공급승 2번을 넘고 끝물(26일+)이면
+      // 안개 상단이 알아서 둘째 장을 내민 것으로 친다 (값은 여느 때처럼 기억으로 — mist_paid_memory 변형 글로 이어진다)
+      clashClimax: { wins: 1, flags: ['mist_second_contract', 'mist_paid_memory'], vars: { demon_influence: 3 },
+        news: { cat: '소문', text: '안개 상단이 거듭된 거래 끝에 계약서 둘째 장을 내밀었다 — 값은 여느 때처럼, 기억으로' } },
       appeal: 'tk_rt_mist',
       threat: '안개 상단이 밤마다 골목에 장을 편다',
       act: '안개 상단이 가게 물건으로 밤 시장을 넓히자', worldAct: '안개가 짙어져 밤 시장이 골목을 삼키자',
@@ -968,15 +1002,19 @@
         pleas.forEach(pv => others.forEach(o => greetWhen.push({ when: pv.when ? { all: [pv.when, { flag: `tk_clvs_${r.id}_${o.id}` }] } : { flag: `tk_clvs_${r.id}_${o.id}` }, text: line(pv.text, o) })));
         (sc.pleaWhen || []).forEach(pv => greetWhen.push({ when: pv.when, text: line(pv.text) }));
         const cartId = `${sc.id}_cart`;
-        const yes = extra => ({ label: '내일 준비해 두겠소', reply: sc.yesReply, effects: { flags: ['tk_cl_yes', `tk_rt_${r.id}_yes`], spawn: [{ customer: cartId, inDays: 1 }] }, ...extra });
+        // 이 짝(r ↔ o)이 "지금" 부딪치는 중이고(tk_clvs_r_o — 이 충돌이 살아있는 동안만 참) 그 상대가 이미 예라고 했나 (tk_rt_o_yes).
+        //   전엔 전역 플래그 tk_cl_yes 하나로 봤는데, 두 충돌이 동시에 도는 동안(js/systems/Clash.js 동시 진행)엔
+        //   서로 다른 짝의 "예"가 섞여 버린다 — 그래서 짝마다 따로 본다 (tk_clvs_* 는 그 충돌이 열려 있는 동안만 선다)
+        const partnerYes = { any: others.map(o => ({ all: [{ flag: `tk_clvs_${r.id}_${o.id}` }, { flag: `tk_rt_${o.id}_yes` }] })) };
+        const yes = extra => ({ label: '내일 준비해 두겠소', reply: sc.yesReply, effects: { flags: [`tk_rt_${r.id}_yes`], spawn: [{ customer: cartId, inDays: 1 }] }, ...extra });
         C.push({
           id: sc.id, ...sc.who, kind: 'talk', spawn: { queuedOnly: true }, late: !!sc.late,
           ...(r.hostile ? { suspicious: true, caughtFlag: `tk_rt_${r.id}_caught`, onReport: { flags: [`tk_rt_${r.id}_caught`] }, reportDetail: sc.reportDetail } : {}),
           summary: sc.summary, greet: line(sc.plea), greetWhen,
           choices: [
-            yes({ id: 'yes', when: { noFlag: 'tk_cl_yes' } }),
+            yes({ id: 'yes', when: { not: partnerYes } }),
             // 상대 쪽에 이미 예라고 했으면 한 번 더 묻는다 (둘 다 채우면 양쪽 다 의심한다 — 박쥐의 재료)
-            yes({ id: 'yes2', when: { flag: 'tk_cl_yes' },
+            yes({ id: 'yes2', when: partnerYes,
               follow: { say: '저쪽 사람도 다녀갔다지. 양쪽에 다 대면 양쪽 다 이 가게를 의심할 거요. 누구 수레를 채울 거요?',
                 choices: [
                   { id: 'ours', label: '이쪽 수레를 채우겠소', reply: '그 말, 믿겠소. 저쪽 수레가 오면 돌려보내시오.', effects: { flags: [`tk_rt_${r.id}_pledged`] } },
@@ -1043,9 +1081,9 @@
       won: '서부 경비대, 이 거리 칼을 들고 가도의 도적 소굴을 쓸어 냈다… 상인 마차가 다시 달린다',
       lost: '도적 소탕 실패… 경비대가 숲길에서 길을 잃었다, 도적들은 더 대담해졌다' },
   ];
-  const chanBase = { look: 'noble_lord', name: '재상 알베릭', race: '인간', job: '섭정 회의 재상', faction: 'noble', portrait: '📜',
+  const chanBase = { look: 'noble_lord_alberic', name: '재상 알베릭', race: '인간', job: '섭정 회의 재상', faction: 'noble', portrait: '📜',
     affil: { claim: 'royal', seal: 'real', sealOf: 'royal', line: '섭정 회의 재상이네. 왕실 인장일세.' } };
-  const capBase = { look: 'knight_official', name: '서부 경비대장 하르트', race: '인간', job: '서부 국경 초소 경비대장', faction: 'kingdom', portrait: '🛡️' };
+  const capBase = { look: 'knight_official_hart', name: '서부 경비대장 하르트', race: '인간', job: '서부 국경 초소 경비대장', faction: 'kingdom', portrait: '🛡️' };
   C.push({
     id: 'tk_rg_chancellor', ...chanBase, kind: 'talk', spawn: { queuedOnly: true },
     summary: '섭정 회의 재상 — 곧 올 서부 경비대장을 "내사가 먼저"라며 돌려보내 달라',
@@ -1114,7 +1152,7 @@
       ],
     },
     {
-      id: 'tk_weak_ald', look: 'mercenary', name: '용병 대리인 크로그', race: '인간', job: '알드릭 왕자파 뒷일꾼', faction: 'merc', trueFaction: 'noble', portrait: '🗝️', kind: 'talk', spawn: { queuedOnly: true },
+      id: 'tk_weak_ald', look: 'mercenary_krogh', name: '용병 대리인 크로그', race: '인간', job: '알드릭 왕자파 뒷일꾼', faction: 'merc', trueFaction: 'noble', portrait: '🗝️', kind: 'talk', spawn: { queuedOnly: true },
       summary: '알드릭 왕자파 — 밀리자 붉은 늑대 용병단과 손잡았다, 이 가게도 함께하자 (내일 칼)',
       greet: '섭정 회의가 공주 쪽으로 기울었소. 그래서 왕자님이 붉은 늑대 용병단과 손을 잡으셨소. 용병 천막이 친위대가 됐소. 이 가게도 함께하시오. 내일부터 칼을 대 주면 되오.',
       choices: [
@@ -1233,6 +1271,75 @@
       lines: { sold: '(검게 식은 반지와 마석을 내려놓는다) 폐하의 보물이다. 금화보다 귀하다.', partial: '모자라군. 그래도 반지는 두고 간다.', refused: '폐하의 돈을 거절하는 자는 드물다. 기억하겠다.' },
       onSell: { give: { cursed_ring: 1, mana_crystal: 1 }, vars: { reputation: -2, demonlord_power: 2, rel_demonlord: 2 }, flags: ['tk_black_paid_in_curse'], schedule: [{ event: 'ring_awakens', inDays: [2, 3] }] },
       onRefuse: { vars: { rel_demonlord: -3 } },
+    },
+  );
+
+  // ═════════════════════════ ⑥ 정치적 결단 — 섭정 회의(재상 · 서부 경비대장, ⑤)와 같은 꼴을 다른 줄기에도 ═════════════════════════
+  // 섭정 회의는 "판다/안 판다"가 그 자리에서 다른 세력의 형세를 흔들고 다른 줄기를 닫기도 하는 결단이었다 — 그 꼴을 서부 숲·재의 산·검은 깃발·
+  // 청동심장 공방에도 하나씩 둔다. 여기서도 "판다"만으로 정해지는 게 아니라, 판 물자(칼/방패 수량)가 그대로 형세 변수에 실려 다음 충돌·엔딩까지 간다.
+  // 결단마다 그 원인과 딴 줄기로 번지는 효과를 신문 한 줄로 남긴다 (docs/DESIGN_CONVERGENCE.md §3.0 규칙1).
+  C.push(
+    // ───── 서부 숲: 화친파 대 전쟁파 — 받아들이면 서부 전선이 식으며 고블린 줄기 자체가 닫히고(명예 고블린은 물 건너간다), 대신 용·섭정 회의 쪽 부담이 준다 ─────
+    {
+      id: 'tk_gb_truce', look: 'goblin_envoy', name: '화친파 사절 나락', race: '고블린', job: '서부 숲 화친파', faction: 'goblin', trueFaction: 'goblin', portrait: '🕊️', kind: 'talk',
+      spawn: { when: { all: [goblinOpen, { realDay: { gte: 15, lte: 23 } }, { noFlag: 'goblin_truce' }, { noFlag: 'goblin_hardline' }] }, chance: 0.5 },
+      summary: '서부 숲 화친파 — 전쟁파를 밀어내고 휴전을 청한다, 받을지 말지',
+      greet: '즈락 패거리 말고 내 말도 들어 보라구. 전쟁파는 이기지도 못할 싸움에 부족을 다 건다구. 화친을 받아들이면 창을 거둔다구 — 대신 다시는 숲에 칼 대지 말라구.',
+      choices: [
+        { id: 'truce', label: '화친을 받아들이겠소', mutter: '…화친을 받으면 숲은 더 이상 왕국과 부딪치지 않는다. 대신 「명예 고블린」으로 가는 길은 여기서 끊긴다.',
+          reply: '킥, 잘 골랐다구. 창은 광 속에 처박아 둔다구.',
+          effects: { flags: ['goblin_truce', 'closed_goblin'], vars: { border_tension: -6, goblin_power: -5, kingdom_power: 2, dragon_stir: -2 } },
+          news: { cat: '왕국', text: '서부 숲 화친파, 전쟁파를 밀어내고 창을 거뒀다… 국경 초소 병력 일부가 재의 산 쪽으로 옮겨 갔다' } },
+        { id: 'war', label: '전쟁파 편을 들겠소', mutter: '…화친을 걷어차면 숲은 계속 왕국과 부딪친다. 서부는 더 뜨거워지겠지.',
+          reply: '흥! 그럴 줄 알았다구. 전쟁파에 그대로 전한다구.',
+          effects: { flags: ['goblin_hardline'], vars: { goblin_power: 4, border_tension: 5 } },
+          news: { cat: '왕국', text: '서부 숲 화친파가 밀려나… 전쟁파가 다시 창을 벼린다' } },
+      ],
+    },
+    // ───── 재의 산: 공개경보 대 조용한 격리 — 공개경보는 국경 병력을 도성으로 끌어와 서부(고블린)가 술렁이고, 격리는 서부는 그대로지만 소문이 낮게 오래 간다 ─────
+    {
+      id: 'tk_dr_alarm', look: 'noble_lord', name: '시장 대리 게런', race: '인간', job: '도성 관리', faction: 'kingdom', portrait: '📯', kind: 'talk',
+      spawn: { when: { all: [{ flag: 'dragon_awake' }, { noFlag: 'dragon_alarm' }, { noFlag: 'dragon_contained' }] }, once: true },
+      summary: '도성 관리 — 재의 산 용을 공개경보로 알릴지, 조용히 틀어막을지',
+      greet: '용이 깼소. 공개경보를 울리면 사람들은 대비하겠지만 저잣거리는 사흘 얼어붙소. 조용히 틀어막으면 장사는 돌아가지만, 소문이 새면 더 나쁘오. 주인장 생각은 어떻소?',
+      choices: [
+        { id: 'alarm', label: '공개경보를 울리시오', mutter: '…경보를 울리면 국경 초소 병력까지 도성으로 끌어온다. 그사이 서부 숲이 빈틈을 노릴 것이다.',
+          reply: '알겠소. 종을 울리겠소.', effects: { flags: ['dragon_alarm'], vars: { kingdom_morale: -4, economy: -6, kingdom_power: 3, border_tension: 3, goblin_power: 2 } },
+          news: { cat: '속보', text: '재의 산 공개경보! 국경 초소 병력까지 도성으로… 서부 숲이 술렁인다' } },
+        { id: 'contain', label: '조용히 틀어막으시오', mutter: '…조용히 덮으면 국경은 그대로 유지되지만, 소문은 낮게 오래 돈다. 용도 그만큼 오래 뒤척인다.',
+          reply: '…알겠소. 입단속부터 하겠소.', effects: { flags: ['dragon_contained'], vars: { kingdom_morale: 1, economy: -1, dragon_stir: 1, demonlord_power: -1 } },
+          news: { cat: '사건', text: '재의 산 소식, 조용히 덮었다… 서부 국경은 그대로, 낮은 소문만 오래 돈다' } },
+      ],
+    },
+    // ───── 검은 깃발: 임시 동맹 제안 대 완강한 저항 — 동맹은 마왕군 압박을 줄이지만 그 틈에 고블린이 세를 불리고, 저항은 사기가 오르는 대신 북부는 그대로 팽팽하다 ─────
+    {
+      id: 'tk_dm_decision', look: 'demon_noble', name: '밀사 카일룬', race: '마족', job: '검은 군단 밀사', faction: 'demonlord', trueFaction: 'demonlord', portrait: '🕶️', kind: 'talk',
+      spawn: { when: { all: [demonlordOpen, { realDay: { gte: 16, lte: 24 } }, { noFlag: 'demonlord_truce' }, { noFlag: 'demonlord_resist' }] }, chance: 0.5 },
+      summary: '검은 군단 밀사 — 임시 동맹을 제안한다, 받을지 완강히 버틸지',
+      greet: '폐하께서 잠시 창을 거두자 하신다. 임시 동맹이다. 받으면 이 거리는 당분간 조용하다. 거절하면… 폐하의 인내심은 길지 않다.',
+      choices: [
+        { id: 'ally', label: '임시 동맹을 받아들이겠소', mutter: '…동맹을 받으면 북부는 당분간 잠잠해진다. 하지만 그 틈에 서부 숲이 세를 불릴 것이다.',
+          reply: '현명한 선택이다. 폐하께 그리 전하겠다.', effects: { flags: ['demonlord_truce'], vars: { demonlord_power: -3, invasion_risk: -4, goblin_power: 3, border_tension: 2 } },
+          news: { cat: '왕국', text: '검은 군단과 임시 휴전… 그 틈에 서부 숲 부족이 세를 불린다는 소문' } },
+        { id: 'resist', label: '완강히 저항하겠소', mutter: '…동맹을 걷어차면 폐하는 창을 거두지 않는다. 대신 왕국의 사기는 오른다.',
+          reply: '…후회하게 될 거다.', effects: { flags: ['demonlord_resist'], vars: { demonlord_power: 2, invasion_risk: 3, kingdom_morale: 2 } },
+          news: { cat: '왕국', text: '검은 군단의 동맹 제안을 걷어찼다… 왕국의 사기는 올랐지만 북부 국경은 여전히 팽팽하다' } },
+      ],
+    },
+    // ───── 청동심장 공방: 전력투구 대 제한 생산 — 전력투구는 톱니의 시대를 앞당기지만 강철수염 광부와 요정 숲 양쪽에서 곡소리가 난다 ─────
+    {
+      id: 'tk_gl_allin', look: 'golem_smith', name: '공방장 헤파', race: '인간', job: '청동심장 공방장', faction: 'golem', trueFaction: 'golem', portrait: '⚙️', kind: 'talk',
+      spawn: { when: { all: [{ any: [{ flag: 'golem_workshop' }, { flag: 'golem_army' }] }, { realDay: { gte: 14, lte: 26 } }, { noFlag: 'golem_allin' }, { noFlag: 'golem_limited' }] }, chance: 0.5 },
+      summary: '청동심장 공방 — 전력투구할지, 생산을 자제할지',
+      greet: '이대로 밀어붙이면 골렘을 곱절로 뽑아내겠소. 다만 광석은 강철수염 광산을, 숯은 요정 숲 가장자리를 더 파고들어야 하오. 밀어붙이리까, 자제하리까?',
+      choices: [
+        { id: 'allin', label: '전력투구하시오', mutter: '…전력투구하면 톱니의 시대는 성큼 다가온다. 대신 강철수염 광부와 요정 숲 양쪽이 등을 돌릴 것이다.',
+          reply: '좋소. 광맥이랑 숲이랑, 남는 대로 다 쓰겠소.', effects: { flags: ['golem_allin'], vars: { golem_tech: 4, dwarf_tech: -3, fairy_grace: -3, rel_dwarf: -2, rel_fairy: -2 } },
+          news: { cat: '드워프', text: '청동심장 공방이 전력투구… 강철수염 광부와 요정 숲 양쪽에서 곡소리' } },
+        { id: 'limit', label: '생산을 자제시키시오', mutter: '…자제시키면 공방은 더디지만, 광산도 숲도 한숨 돌린다.',
+          reply: '…알겠소. 무리는 안 하겠소.', effects: { flags: ['golem_limited'], vars: { golem_tech: 1 } },
+          news: { cat: '드워프', text: '청동심장 공방, 생산을 자제… 광부도 숲도 한숨 돌린다' } },
+      ],
     },
   );
 

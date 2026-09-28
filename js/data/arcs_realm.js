@@ -159,7 +159,7 @@
     },
     {
       // 전투 뒤 — 척후가 돌아오지 않았다 (활을 못 들고 갔거나, 분대가 무너졌거나). 경비대가 마지막 행선지를 묻는다
-      id: 'rl_scout_missing', look: 'soldier2', name: '경비대 기록관 루츠', race: '인간', job: '왕국 경비대 실종자 담당', faction: 'kingdom', portrait: '📋', kind: 'talk',
+      id: 'rl_scout_missing', look: 'soldier2_b', name: '경비대 기록관 루츠', race: '인간', job: '왕국 경비대 실종자 담당', faction: 'kingdom', portrait: '📋', kind: 'talk',
       spawn: { when: { all: [{ customerSeen: 'rl_west_scout' }, { any: [{ flag: 'rl_scout_unarmed' }, { flag: 'leon_fell' }] }, { flag: 'rl_battle_over' }, { since: { flag: 'rl_battle_over', days: 1 } }] } },
       ask: { tag: '행방', note: '척후 미렌' },
       greet: '척후 미렌이 돌아오지 않았소. 이 가게에 들렀다던데, 뭐라 했소? 어디로 간다 했소?',
@@ -233,7 +233,7 @@
     },
     {
       // 서부 숲이 고블린 땅이 됐다 — 쫓겨난 인간 개척민
-      id: 'rl_west_settler', look: 'elder', name: '개척민 오스발트', race: '인간', job: '서부 숲 개척촌에서 쫓겨난 농부', faction: 'village', portrait: '🧺',
+      id: 'rl_west_settler', look: 'elder_b', name: '개척민 오스발트', race: '인간', job: '서부 숲 개척촌에서 쫓겨난 농부', faction: 'village', portrait: '🧺',
       spawn: { when: { all: [{ flag: 'west_goblin' }, { since: { flag: 'west_goblin', days: 1 } }] } },
       greet: '서부 숲 개척촌에서 왔소. 고블린이 통행세를 받더니 집을 비우라더군. {item} {qty}개… {offer}G뿐이오.',
       request: { item: 'shield', qty: 1, offer: { mult: 0.6 }, partialOk: true },

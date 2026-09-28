@@ -4,16 +4,29 @@
 //   WS.data.routes      줄기(결말 길)마다 — 열린 조건(live) · 앞선 정도(score) · 형세의 힘(power) · 닫힘 플래그(close) · 호소 손님 · 이기면/지면의 글
 //   WS.data.clashPairs  인과가 뚜렷한 쌍은 손으로 쓴 장면(gc · dg · dc · dk · dgo · gg) — 그 쌍이 뽑히면 이것을 쓴다
 //
+// v0.9.7 — 동시 진행 · 끝물 몰아치기 (design/qa_report_4.md 측정: 예전엔 충돌이 하나씩만 돌아 사슬(이긴 줄기가 또 나옴)에 밀린
+//   나머지 열린 줄기가 12~28일 내내 아무 일도 안 겪고 그냥 방치되었다 — 중립 결말 대부분이 "누가 뭘 안 해서"였다):
+//   · state.clashes 는 배열이다 (예전엔 단수 state.clash 하나) — 열린 줄기가 4개 이상이면 최대 둘까지 동시에 돈다.
+//     같은 줄기가 두 충돌에 동시에 낄 수는 없다(잠금). 한 짝의 "예" 여부는 그 짝만의 플래그로 본다(tk_rt_<id>_yes + tk_clvs_<a>_<b> —
+//     talks.js 참고. 전엔 전역 tk_cl_yes 하나였는데 두 충돌이 겹치면 섞여 버려서 짝마다로 바꿨다).
+//   · 26일이 지나도록 한 번도 충돌에 못 나와 본 "살아 있는"(live) 줄기는 새 짝 고르기에서 확 앞세운다(sweepBoost) — 그래서
+//     끝물엔 밀린 줄기부터 몰아서 처리된다. 다만 "실제로 대 줬느냐"로 승패를 가르는 규칙 자체는 그대로다 — 끝물이라고 그냥 승리를 주지 않는다.
+//   · 몇몇 줄기(요정 · 안개 상단)는 결말 조건이 충돌과 무관한 딴 사건(오랜 맹세 · 두 번째 계약)에 걸려 있어 충돌만 반복해 이겨도
+//     결말에 닿을 길이 없었다 — clashClimax 로 "그 줄기를 (공급으로) 두 번 넘게 이기면" 결말 조건의 실제 플래그를 직접 켜 준다.
+//     강철의 시대(드워프)는 공급승 때마다 dwarf_deliveries 를 1 올려 원래 있던 납품 4회 문턱에 자연히 합류하게 했다(talks.js).
+//
 // 새벽마다 (DayManager.startDay → Events.runDawn 바로 뒤):
-//   ① 진행 중인 충돌의 결과 날이면 결과를 낸다 — 누가 실제로 물자를 받았나(구매 손님 onSell 플래그)로.
+//   ① 끝난(resolveDay 지난) 충돌마다 결과를 낸다 — 누가 실제로 물자를 받았나(구매 손님 onSell 플래그)로.
 //      한쪽만 받았으면 그쪽 승 / 적대 쪽 호소 손님이 경비대에 잡혔으면 다른 쪽 승 / 둘 다 · 아무도 아니면 형세로 —
 //      한쪽 이야기만 이미 절정(결말 조건 충족)이면 그쪽, 아니면 손으로 쓴 장면의 byWorld, 없으면 power(+ 궁정은 편든 적이 있으면 가산).
 //      진 줄기에 closed_* 를 켜고, "이긴 쪽이 무엇을 했기에 진 쪽이 닫혔나" 한 줄 기사를 싣는다.
 //      천칭단(balance)은 한쪽에만 댄 순간 닫히고, 박쥐(double)는 전쟁 당사자(고블린 · 왕국 · 마왕군 · 기사단 · 궁정)가 낀 충돌에서 한쪽에만 댄 순간 닫힌다.
-//   ② 진행 중인 충돌이 없고 실제 12~28일이면, 열린 줄기(meta 가 아닌 것) 가운데 가장 앞선 줄기와 짝을 골라 새 충돌을 연다.
-//      짝: 앞선 정도 + 인과로 이어진 쌍(가산) + 손으로 쓴 장면이 있는 쌍(가산). 이긴 줄기는 다음 충돌에 또 나온다 (사슬).
+//   ② 실제 12~28일이면, 잠기지 않은(다른 충돌에 끼지 않은) 열린 줄기 가운데 자리(cap)가 남는 만큼 새 충돌을 연다.
+//      cap: 잠기지 않은 열린 줄기가 4개 이상이면 2, 아니면 1 — 가장 앞선 줄기와, 앞선 정도 + 인과로 이어진 쌍(가산) + 손으로 쓴 장면이 있는 쌍(가산) +
+//      (26일이 지나도록 한 번도 충돌에 안 나와 봤으면 큰 가산)으로 짝을 고른다. 이긴 줄기는 다음 충돌에 또 나온다 (사슬).
 //      보통은 n일 호소 A → n+1일 호소 B → (예라고 하면 이튿날 수레) → n+3일 새벽 결과.
 //      열린 줄기가 넷 이상이거나 25일이 지나면 서두른다: 두 호소가 같은 날 → n+2일 새벽 결과.
+//   ③ clashClimax — 공급승을 일정 횟수(기본 2) 넘게 거둔 줄기는, 26일이 지났으면 그 줄기의 결말 조건이 실제로 요구하는 플래그를 직접 켠다.
 //
 // 결말 고르기 (pickEnding — DayManager.nextDay 가 캠페인 끝에 부른다. 곧바로 끝나는 결말(파산 · 밀수왕)은 예전처럼 목록 순서):
 //   1. 개인의 길(PERSONAL — 가게 자신의 이야기: 붉은여울 · 완벽한 장부 · 밀고자 · 청출어람 · 별에서 온 그대)이 채워졌으면 목록 순서로 그것.
@@ -54,18 +67,29 @@ WS.sys.Clash = (() => {
   const satisfied = r => (r.climax ? !!r.climax(X) : false) || (r.endings || []).some(id => { const e = WS.data.endings.find(x => x.id === id); return !!e && Cn().check(e.when); });
   // 지금 열린 줄기 (충돌에 나올 수 있는 것 — meta 는 빼고)
   const openRoutes = () => routes().filter(r => !r.meta && isLive(r));
+  // 지금 어떤 충돌에도 잠기지 않은 열린 줄기
+  const lockedIds = () => new Set((S().clashes || []).flatMap(c => [c.a, c.b]));
+  const unlockedOpen = () => openRoutes().filter(r => !lockedIds().has(r.id));
+  // 이 줄기가 이제껏 어떤 충돌에도(승패 어느 쪽으로도) 나와 본 적이 없나 — 끝물 몰아치기(sweepBoost) 재료
+  const everClashed = id => (S().clashLog || []).some(l => l.a === id || l.b === id);
+  const forceDay = () => cc().forceDay ?? 26;
 
+  // 짝 고르기 — 잠기지 않은 열린 줄기 중에서. 26일이 지나도록 한 번도 충돌에 못 나와 본 줄기는 크게 앞세운다(끝물 몰아치기).
   function choosePair() {
-    const live = openRoutes().map(r => ({ r, s: scoreOf(r) })).sort((x, y) => y.s - x.s);
-    if (live.length < 2) return null;
+    const pool = unlockedOpen();
+    if (pool.length < 2) return null;
+    const sweepOn = S().day >= forceDay();
+    const live = pool.map(r => ({ r, s: scoreOf(r) + (sweepOn && !everClashed(r.id) ? 20 : 0) })).sort((x, y) => y.s - x.s);
     const A = live[0].r;
     let best = null, bestV = -Infinity;
     for (const { r, s } of live.slice(1)) {
       const v = s + (related(A.id, r.id) ? 3 : 0) + (pairOf(A.id, r.id) ? 2 : 0);
       if (v > bestV) { bestV = v; best = r; }
     }
-    return { A, B: best, n: live.length };
+    return { A, B: best, n: openRoutes().length };
   }
+  // 동시에 돌 수 있는 충돌 수 — 잠기지 않은 열린 줄기가 4개 이상이면 둘, 아니면 하나 (docs/DESIGN_CONVERGENCE.md §5, v0.9.7)
+  const capOf = () => (unlockedOpen().length >= 4 ? 2 : 1);
 
   // ───────── 시작 ─────────
   function start(A, B, n) {
@@ -81,7 +105,6 @@ WS.sys.Clash = (() => {
     } else {
       const [a, b] = [A, B];
       [a, b].forEach(r => ['sup', 'yes', 'caught', 'reported'].forEach(s => delete st.flags[`tk_rt_${r.id}_${s}`]));
-      delete st.flags.tk_cl_yes;
       Object.assign(c, { key: null, a: a.id, b: b.id });
       const who = r => (typeof r.appeal === 'function' ? r.appeal(X) : r.appeal);
       WS.sys.Effects.apply({
@@ -90,14 +113,13 @@ WS.sys.Clash = (() => {
       });
       news.push({ cat: '소문', text: `${a.tag}와(과) ${b.tag}, 같은 물자를 두고 맞선다는 말… 상점가 무기점마다 양쪽 사람이 다녀간다` });
     }
-    st.clash = c;
-    return news;
+    return { c, news };
   }
 
   // ───────── 결과 ─────────
-  function resolve() {
+  // c: 끝난 충돌 하나 (state.clashes 에서 이미 꺼내 온 것 — 이 함수는 그 충돌만 정리한다. 배열 관리는 dawn() 몫)
+  function resolve(c) {
     const st = S();
-    const c = st.clash;
     const A = byId(c.a), B = byId(c.b);
     const p = c.key ? pairs().find(x => x.key === c.key) : null;
     const F = p ? { aSup: `tk_${p.key}_a_sup`, bSup: `tk_${p.key}_b_sup`, aCaught: `tk_${p.key}_a_caught`, bCaught: `tk_${p.key}_b_caught` }
@@ -106,7 +128,7 @@ WS.sys.Clash = (() => {
     let win, how;
     // 충돌 도중 다른 일로 한쪽이 이미 닫혔으면 (섭정 회의의 소탕 등) 남은 쪽이 이긴 것으로 — 닫힌 줄기를 다시 살리지 않는다
     const aShut = flag(A.close), bShut = flag(B.close);
-    if (aShut && bShut) { WS.sys.Effects.apply({ flags: ['tk_clash_done'], unflags: ['tk_clash_active', `tk_clvs_${A.id}_${B.id}`, `tk_clvs_${B.id}_${A.id}`, 'tk_cl_yes'] }); st.clash = null; return []; }
+    if (aShut && bShut) { WS.sys.Effects.apply({ flags: ['tk_clash_done'], unflags: ['tk_clash_active', `tk_clvs_${A.id}_${B.id}`, `tk_clvs_${B.id}_${A.id}`] }); return []; }
     if (aShut || bShut) { win = aShut ? 'b' : 'a'; how = 'moot'; }
     else if (bC && !aC) { win = 'a'; how = 'caught'; }
     else if (aC && !bC) { win = 'b'; how = 'caught'; }
@@ -159,9 +181,8 @@ WS.sys.Clash = (() => {
       if (dbl && isLive(dbl) && (WAR_SIDES.includes(A.id) || WAR_SIDES.includes(B.id))) { WS.sys.Effects.apply({ flags: [dbl.close] }); news.push({ cat: '소문', text: txt(dbl.fall) }); closeWhy(dbl, W); }
     } else if (how === 'both') backed = 'double';
     else if (how === 'none') backed = 'balance';
-    WS.sys.Effects.apply({ flags: ['tk_clash_done'], unflags: ['tk_clash_active', `tk_clvs_${A.id}_${B.id}`, `tk_clvs_${B.id}_${A.id}`, 'tk_cl_yes'] });
+    WS.sys.Effects.apply({ flags: ['tk_clash_done'], unflags: ['tk_clash_active', `tk_clvs_${A.id}_${B.id}`, `tk_clvs_${B.id}_${A.id}`] });
     (st.clashLog = st.clashLog || []).push({ day: st.day, key: c.key, a: A.id, b: B.id, winner: W.id, loser: L.id, how, backed });
-    st.clash = null;
     return news;
   }
   function closeWhy(r, W) {
@@ -189,15 +210,55 @@ WS.sys.Clash = (() => {
     return [{ cat: '왕국', text: `섭정 회의 "전쟁이 먼저냐, 왕좌가 먼저냐" — 서부 경비대장은 ${en.name} 소탕을, 재상은 대관식 준비를 먼저 하자며 맞섰다` }];
   }
 
-  // 새벽 — 결과 먼저, 그다음 새 충돌. 기사 배열을 돌려준다 (NewsManager.compose 로)
+  // 공급승(실제로 물자를 대 이긴 것)만 센다 — 형세로 이긴 건 "이겼다"기보다 "저쪽이 안 해서"에 가까워 clashClimax 재료로 안 친다
+  const supplyWinsOf = id => (S().clashLog || []).filter(l => l.winner === id && l.how === 'supply').length;
+  // 몇몇 줄기는 결말 조건이 충돌과 무관한 딴 사건에 걸려 있어 충돌만 거듭 이겨도 결말에 닿을 길이 없다:
+  //   · 요정(세 맹세) · 안개 상단(두 번째 계약) — 별도 서사 분기라 아예 못 걸린다 → route.clashClimax = { wins, flags, vars, news } 로 정적으로 켠다.
+  //   · 용(재의 산) — dragon_descends(events.js)가 깨고 사흘 뒤 시세를 보고 갈리는데, 용이 25일 가까이 늦게 깨면 그 사흘이 캠페인 끝 뒤로 밀려 아예 못 갈린다
+  //     → route.clashClimax = { wins, resolve(X) } 로 events.js 의 문턱(900 · 골렘 450)을 그대로 미리 매겨 준다 (억지 승리가 아니라 "이미 정해진 셈을 앞당겨 본다")
+  // 공통: 공급승이 wins 번을 넘고 26일(forceDay)이 지나야 하고, 그 줄기가 여전히 살아 있어야(isLive) 한다. 이미 켜져 있으면 다시 안 켠다.
+  function clashClimaxSweep() {
+    const news = [];
+    if (S().day < forceDay()) return news;
+    for (const r of routes()) {
+      if (!r.clashClimax || !isLive(r)) continue;
+      if (supplyWinsOf(r.id) < (r.clashClimax.wins ?? 2)) continue;
+      if (typeof r.clashClimax.resolve === 'function') {
+        if (flag(`tk_climax_${r.id}`)) continue;
+        const out = r.clashClimax.resolve(X);
+        if (!out) continue;
+        WS.sys.Effects.apply({ flags: (out.flags || []).concat(`tk_climax_${r.id}`), vars: out.vars || {} });
+        if (out.news) news.push({ ...out.news, big: true });
+      } else {
+        if ((r.clashClimax.flags || []).every(flag)) continue;
+        WS.sys.Effects.apply({ flags: r.clashClimax.flags || [], vars: r.clashClimax.vars || {} });
+        if (r.clashClimax.news) news.push({ ...r.clashClimax.news, big: true });
+      }
+    }
+    return news;
+  }
+
+  // 새벽 — 결과 먼저, 그다음 새 충돌(자리가 남는 만큼 여럿), 그다음 끝물 몰아치기 clashClimax. 기사 배열을 돌려준다 (NewsManager.compose 로)
   function dawn() {
     const st = S();
+    st.clashes = st.clashes || [];
     const news = regency();
-    if (st.clash && st.day >= st.clash.resolveDay) news.push(...resolve());
-    if (!st.clash && st.day >= (cc().start ?? 12) && st.day <= (cc().last ?? 28)) {
-      const pick = choosePair();
-      if (pick) news.push(...start(pick.A, pick.B, pick.n));
+    // ① 끝난 충돌부터 정리 (하루에 둘 다 끝날 수도 있다)
+    const due = st.clashes.filter(c => st.day >= c.resolveDay);
+    for (const c of due) news.push(...resolve(c));
+    if (due.length) st.clashes = st.clashes.filter(c => !due.includes(c));
+    // ② 자리가 남으면 새 충돌을 연다 (열린 줄기가 4개 이상이면 최대 둘 동시에)
+    if (st.day >= (cc().start ?? 12) && st.day <= (cc().last ?? 28)) {
+      while (st.clashes.length < capOf()) {
+        const pick = choosePair();
+        if (!pick) break;
+        const { c, news: startNews } = start(pick.A, pick.B, pick.n);
+        st.clashes.push(c);
+        news.push(...startNews);
+      }
     }
+    // ③ 끝물 — 결말이 딴 사건에 걸려 충돌만으론 못 닿는 줄기를 구제
+    news.push(...clashClimaxSweep());
     return news;
   }
 
@@ -225,5 +286,5 @@ WS.sys.Clash = (() => {
     return (st.endingWhy = 'score', best.id);
   }
 
-  return { dawn, pickEnding, openRoutes, choosePair, routeOf, regency, X };
+  return { dawn, pickEnding, openRoutes, unlockedOpen, choosePair, routeOf, regency, X };
 })();
