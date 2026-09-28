@@ -109,6 +109,16 @@ WS.sys.Conditions = (() => {
       const qa = soldQty(spec.a), qb = soldQty(spec.b), tot = qa + qb;
       return qa >= (spec.a.min || 1) && qb >= (spec.b.min || 1) && tot > 0 && Math.min(qa, qb) / tot >= (spec.share === undefined ? 0.4 : spec.share);
     },
+    // { backing: 'aldric' | 'serena' | 'both' } 공위 기간에 플레이어가 민 후계자 (세계 변수 back_ald / back_ser — TransactionManager.backing).
+    //   한쪽: 그쪽이 1 이상이고 다른 쪽이 그 6할 밑 / both: 둘 다 1 이상이고 적은 쪽이 많은 쪽의 6할 이상 — 반반쯤 (「기회주의자」)
+    //   25일에 밀리는 후계자 쪽 동맹(안개 상단 · 붉은 늑대)에 들어갔으면(tk_weak_joined — talks.js ⑤) 양쪽을 다 민 가게로 친다
+    backing: side => {
+      const a = WS.sys.World.get('back_ald') || 0, b = WS.sys.World.get('back_ser') || 0;
+      const joined = S().flags.tk_weak_joined !== undefined;
+      if (side === 'both') return a >= 1 && b >= 1 && (joined || Math.min(a, b) >= 0.6 * Math.max(a, b));
+      const [x, y] = side === 'aldric' ? [a, b] : [b, a];
+      return x >= 1 && y < 0.6 * x && !joined;
+    },
     traded: spec => tradedQty(spec) >= (spec.min || 1),
     bought: spec => boughtQty(spec) >= (spec.min || 1),
     dealt: spec => dealtCount(spec) >= (spec.min || 1),

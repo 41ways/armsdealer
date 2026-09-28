@@ -12,6 +12,7 @@ WS.sys.Day = (() => {
     if (WS.sys.Letters) WS.sys.Letters.nightly(); // 까마귀 서신: 배달·밀고 결과·빚·공급 제안
     if (WS.sys.Calendar) { WS.sys.Calendar.roll(); WS.sys.Calendar.prune(); } // 달력 이벤트: 재난 날짜 굴리기 · 지난 손님 수/시세 보정 치우기
     const fired = WS.sys.Events.runDawn();
+    if (WS.sys.Clash) fired.push(...WS.sys.Clash.dawn()); // 가닥 잡기 — 충돌의 결과 · 새 충돌 (js/systems/Clash.js)
     if (WS.sys.Intel) WS.sys.Intel.record(); // 대륙 정세의 추세 (새벽 사건까지 끝난 세계의 세력별 점수)
     WS.sys.News.compose(fired);
     st.queue = WS.sys.Customers.buildQueue();
@@ -334,7 +335,9 @@ WS.sys.Day = (() => {
     if (endingDue() || st.day >= cfg().campaignDays) {
       // 캠페인 마지막 밤: 대관식(events.js coronation, trigger 'final') 이 결말 판정보다 먼저 — 그 플래그(king_aldric 등)가 결말 조건에 들어간다
       if (!endingDue() && WS.sys.Events.runFinal) WS.sys.Events.runFinal();
-      st.ending = WS.data.endings.find(e => WS.sys.Conditions.check(e.when)).id;
+      // 곧바로 끝나는 결말(파산 · 밀수왕 — endingDue)은 목록 순서 그대로. 캠페인 끝의 판정은 Clash.pickEnding —
+      // 개인의 길 → 하나뿐이면 그것 → 여럿이면 마지막 충돌에서 플레이어가 밀어 준(또는 이긴) 줄기 → 앞선 정도 (js/systems/Clash.js 맨 위)
+      st.ending = !endingDue() && WS.sys.Clash ? WS.sys.Clash.pickEnding() : WS.data.endings.find(e => WS.sys.Conditions.check(e.when)).id;
       st.phase = 'ending';
       if (WS.Cinematic && WS.Cinematic.preload) WS.Cinematic.preload(st.ending); // 결말 컷신 그림을 미리 받기 시작
       WS.sys.Save.clear();

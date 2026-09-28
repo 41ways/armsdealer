@@ -856,7 +856,7 @@ WS.data.customers = [
 
   // ───────── 궁정: 왕위 다툼의 불씨 ─────────
   {
-    // 독병을 사 가면 국왕이 쓰러진다 (events.js king_ailing_poison). 수상한 손님 — 까마귀로 밀고하면 음모가 막힌다
+    // 복선 (8~13일). 독병을 사 가면 14일 쓰러진 국왕이 하루 일찍 숨진다 (events.js king_ailing — king_poisoned). 수상한 손님 — 까마귀로 밀고하면 음모가 막힌다
     id: 'court_poisoner', look: 'court_poisoner', name: '가면 쓴 귀족', race: '인간', job: '이름을 대지 않는 귀족', faction: 'noble', portrait: '🎭',
     spawn: { when: { all: [{ day: { gte: 8, lte: 13 } }, { noFlag: 'succession_crisis' }] }, chance: 0.35 },
     suspicious: true,
@@ -869,8 +869,8 @@ WS.data.customers = [
     onReport: { flags: ['poison_plot_foiled'] },
   },
   {
-    // 사실은 왕궁 시의 — 신분을 밝히지 않는다. 팔면 국왕이 무사하고, 안 팔면 반드시 쓰러진다 (king_ailing_neglect),
-    // "내일 다시 오시오"면 국왕이 쓰러지고 왕자·공주·밤의 궁정이 모두 세를 키운다 (king_ailing_delay)
+    // 사실은 왕궁 시의 — 신분을 밝히지 않는다. 복선 (8~12일): 국왕은 14일에 반드시 쓰러진다 (events.js king_ailing).
+    // 팔면 사흘을 버티고(17일 서거), "내일 다시 오시오"면 그사이 왕자 · 공주 · 밤의 궁정이 세를 키운다 (crisis_heated)
     id: 'court_physician', look: 'physician', name: '차려입은 신사', race: '인간', job: '어디 높은 집안 사람 같다', faction: 'kingdom', portrait: '🎩',
     spawn: { when: { all: [{ day: { gte: 8, lte: 12 } }, { noFlag: 'succession_crisis' }] }, chance: 0.4 },
     // 소속은 대지 않지만 왕실 인장을 지녔다 — 알아보는 사람만 알아본다
@@ -885,6 +885,23 @@ WS.data.customers = [
     onRefuse: { flags: ['physician_refused'] },
   },
 
+  // ───────── 궁정: 국왕이 앓는 동안 (복선 — 계승은 움직이지 않는다. 다툼은 서거 뒤 공위 기간부터) ─────────
+  {
+    // 측근들이 사람을 모으는 동안(court_struggle) · 국왕이 쓰러진 뒤 서거 전까지 — 도성 귀족 가문들이 저택 호위를 늘린다. 누구 편도 아니다
+    id: 'court_household_guard', look: 'noble_lord', name: '가문 호위대장', race: '인간', job: '도성 귀족 가문 호위대장', faction: 'noble', portrait: '🛡️',
+    spawn: { when: { all: [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }] }, { noFlag: 'interregnum' }, { noFlag: 'crowned' }] }, once: false, chance: 0.35 },
+    greet: '궁이 어수선하오. 누가 누구 편인지 모를 때는 문부터 지키는 법이지. 저택 호위용 {item} {qty}자루, {offer}G.',
+    request: { item: 'iron_sword', qty: 4, offer: { mult: 1.3 }, partialOk: true },
+    lines: { sold: '가문은 어느 쪽에도 서지 않소. 아직은.', partial: '모자라도 받아 가겠소.', refused: '다른 가게를 돌아보겠소.' },
+  },
+  {
+    // 국왕이 쓰러진 뒤(14일) 서거 전까지 — 왕궁 시의들이 침소에 쓸 물약을 사재기한다 (계승과는 상관없다)
+    id: 'palace_apothecary', look: 'physician', name: '왕궁 시의 보조', race: '인간', job: '왕궁 시의단', faction: 'kingdom', portrait: '⚕️',
+    spawn: { when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'king_dead' }, { noFlag: 'crowned' }] }, once: false, chance: 0.6 },
+    greet: '침소에 쓸 {item}이오. {qty}병, {offer}G. 값은 묻지 마시오 — 폐하께서 오늘 밤을 넘기셔야 하오.',
+    request: { item: 'potion', qty: 6, offer: { mult: 1.5 }, partialOk: true },
+    lines: { sold: '…됐소. 오늘 밤은 넘기실 거요.', partial: '이만큼이라도.', refused: '그렇다면 할 수 없지.' },
+  },
   {
     // 왕·왕자·공주 다툼 중: 왕정 조달관 — 늘 값싸게 사 간다 (시세의 7할). 팔면 왕정 쪽 힘이 는다
     id: 'crown_quartermaster', look: 'knight_official', name: '왕정 조달관 마르텔', race: '인간', job: '왕실 보급 담당', faction: 'kingdom', portrait: '📜',
@@ -898,7 +915,9 @@ WS.data.customers = [
   {
     // 신분을 숨긴 왕자(알드릭 본인 — 계승 위기 때 prince_agent 로 다시 온다) — 활을 비싸게 산다 (시세의 1.7배쯤). 팔면 왕자 쪽으로 기운다
     id: 'prince_hooded', look: 'prince', name: '두건 쓴 청년', race: '인간', job: '말투가 지나치게 곱다', faction: 'traveler', trueFaction: 'noble', portrait: '🧥',
-    spawn: { when: { all: [{ flag: 'court_struggle' }, { noFlag: 'crowned' }] }, once: false, chance: 0.45 },
+    // v0.9.6: 계승 다툼은 국왕 서거 뒤(공위 기간)부터 — 두건을 쓴 채 섭정 회의 눈을 피해 다닌다
+    // 공주의 베일 쓴 수녀에게 판 가게라는 소문이 돌면 발길이 뜸해진다 (몰래 다니는 사람은 상대편 단골 가게를 피한다)
+    spawn: { when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }, { any: [{ noFlag: 'armed_princess_secret' }, { chance: 0.4 }] }] }, once: false, chance: 0.3 },
     suspicious: true,
     // 소속은 못 대지만 진짜 왕실(국왕 직속) 인장을 지녔다 — 얼룩이 아니다
     affil: { claim: null, seal: 'real', sealOf: 'royal', line: '말하기 곤란하오. …인장이라면, 이것뿐이오. 부디 조용히.' },
@@ -910,7 +929,7 @@ WS.data.customers = [
   {
     // 신분을 숨긴 공주(세레나 본인 — 계승 위기 때 serena_agent 로 다시 온다) — 비싸게 산다. 물약을 모은다 (민심을 사려고). 팔면 공주 쪽으로 기운다
     id: 'princess_veiled', look: 'princess', name: '베일 쓴 수녀', race: '인간', job: '손이 너무 곱다', faction: 'church', trueFaction: 'noble', portrait: '🕊️',
-    spawn: { when: { all: [{ flag: 'court_struggle' }, { noFlag: 'crowned' }] }, once: false, chance: 0.45 },
+    spawn: { when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }, { any: [{ noFlag: 'armed_prince_secret' }, { chance: 0.4 }] }] }, once: false, chance: 0.3 },
     suspicious: true,
     affil: { claim: null, seal: 'real', sealOf: 'royal', line: '말하기… 곤란해요. 인장은 있어요. 성당 것은 아니지만요.' },
     greet: '회복 물약 6병. 구호소에 쓸 거예요. 값은 넉넉히.',
@@ -1062,8 +1081,8 @@ WS.data.customers = [
     // 대관식은 마지막 날이라 갚는 날엔 아직 왕이 없다 — 그때 섭정 회의에서 크게 밀렸거나(세레나 쪽 −8 이하) 밤의 백작이 섭정이면 떼인다
     payment: { credit: { now: 0.5, inDays: [5, 7], defaultWhen: { any: [{ flag: 'queen_serena' }, { flag: 'vampire_regent' }, { flag: 'night_regent' }, { all: [{ flag: 'interregnum' }, { var: 'succession', lte: -8 }] }] }, defaultText: '알드릭 왕자에게 받을 외상값 {amount}G는 들어오지 않았다. 섭정 회의에서 밀린 왕자의 금고는 비어 있었다.' } },
     lines: { sold: '이 활들이 왕관을 지킨다. 기억하겠다.', partial: '모자란 만큼 덜 기억하겠지.', refused: '누이 쪽이냐? …상인은 이길 쪽에 걸지.' },
-    // v0.9.5: +7 → +5 — 파는 길(돈이 들어옴)이 기부하는 길(세레나 −7, 120G가 나감)보다 쉬워 시뮬에서 왕좌가 알드릭 쪽으로 쏠렸다 (design/qa_report_4.md)
-    onSell: { flags: ['armed_aldric'], vars: { succession: 5, rel_noble: 3, merc_strength: 3 } },
+    // v0.9.5: +7 → +5, v0.9.6: +5 → +3 — 공주 쪽 구호소 수레(serena_relief_cart −5)와 무게를 맞춤 (그쪽은 대화 한 번 + 이튿날 수레라 한 걸음 더 든다)
+    onSell: { flags: ['armed_aldric'], vars: { succession: 3, rel_noble: 3, merc_strength: 3 } },
     onRefuse: { vars: { succession: -1, rel_noble: -2 } },
   },
   {
@@ -1071,21 +1090,28 @@ WS.data.customers = [
     spawn: { queuedOnly: true },
     affil: { claim: 'royal', seal: 'real', sealOf: 'royal', line: '왕가의 사람이에요. 인장은 여기 있어요.' },
     ask: { tag: '기부', gold: -120, note: '구호소' },
-    greet: '칼 대신 빵을 사요. 구호소에 기부해 주시겠어요?',
+    greet: '칼 대신 물약이에요. 광장에 구호소를 열어요. 물약을 대 주시겠어요? 제값은 치를게요.',
     // 궁정 다툼 때 베일을 쓰고 물약을 사 간 그 수녀다 — 그때 팔았으면 알아본다 (왕자 prince_agent 와 짝)
     greetWhen: [
-      { when: { flag: 'armed_princess_secret' }, text: '그때 사 간 물약, 잘 썼어요. 앞으로도 잘 부탁해요. 오늘은 칼 대신 빵을 사요. 구호소에 기부해 주시겠어요?' },
+      { when: { flag: 'armed_princess_secret' }, text: '그때 사 간 물약, 잘 썼어요. 앞으로도 잘 부탁해요. 광장에 구호소를 열어요. 물약을 대 주시겠어요? 제값은 치를게요.' },
     ],
+    summary: '세레나 공주 — 광장 구호소를 연다, 내일부터 물약 납품 (제값)',
     choices: [
+      {
+        // v0.9.6: 공주 쪽의 주된 길은 물약 장사 — 구호소 수레가 제값에 사 간다 (기부는 덤)
+        id: 'supply', label: '구호소 물약을 대겠소 (선금 +40G)',
+        reply: '고마워요. 선금이에요. 내일 구호소 수레가 올 거예요. 장부엔 제값으로 적어 주세요.',
+        effects: { gold: 40, vars: { succession: -1, rel_noble: 1 }, flags: ['serena_supplier'], spawn: [{ customer: 'serena_relief_cart', inDays: 1 }] },
+      },
       {
         id: 'donate', label: '120골드 기부', when: { gold: { gte: 120 } },
         reply: '고마워요. 광장에 이름이 걸릴 거예요.',
         effects: { gold: -120, vars: { succession: -7, church_authority: 3, rel_noble: 3, kingdom_morale: 2 }, flags: ['backed_serena'] },
       },
       {
-        id: 'tip_prince', label: '동선을 판다 (+90G)',
+        id: 'tip_prince', label: '동선을 판다 (+30G)',
         reply: '(왕자파 기사가 금화 주머니를 두고 간다)',
-        effects: { gold: 90, vars: { succession: 4, rel_noble: -1 }, flags: ['betrayed_serena'] },
+        effects: { gold: 30, vars: { succession: 2, rel_noble: -1 }, flags: ['betrayed_serena'] },
       },
       {
         id: 'neutral', label: '끼지 않겠소',
@@ -1093,6 +1119,17 @@ WS.data.customers = [
         effects: { vars: { rel_noble: -1 } },
       },
     ],
+  },
+
+  {
+    // 세레나 공주의 구호소 수레 — 제값에 물약을 사 간다 (serena_agent 'supply'). 팔면 공주 쪽으로 (backed_serena)
+    id: 'serena_relief_cart', look: 'priest', name: '구호소 수녀', race: '인간', job: '세레나 공주의 광장 구호소', faction: 'church', trueFaction: 'noble', portrait: '🕯️',
+    spawn: { queuedOnly: true },
+    greet: '공주님 구호소 수레예요. {item} {qty}병, {offer}G. 제값이에요.',
+    request: { item: 'potion', qty: 8, offer: { mult: 1.1 }, partialOk: true },
+    lines: { sold: '광장 줄이 오늘은 짧아지겠어요. 공주님이 이 가게 이름을 적으셨어요.', partial: '이만큼이라도 고마워요.', refused: '…어제는 대 주신다고 하셨는데요.' },
+    onSell: { vars: { succession: -5, rel_noble: 2, church_authority: 1 }, flags: ['backed_serena'] },
+    onRefuse: { vars: { rel_noble: -2 } },
   },
 
   // ───────── 도적단 ─────────

@@ -35,7 +35,8 @@
     { all: [{ flag: 'armed_princess_secret' }, { since: { flag: 'armed_princess_secret', days: n } }] },
   ] });
   // v0.9.5: 대관식은 30일째 밤 (events.js coronation) — 왕이 죽거나 양위가 정해진 뒤의 공위 기간(interregnum)에도 궁정은 열려 있다
-  const courtOpen = [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }, { flag: 'interregnum' }] }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }, { noFlag: 'closed_court' }];
+  // v0.9.6: 계승 다툼은 국왕 서거 뒤 공위 기간(interregnum)에만 — 그 전은 복선
+  const courtOpen = [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }, { noFlag: 'closed_court' }];
   const leonAlive = [{ noFlag: 'leon_fell' }];
   // 전쟁의 두 편에 꽤 판 가게 (박쥐의 길목 — 결말 조건보다 한참 낮은 문턱)
   const batGoblin = { all: [{ sold: { faction: 'goblin', tag: 'weapon', min: 10 } }, { sold: { faction: 'kingdom', tag: 'weapon', min: 10 } }, { any: [{ flag: 'war' }, { flag: 'goblin_won_skirmish' }, { eventFired: 'border_skirmish' }] }] };
@@ -417,7 +418,7 @@
 WS.data.customers.push(
   {
     id: 'rl_merc_join', look: 'mercenary', name: '부관 가르스', race: '인간', job: '붉은 늑대 용병단 부관', faction: 'merc', portrait: '🐺', kind: 'talk',
-    spawn: { when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }, { var: 'merc_strength', gte: 9 }] }, chance: 0.6 },
+    spawn: { when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }, { var: 'merc_strength', gte: 9 }] }, chance: 0.6 },
     summary: '붉은 늑대 용병단 — 알드릭 왕자 쪽 합류 예정, 내일 칼 주문',
     greet: '내일 우리 단이 왕자님 깃발 아래 들어가오. 칼 열 자루, 내일 준비해 줄 수 있소?',
     choices: [
@@ -436,8 +437,29 @@ WS.data.customers.push(
     onSell: { vars: { succession: 2, merc_strength: 1 } },
   },
   {
+    // 붉은 늑대(rl_merc_join)의 짝 — 대성당 수녀회가 세레나 공주 쪽에 합류한다. 구호소 물약을 대 달라 (공위 기간 · 대성당 권위가 있을 때)
+    id: 'rl_church_join', look: 'priest', name: '수녀원장 오델', race: '인간', job: '대성당 수녀회 원장', faction: 'church', portrait: '🕯️', kind: 'talk',
+    spawn: { when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }, { var: 'church_authority', gte: 25 }] }, chance: 0.6 },
+    summary: '대성당 수녀회 — 세레나 공주 쪽 합류, 내일 물약 주문',
+    greet: '내일 우리 수녀회가 공주님 구호소에 들어가요. 광장 줄이 성당 계단까지 이어졌거든요. 물약 열 병, 내일 준비해 주실 수 있나요?',
+    choices: [
+      { id: 'yes', label: '준비해 두겠소', reply: '고마워요. 내일 아침 수녀 둘이 수레를 끌고 올 거예요.',
+        effects: { vars: { succession: -2, rel_church: 1 }, flags: ['rl_church_joined'], spawn: [{ customer: 'rl_church_buyer', inDays: 1 }] } },
+      { id: 'no', label: '그런 일엔 안 끼겠소', mutter: '…수녀회를 돌려보내면 공주 쪽 구호소는 물약을 잃는다. 그래도?', reply: '…그래요. 다른 약방을 돌아볼게요.',
+        effects: { vars: { succession: 1, rel_church: -2 }, flags: ['rl_church_refused'] } },
+    ],
+  },
+  {
+    id: 'rl_church_buyer', look: 'priest', name: '수녀 마들렌', race: '인간', job: '대성당 수녀회', faction: 'church', portrait: '🕊️',
+    spawn: { queuedOnly: true },
+    greet: '원장님이 보내셨어요. {item} {qty}병, {offer}골드.',
+    request: { item: 'potion', qty: 10, offer: { mult: 1.1 }, partialOk: true },
+    lines: { sold: '공주님 구호소 천막에서 쓸게요.', partial: '이만큼이라도 고마워요.', refused: '어제는 준비한다고 하셨는데요…' },
+    onSell: { vars: { succession: -2, church_authority: 1 }, flags: ['backed_serena'] },
+  },
+  {
     id: 'rl_mist_serena', look: 'guild_merchant', name: '안개 상단 중개인', race: '???', job: '안개 낀 밤의 상단', faction: 'demon', portrait: '🌫️', kind: 'talk',
-    spawn: { when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }, { var: 'demon_influence', gte: 6 }] }, chance: 0.5 },
+    spawn: { when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }, { var: 'demon_influence', gte: 6 }] }, chance: 0.5 },
     summary: '안개 상단 — 세레나 공주와 손잡음, 당신이 누구 편인지 묻는다',
     greet: '우리 상단은 공주님과 계약을 맺었소. 주인장은… 설마 왕자 편은 아니겠지?',
     choices: [
@@ -453,7 +475,7 @@ WS.data.customers.push(
     summary: '세레나 공주파 — 공주 쪽으로 오라는 회유',
     greet: '상단에서 들었어요. 누구 편도 아니시라고요. 그럼 공주님 편이 되어 주시면 어때요? 구호소 물약 납품을 맡기고 싶어요.',
     choices: [
-      { id: 'accept', label: '공주님 쪽 일을 맡겠소', reply: '고마워요. 공주님이 기억하실 거예요.', effects: { vars: { succession: -3, rel_noble: 1 }, flags: ['rl_backed_serena_talk'] } },
+      { id: 'accept', label: '공주님 쪽 일을 맡겠소', reply: '고마워요. 내일 구호소 수레를 보낼게요.', effects: { vars: { succession: -1, rel_noble: 1 }, flags: ['rl_backed_serena_talk'], spawn: [{ customer: 'serena_relief_cart', inDays: 1 }] } },
       { id: 'decline', label: '아직은 누구 편도 들지 않겠소', reply: '…그래요. 마음이 바뀌면 불러 주세요.', effects: {} },
     ],
   },

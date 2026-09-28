@@ -2295,7 +2295,11 @@ WS.UI = (() => {
       ? Object.keys(st.newsArchive).map(Number).sort((a, b) => a - b)
         .flatMap(d => (st.newsArchive[d] || []).filter(n => n.big).map(n => n.text))
       : null;
-    const A = [bkB(`<div class="eb-eyebrow">DAY ${st.day} · 결말</div>`), bkB(`<h1>${U.esc(e.title)}</h1>`), bkP(e.text, 'ending-text')];
+    // 마지막 밤의 소식 (대관식 — events.js coronation 이 state.finalNews 에 남긴 굵은 기사). 신문이 오지 않는 밤이라 책 첫머리에 한 줄로
+    const finalLine = (st.finalNews || []).filter(n => n.big).map(n => n.text)[0] || null;
+    const A = [bkB(`<div class="eb-eyebrow">DAY ${st.day} · 결말</div>`)]
+      .concat(finalLine ? [bkB(`<p class="eb-final">— 그날 밤 · ${U.esc(finalLine)} —</p>`)] : [])
+      .concat([bkB(`<h1>${U.esc(e.title)}</h1>`), bkP(e.text, 'ending-text')]);
     const B = [];
     const lis = bigNews ? bigNews : (e.requires || []).map(r => cleanReq(r, others)).filter(Boolean);
     if (lis.length) B.push(bkB(`<h3>${bigNews ? '이 가게가 스쳐 간 사건들' : '이 결말의 조건'}</h3>`, true), ...lis.map(t => bkB(`<div class="eb-li">${bigNews ? '·' : '✓'} ${U.esc(t)}</div>`)));

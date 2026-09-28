@@ -78,13 +78,52 @@ WS.sys.Trade = (() => {
     if (!skipDeal) WS.sys.Effects.apply({ vars: deal === 'trade' ? pd.trade || pd.sell : pd[deal] });
     // 궁정 다툼 중 귀족 · 용병 랜덤 손님에게 팔면 공주 · 왕자 쪽 힘이 조금 (config.courtGossip.sellVars, 한 거래에 한 번)
     const cg = WS.data.config.courtGossip;
-    if (!skipDeal && deal === 'sell' && c.random && cg && cg.sellVars[c.trueFaction] && !(cg.except || []).includes(c.tpl) && WS.sys.Conditions.check(cg.when)) {
+    if (!skipDeal && deal === 'sell' && c.random && cg && cg.sellVars[c.trueFaction] && !(cg.except || []).includes(c.tpl) && WS.sys.Conditions.check(cg.sellWhen || cg.when)) {
       WS.sys.Effects.apply({ vars: cg.sellVars[c.trueFaction] });
     }
+    throneLever(c, itemId, it, qty, deal);
     const st = S();
     if (deal === 'sell' && c.trueFaction === 'goblin' && st.trend && st.trend.item === itemId) {
       WS.sys.World.add('goblin_unity', 0.4 * qty);
     }
+  }
+
+  // 왕좌의 저울 (config.throneLever — 국왕 서거 뒤 공위 기간에만): 무기를 팔면 알드릭(+), 물약을 팔면 세레나(−) — 그 편 사람(용병 · 도적 / 대성당 · 마을)에게 팔면 더 크게.
+  //   계승을 직접 움직이는 이야기 손님(틀의 onSell/onTrade 에 succession 이 있는 손님)은 빼고 (두 번 세지 않게).
+  //   처음 뚜렷해지는 날 원인 기사 한 줄 (다음 날 신문). 전시 섭정이면 전선에 간 물자를 후계자 몫으로 센다 (war_credit_* — 대관식에서 공을 가른다)
+  // 플레이어가 두 후계자 가운데 누구를 밀었나 (back_ald / back_ser — 결말 조건 { backing } · Conditions.js):
+  //   공위 기간에 이야기 손님과의 거래 · 선택(틀의 onSell/onTrade · 선택지 효과)이 계승을 민 만큼 — 후계자 편 사람을 상대한 일만 센다.
+  //   가게의 평소 장사(throneLever — 무기 · 물약)는 왕관의 향방은 바꾸지만 "누구 편에 섰나"로는 세지 않는다. 세계 사건이 민 것도 세지 않는다
+  function backing(eff) {
+    const v = eff && eff.vars && eff.vars.succession;
+    if (typeof v !== 'number' || !v || !WS.sys.Conditions.check({ flag: 'interregnum' }) || S().flags.crowned !== undefined) return;
+    WS.sys.World.add(v > 0 ? 'back_ald' : 'back_ser', Math.abs(v));
+  }
+
+  function throneLever(c, itemId, it, qty, deal) {
+    const L = WS.data.config.throneLever;
+    if (!L || !it || !(qty > 0) || (deal !== 'sell' && deal !== 'trade') || !WS.sys.Conditions.check(L.when)) return;
+    const st = S();
+    const kind = it.newCategory === 'weapon' ? 'weapon' : it.newCategory === 'potion' ? 'potion' : null;
+    const wc = L.warCredit;
+    if (wc && WS.sys.Conditions.check(wc.when)) {
+      const val = qty * WS.sys.Market.priceBase(itemId); // 시세로 센다 — 칼 한 자루와 물약 한 병의 무게가 다르다
+      if ((it.newCategory === 'weapon' || it.newCategory === 'defense') && wc.ald.includes(c.trueFaction)) WS.sys.World.add('war_credit_ald', val);
+      if (kind === 'potion' && wc.ser.includes(c.trueFaction)) WS.sys.World.add('war_credit_ser', val);
+    }
+    if (!kind) return;
+    const t = tpl(c) || {};
+    const own = (deal === 'trade' ? t.onTrade : t.onSell) || {};
+    if (own.vars && own.vars.succession !== undefined) return;
+    const side = L[kind];
+    const per = side.aligned[c.trueFaction] ?? side.base;
+    const d = per * qty * (kind === 'weapon' ? 1 : -1);
+    WS.sys.World.add('succession', d);
+    const key = kind === 'weapon' ? 'ald' : 'ser';
+    const acc = (st.throneLever = st.throneLever || { ald: 0, ser: 0 });
+    acc[key] += Math.abs(d);
+    const n = L.news && L.news[key];
+    if (n && acc[key] >= n.at && !acc[key + 'News']) { acc[key + 'News'] = st.day; st.pendingNews.push({ cat: '왕국', text: n.text }); }
   }
 
   // give: 플레이어가 테이블에 실제로 올린 개수 (없으면 예전 방식 — 전량 또는 가진 만큼)
@@ -103,6 +142,7 @@ WS.sys.Trade = (() => {
     st.today.sold += qty;
     applyWorld(c, r.item, qty, 'sell');
     WS.sys.Effects.apply(tpl(c).onSell);
+    backing(tpl(c).onSell);
     stain(c);
     offBooks(c);
     record(c, 'sell', { item: r.item, qty, price, ...shortFields(c, qty) });
@@ -139,6 +179,7 @@ WS.sys.Trade = (() => {
     st.today.income += paid;
     st.today.sold += totalQty;
     WS.sys.Effects.apply(tpl(c).onSell);
+    backing(tpl(c).onSell);
     stain(c);
     offBooks(c);
     const want = c.request.qty;
@@ -255,6 +296,7 @@ WS.sys.Trade = (() => {
     // 넘겨준 물건은 판매와 똑같이 세계에 영향을 준다 (거래 1건 몫의 관계 변화는 한 번만)
     t.want.forEach((w, i) => applyWorld(c, w.item, w.qty, i === 0 ? 'trade' : null));
     WS.sys.Effects.apply(tpl(c).onTrade);
+    backing(tpl(c).onTrade);
     stain(c);
     offBooks(c);
     record(c, 'trade', { gave, got, price: t.gold });
@@ -285,6 +327,7 @@ WS.sys.Trade = (() => {
     const say = s => (c.fillCtx && s ? WS.util.fill(s, c.fillCtx) : s);
     c.dialog.push({ who: 'p', text: say(ch.label) });
     WS.sys.Effects.apply(ch.effects, c);
+    backing(ch.effects);
     c.usedChoices.push(ch.id);
     if (ch.grate) collectGrate(c, ch.grate);
     if (ch.follow && c.kind === 'talk') {
@@ -400,6 +443,7 @@ WS.sys.Trade = (() => {
     });
     st.today.sold += qty;
     WS.sys.Effects.apply(tpl(c).onSell);
+    backing(tpl(c).onSell);
     const g = takeGifts(c, giftSplit(c, (giftLines || []).map(l => ({ item: l.item, qty: l.qty, stash: l.stash }))).gifts);
     c.dialog.push({ who: 'p', text: '(값은 됐다며 물건을 건넨다)' });
     c.status = 'done';

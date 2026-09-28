@@ -379,16 +379,17 @@
     village: '임금님이 편찮으시다는데… 나라가 어떻게 되려나요.',
     merc: '왕이 병들면 왕자님들이 칼을 뽑겠지. 우린 그때 바빠질 거야.',
   }, { cd: 5 });
-  R('crowned_aldric', { flag: 'king_aldric' }, {
-    kingdom: '새 폐하께서 즉위하셨소. 병영 기강이 달라졌소.',
-    village: '새 임금님은 무서운 분이라던데요…',
-    nb_courtier: '즉위식이 성대했소. 이제 궁정도 안정될 것이오.',
-    merc: '왕이 알드릭이면 우리 대접이 달라지지.',
+  // v0.9.6: 즉위는 30일째 밤(결말 직전)이라 공위 기간에 기운 쪽(leaning_* — config.js weaveRules)으로 한마디
+  R('leaning_aldric', { all: [{ flag: 'leaning_aldric' }, { noFlag: 'crowned' }] }, {
+    kingdom: '섭정 회의가 왕자님 쪽으로 기울었다 하오. 병영 기강부터 달라졌소.',
+    village: '왕자님이 왕이 되시면 무섭다던데요…',
+    nb_courtier: '섭정 회의 귀족 태반이 왕자 저택으로 가오. 대관식은 날짜 문제라더군.',
+    merc: '왕관이 알드릭 쪽이면 우리 대접이 달라지지.',
   }, { cd: 8 });
-  R('crowned_serena', { flag: 'queen_serena' }, {
-    kingdom: '여왕 폐하께서 즉위하셨소. 신전 종소리가 사흘 울렸소.',
-    village: '여왕님이 백성 이야기를 들어 주신다고 해요.',
-    guild: '여왕 폐하의 통상 칙령이 곧 나온다 하오. 상인들은 벌써 셈을 하고 있소.',
+  R('leaning_serena', { all: [{ flag: 'leaning_serena' }, { noFlag: 'crowned' }] }, {
+    kingdom: '섭정 회의가 공주님 쪽으로 기울었다 하오. 신전 종이 요즘 자주 울리오.',
+    village: '공주님이 백성 이야기를 들어 주신다고 해요.',
+    guild: '공주님 통상 공약이 섭정 회의를 돌았다 하오. 상인들은 벌써 셈을 하고 있소.',
   }, { cd: 8 });
   R('civil_war', { flag: 'civil_war' }, {
     kingdom: '왕위를 둘러싼 내전이오. 병영도 반으로 갈렸소.',

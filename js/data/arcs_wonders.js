@@ -145,7 +145,7 @@
     },
     {
       id: 'wd_night_page', look: 'thrall', name: '창백한 시동 엘로', race: '인간', job: '밤의 궁정 시동 (손이 얼음장 같다)', faction: 'vampire', portrait: '🕯️', kind: 'talk', late: true,
-      spawn: { when: { all: [after('vampire_backed', 1), { flag: 'succession_crisis' }, { noFlag: 'crowned' }, { noFlag: 'vampire_court_fell' }] }, chance: 0.6 },
+      spawn: { when: { all: [after('vampire_backed', 1), { flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'vampire_court_fell' }] }, chance: 0.6 },
       ask: { tag: '정보', note: '사냥꾼 조합이 사 간 것' },
       greet: '주인께서 안부를 전하셨어요. …사냥꾼 조합이 요즘 무얼 사 가는지, 여쭤도 될까요?',
       choices: [

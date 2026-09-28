@@ -167,7 +167,23 @@ WS.data.config = {
       ],
     },
     sellVars: { noble: { princess_power: 1 }, merc: { prince_power: 1 } },
+    // 편드는 힘(sellVars)은 국왕이 죽은 뒤 공위 기간에만 — 그 전은 복선(수군거림)뿐 (docs/DESIGN_CONVERGENCE.md §4)
+    sellWhen: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }] },
     except: ['nb_aldric'], // 궁정 귀족 가운데 왕자파 기사는 빼고 (factions.js)
+  },
+  // 왕좌의 저울 — 국왕 서거 뒤 공위 기간에만 (js/systems/TransactionManager.js throneLever).
+  //   무기를 팔면 알드릭 쪽(+), 물약을 팔면 세레나 쪽(−). 개당 base, 그 편 사람에게 팔면 aligned (칼로 먹고사는 자들 / 구호소 · 대성당 · 마을).
+  //   물약은 칼보다 싸고 적게 팔리는 만큼 개당 값을 크게 잡아 두 쪽이 비슷한 무게가 되게 (design/qa_report_4.md 공위 기간 판매량).
+  //   warCredit: 전시 섭정(regency_war) 동안 전선에 간 물자 — 무기 · 방어구는 알드릭 몫, 물약은 세레나 몫 (대관식에서 공을 가른다)
+  throneLever: {
+    when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { noFlag: 'closed_court' }] },
+    weapon: { base: 0.025, aligned: { merc: 0.1, bandit: 0.1, pirate: 0.1, warband: 0.1, noble: 0.06 } },
+    potion: { base: 0.1, aligned: { church: 0.25, village: 0.25, noble: 0.12 } },
+    news: {
+      ald: { at: 2, text: '용병 천막마다 이 가게 칼이 돌자, 알드릭 왕자의 깃발이 골목마다 걸린다' },
+      ser: { at: 2, text: '구호소마다 이 가게 물약이 돌자, 세레나 공주의 이름이 골목에서 오르내린다' },
+    },
+    warCredit: { when: { flag: 'regency_war' }, ald: ['kingdom', 'merc', 'church'], ser: ['kingdom', 'church', 'village'] },
   },
   // 「밀고자」 길 — 까마귀 밀고가 맞으면 report_hits·collusion↑ (letters.js report.guiltyEffects) → 적게 쌓여도
   // 감찰청 "공식 제보처" 지정 (events.js informant_office_named, flag informant_office) → 그 뒤 인간 쪽 손님 몇이
@@ -277,6 +293,12 @@ WS.data.worldVars = {
   guild_grip:       { label: '상인 길드 장악력', init: 12, drift: 0.15 },
   church_authority: { label: '대성당 권위', init: 25, toward: [25, 0.03] },
   succession:       { label: '왕위 계승 (+알드릭 / -세레나)', init: 0, min: -30, max: 30 },
+  // 공위 기간에 플레이어의 거래 · 선택이 두 후계자를 민 양 (TransactionManager.backing · throneLever) — 결말 조건 { backing: 'aldric'|'serena'|'both' }
+  back_ald:         { label: '알드릭을 민 양', init: 0, min: 0, max: 9999 },
+  back_ser:         { label: '세레나를 민 양', init: 0, min: 0, max: 9999 },
+  // 전시 섭정 동안 두 후계자 이름으로 전선에 간 물자 (config.throneLever.warCredit — 대관식에서 공을 가른다)
+  war_credit_ald:   { label: '전시 물자 — 알드릭 쪽', init: 0, min: 0, max: 99999 },
+  war_credit_ser:   { label: '전시 물자 — 세레나 쪽', init: 0, min: 0, max: 99999 },
   bandit_power:     { label: '도적단 세력', init: 8, drift: 0.15 },
   warband_power:    { label: '잿빛 엄니 전투단', init: 8, drift: 0.15 },
   pirate_power:     { label: '해적 세력', init: 8, drift: 0.1 },
@@ -339,7 +361,8 @@ WS.data.worldVars = {
 // 대관식(30일째 밤)과 공위 기간 플래그는 events.js king_dies · coronation.
 (() => {
   // 궁정 다툼이 살아 있는 동안만 계승이 움직인다 (대관식 뒤 · 궁정 줄기가 닫힌 뒤엔 멈춤)
-  const court = { any: [{ flag: 'succession_crisis' }, { flag: 'court_struggle' }, { flag: 'interregnum' }] };
+  // v0.9.6: 계승을 움직이는 규칙은 국왕 서거 뒤 공위 기간에만 (그 전 — 중태 · 측근들의 움직임 — 은 복선뿐. 세계 변수는 그대로 움직인다)
+  const court = { flag: 'interregnum' };
   const courtLive = [court, { noFlag: 'crowned' }, { noFlag: 'closed_court' }];
   const live = (...more) => ({ all: courtLive.concat(more) });
   // ★1 두 후계자의 지지 기반: 산업·기술(세레나 −) 대 무력·뒷골목(알드릭 +) — 처음 값에서 얼마나 자랐나

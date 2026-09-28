@@ -43,7 +43,9 @@
 //            대화·밤 선택지는 고를 수 있는 것 중 무작위. 매입 손님은 금고 여유(임대료 이틀치)가 있으면 산다. 교환은 가치가 90% 이상이면.
 //            아침 도매: 최근 손님 요청(지수 감쇠 수요) + 오늘 오는 약속 손님 몫만큼 재고 목표 → 마진 큰 것부터 +1씩, 금고는 임대료 이틀치 남김.
 //            금고가 오늘 밤 임대료에도 못 미치면 수요가 적은 물건부터 도매상에 넘긴다.
-//   공통     confirm 선택지(열쇠를 넘긴다 등)는 다른 게 없을 때만, 금화를 내는 선택지로 오늘 밤 임대료를 못 내게 되면 고르지 않는다.
+//   공통     섭정 회의(talks.js ⑤)에서 재상에게 약속했으면 서부 경비대장에게 칼을 팔지 않는다 (초보는 30% 잊는다).
+//            충돌 호소 손님에게 "이쪽 수레를 채우겠소"라고 했으면 다른 쪽 수레는 돌려보낸다 (같은 30%).
+//            confirm 선택지(열쇠를 넘긴다 등)는 다른 게 없을 때만, 금화를 내는 선택지로 오늘 밤 임대료를 못 내게 되면 고르지 않는다.
 //            빚 수금원(debt_*)에게는 임대료를 남기고 낼 수 있으면 낸다(merchant 제외). 파산 원인을 임대료/압류/상회 구제대출로 나눠 센다.
 //            신문은 1일째 안내에서 구독한다 (--paper=0 으로 끔).
 //   merchant 원가 밑으로는 팔지 않고, 재고 목표 1.3배, 여유 1.5일치. 선택지는 금화가 가장 느는 것. 7일째 이후 금고가 넉넉하면 간판을 산다.
@@ -166,7 +168,7 @@ const MARKS = ['kept_obel_gems', 'refused_obel_gems', 'gave_gems_to_thief', 'cau
   'obel_gems_returned', 'obel_paid_loss', 'obel_refused_fined', 'obel_repaid', 'obel_gems_lost'];
 const SAMPLE_DAYS = [5, 10, 15, 20, 25, 30]; // v0.9.3: 30일 캠페인
 // 궁정 흐름 (대관식은 30일째 밤 — events.js coronation)
-const COURT_FLAGS = ['succession_crisis', 'court_struggle', 'interregnum', 'regency_war', 'night_regent', 'crowned', 'king_aldric', 'queen_serena',
+const COURT_FLAGS = ['succession_crisis', 'court_struggle', 'interregnum', 'regency_war', 'regency_court', 'night_regent', 'crowned', 'king_aldric', 'queen_serena',
   'civil_war', 'vampire_regent', 'crown_holds', 'closed_court', 'coronation_clash', 'armed_prince_secret', 'armed_aldric', 'armed_princess_secret', 'backed_serena'];
 
 function playRun(seed, opt) {
@@ -205,8 +207,10 @@ function playRun(seed, opt) {
     }
     if (P === 'kind') return list[0];
     if (P === 'merchant') {
+      // 금화 효과가 없는 대화 선택지(재상에게 약속할지 등)는 다 0이라 늘 첫 번째만 고르게 되던 것을 — 그런 동점이면 무작위로
       const g = ch => (ch.effects && typeof ch.effects.gold === 'number' ? ch.effects.gold : 0);
-      return list.reduce((b, ch) => (g(ch) > g(b) ? ch : b), list[0]);
+      const top = Math.max(...list.map(g));
+      return pickOne(list.filter(ch => g(ch) === top));
     }
     return pickOne(list);
   };
@@ -354,6 +358,14 @@ function playRun(seed, opt) {
     doSell(c, lines);
   }
 
+  // 지금 충돌에서 다른 쪽에 "이쪽 수레를 채우겠소"라고 약속한 뒤 온 수레인가 (talks.js ④ 호소 손님의 follow 'ours' → tk_rt_<줄기>_pledged)
+  function pledgedAway(c) {
+    const cl = S().clash, m = /^tk_rt_([a-z]+?)(?:_ald|_ser)?_cart$/.exec(c.tpl || '');
+    if (!cl || cl.key || !m || ![cl.a, cl.b].includes(m[1])) return false;
+    const other = cl.a === m[1] ? cl.b : cl.a;
+    return S().flags[`tk_rt_${other}_pledged`] !== undefined;
+  }
+
   function handleCustomer(c) {
     if (c.kind === 'buy') noteDemand(c);
     if (c.kind === 'talk') {
@@ -365,6 +377,12 @@ function playRun(seed, opt) {
         if (!ch) break;
         T.choose(c, ch.id);
       }
+    } else if (c.kind === 'buy' && pledgedAway(c) && !(BEG && rnd() < 0.3)) {
+      // 충돌(js/systems/Clash.js)에서 한쪽 호소 손님에게 "이쪽 수레를 채우겠소"라고 했으면 다른 쪽 수레는 돌려보낸다 (초보는 셋에 하나 잊는다)
+      T.refuse(c);
+    } else if (c.kind === 'buy' && /^tk_rg_captain_/.test(c.tpl || '') && S().flags.tk_rg_promised !== undefined && !(BEG && rnd() < 0.3)) {
+      // 섭정 회의 (talks.js ⑤): 재상에게 "내사가 먼저"라고 약속했으면 서부 경비대장을 돌려보낸다 (초보는 셋에 하나 잊고 판다)
+      T.refuse(c);
     } else if (c.kind === 'buy') handleBuy(c);
     else if (c.kind === 'sell') {
       const r = c.request;
@@ -560,6 +578,10 @@ function playRun(seed, opt) {
       flags: Object.fromEntries(COURT_FLAGS.filter(f => st.flags[f] !== undefined).map(f => [f, st.flags[f]])),
       coronation: st.eventLog.coronation, kingDies: st.eventLog.king_dies,
     };
+    // 가닥 잡기 (js/systems/Clash.js): 판 끝에 조건이 채워진 결말 수(파산 · 중립 빼고) · 충돌 기록 · 결말을 고른 방식
+    res.satisfied = WS.data.endings.filter(e => e.when && !['bankrupt', 'neutral'].includes(e.id)).filter(e => { try { return WS.sys.Conditions.check(e.when); } catch (x) { return false; } }).map(e => e.id);
+    res.clashes = (st.clashLog || []).map(x => `${x.key || 'gen'}:${x.a}-${x.b}>${x.winner}:${x.how}`);
+    res.endingWhy = st.endingWhy || null;
     res.weave = Object.keys(st.weaveSeen || {});
     res.weaveNet = st.weaveNet || {};
     res.endFlags = Object.keys(st.flags);
@@ -636,6 +658,16 @@ function summarize(runs, opt) {
         reqPerDay: days ? req / days : 0,
       };
     })(),
+    // 판 끝 동시 충족 결말 수 분포 · 판당 충돌 수 · 결말 고른 방식
+    converge: (() => {
+      const cnt = {}, ncl = {}, why = {};
+      runs.filter(r => !r.error && r.ending !== 'bankrupt').forEach(r => {
+        const k = (r.satisfied || []).length; cnt[k] = (cnt[k] || 0) + 1;
+        const c = (r.clashes || []).length; ncl[c] = (ncl[c] || 0) + 1;
+        why[r.endingWhy || '-'] = (why[r.endingWhy || '-'] || 0) + 1;
+      });
+      return { satisfied: cnt, clashes: ncl, why };
+    })(),
     endingMax: Object.entries(endings).filter(([k]) => k !== 'bankrupt').reduce((b, e) => (e[1] > b[1] ? e : b), ['-', 0]),
     // 궁정: 왕위 다툼이 있던 판의 30일째 마감 때 succession (대관식 직전) · 대관식 결과 · 대관식 날짜
     court: (() => {
@@ -643,7 +675,7 @@ function summarize(runs, opt) {
       const s30 = cr.map(r => r.world && r.world[30] ? r.world[30].succession : null).filter(x => x !== null);
       const f = k => cr.filter(r => r.court.flags[k] !== undefined).length;
       return { n: cr.length, aldric: s30.filter(x => x >= 3).length, serena: s30.filter(x => x <= -3).length, tie: s30.filter(x => x > -3 && x < 3).length, median: median(s30.map(x => Math.round(x))),
-        king: f('king_aldric'), queen: f('queen_serena'), vampire: f('vampire_regent'), clash: f('coronation_clash'), closed: f('closed_court'), regencyWar: f('regency_war'),
+        king: f('king_aldric'), queen: f('queen_serena'), vampire: f('vampire_regent'), clash: f('coronation_clash'), closed: f('closed_court'), regencyWar: f('regency_war'), regencyCourt: f('regency_court'),
         offDay: runs.filter(r => r.court && r.court.coronation !== undefined && r.court.coronation !== 30).length };
     })(),
   };
@@ -663,8 +695,10 @@ function print(sum) {
     console.log(`창고(9일째~ 아침 도매 뒤): 평균 ${pct(x.fillMean)} 참 · 85% 넘는 날 ${pct(x.fill85)} · 자리 없어 못 산 날 ${pct(x.spaceBlockDays)}`); }
   console.log('플래그(판 수 / 그중 파산): ' + Object.entries(sum.marks).filter(([, v]) => v).map(([k, v]) => `${k} ${v}/${sum.markBankrupt[k]}`).join(', '));
   console.log('엔딩: ' + Object.entries(sum.endings).map(([k, v]) => `${k} ${v}`).join(', '));
+  { const g = sum.converge;
+    console.log(`가닥(파산 뺀 판): 판 끝 동시 충족 결말 수 ${JSON.stringify(g.satisfied)} · 판당 충돌 수 ${JSON.stringify(g.clashes)} · 결말 고른 방식 ${JSON.stringify(g.why)}`); }
   { const c = sum.court;
-    console.log(`궁정(${c.n}판): 30일째 계승 알드릭(≥3) ${c.aldric} · 세레나(≤−3) ${c.serena} · 엇비슷 ${c.tie} · 중앙값 ${c.median ?? '-'} → 대관식 알드릭 ${c.king} · 세레나 ${c.queen} · 백작 ${c.vampire} (칼부림 ${c.clash}) · 궁정 줄기 닫힘 ${c.closed} · 전시 섭정 ${c.regencyWar} · 30일 아닌 대관식 ${c.offDay}`); }
+    console.log(`궁정(${c.n}판): 30일째 계승 알드릭(≥3) ${c.aldric} · 세레나(≤−3) ${c.serena} · 엇비슷 ${c.tie} · 중앙값 ${c.median ?? '-'} → 대관식 알드릭 ${c.king} · 세레나 ${c.queen} · 백작 ${c.vampire} (칼부림 ${c.clash}) · 궁정 줄기 닫힘 ${c.closed} · 섭정 회의 전쟁 먼저 ${c.regencyWar} / 왕좌 먼저 ${c.regencyCourt} · 30일 아닌 대관식 ${c.offDay}`); }
   for (const [m, k] of Object.entries(sum.errors)) console.log(`  예외 ×${k}: ${m}`);
 }
 

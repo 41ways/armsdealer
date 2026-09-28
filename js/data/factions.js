@@ -764,8 +764,9 @@ WS.data.factions = {
       },
       {
         id: 'nb_aldric', look: 'noble_lord', job: '알드릭 왕자파 기사', portrait: '⚔️', weight: 3,
-        when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }] },
-        payment: { credit: { now: 0.5, inDays: [3, 5], defaultWhen: { any: [{ flag: 'queen_serena' }, { flag: 'vampire_regent' }] }, defaultText: '{name}의 외상값 {amount}G는 떼였다. 왕자파 가문들은 새 치세에서 영지를 몰수당했다.' } },
+        when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }] },
+        // 갚는 날은 대관식 전이라 왕이 없다 — 그때 공주 쪽으로 기울었으면(leaning_serena) 왕자파 가문 금고는 비어 있다
+        payment: { credit: { now: 0.5, inDays: [3, 5], defaultWhen: { any: [{ flag: 'leaning_serena' }, { flag: 'queen_serena' }, { flag: 'vampire_regent' }] }, defaultText: '{name}의 외상값 {amount}G는 떼였다. 왕자파 가문들은 새 치세에서 영지를 몰수당했다.' } },
         names: ['가웨인 경', '브루노 경', '하랄드 경'],
         wants: [
           { item: 'crossbow', w: 3, qty: [2, 4] }, { item: 'plate_armor', w: 2, qty: [1, 2] },
@@ -778,8 +779,8 @@ WS.data.factions = {
       },
       {
         id: 'nb_serena', look: 'noble_lady', job: '세레나 공주파 귀부인', portrait: '👸', weight: 3,
-        when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }] },
-        payment: { credit: { now: 0.5, inDays: [3, 5], defaultWhen: { any: [{ flag: 'king_aldric' }, { flag: 'vampire_regent' }] }, defaultText: '{name}의 외상값 {amount}G는 떼였다. 공주파 귀부인들은 수도를 떠나 수녀원으로 들어갔다.' } },
+        when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }] },
+        payment: { credit: { now: 0.5, inDays: [3, 5], defaultWhen: { any: [{ flag: 'leaning_aldric' }, { flag: 'king_aldric' }, { flag: 'vampire_regent' }] }, defaultText: '{name}의 외상값 {amount}G는 떼였다. 공주파 귀부인들은 수도를 떠나 수녀원으로 들어갔다.' } },
         names: ['이졸데 부인', '마리안 백작부인', '엘레오노르'],
         wants: [
           { item: 'holy_water', w: 2, qty: [4, 8] }, { item: 'potion', w: 2, qty: [5, 8] },

@@ -612,9 +612,15 @@ WS.data.events = [
         news: { cat: '속보', text: '붉은 늑대 용병단, 마왕군에 붙었다… "금화가 제일 무거웠다"', big: true },
       },
       {
-        when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }, { var: 'succession', gte: 3 }] },
-        effects: { flags: ['merc_prince'], vars: { succession: 6 } },
+        when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { var: 'succession', gte: 3 }] },
+        effects: { flags: ['merc_prince'], vars: { succession: 4 } },
         news: { cat: '왕국', text: '붉은 늑대 용병단, 알드릭 왕자의 사병 됐다', big: true },
+      },
+      {
+        // 붉은 늑대가 왕자 편에 선 것(merc_prince)의 짝 — 공주 쪽으로 기운 공위 기간이면 용병단은 대성당 성전 호위로 (공주 편)
+        when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { var: 'succession', lte: -3 }] },
+        effects: { flags: ['merc_princess'], vars: { succession: -4, church_authority: 2 } },
+        news: { cat: '왕국', text: '붉은 늑대 용병단, 대성당과 계약… 세레나 공주 구호소 호위로', big: true },
       },
       {
         when: { all: [{ var: 'rel_goblin', gte: 5 }, { cmp: ['goblin_power', '>', 'kingdom_power'] }] },
@@ -923,85 +929,69 @@ WS.data.events = [
   },
 
   // ───────── 궁정: 왕위 계승 (← 용병·대성당·흡혈귀·상인 길드) ─────────
+  // 날짜가 정해진 줄기 (실제일 — docs/DESIGN_CONVERGENCE.md §4):
+  //   8~13일  복선만 — 시의(court_physician) · 가면 쓴 귀족(court_poisoner) · 측근들의 움직임(court_struggle). 계승은 아직 움직이지 않는다
+  //   14일    국왕 중태 (king_ailing — succession_crisis). 복선 손님과의 일은 서거 날을 하루 당기거나 늦출 뿐
+  //   16~17일 국왕 서거 (king_dies) → 공위 기간(interregnum): 계승 다툼 시작 — 후계자 손님 · 회유 · 무기를 팔면 알드릭 / 물약을 팔면 세레나 (config.throneLever)
+  //   21~22일 섭정 회의 — 재상과 서부 경비대장이 같은 날 온다 (js/data/talks.js ⑤ · js/systems/Clash.js regency):
+  //           경비대장에게 칼을 팔면 "전쟁이 먼저"(regency_war — 가장 위협적인 적을 소탕, 두 후계자는 전쟁 물자로 겨룬다) /
+  //           안 팔면 "왕좌가 먼저"(regency_court — 회유가 짙어진다)
+  //   25일    밀리는 후계자 쪽이 가게를 부른다 (공주: 안개 상단과 손잡음 / 왕자: 붉은 늑대 용병단과 손잡음 — 받으면 양쪽을 다 민 가게)
+  //   30일째 밤 대관식 (coronation)
   {
-    id: 'king_ailing', once: true, priority: 55, chance: 0.11,
-    when: { day: { gte: 7, lte: 13 } },
-    effects: { flags: ['succession_crisis'], spawn: [{ customer: 'prince_agent', inDays: 0 }, { customer: 'serena_agent', inDays: 1 }, { customer: 'night_envoy', inDays: 1 }], schedule: [{ event: 'king_dies', inDays: [6, 7] }] },
-    news: { cat: '속보', text: '국왕 와병! 알드릭 왕자·세레나 공주 왕위 다툼', big: true },
-  },
-  {
-    // 가면 쓴 귀족에게 독병을 팔았다 → 국왕이 반드시 쓰러진다 (까마귀로 밀고했으면 음모가 막힌다)
-    id: 'king_ailing_poison', once: true, priority: 56,
-    when: { all: [{ flag: 'king_poison_sold' }, { noFlag: 'succession_crisis' }, { noFlag: 'poison_plot_foiled' }] },
-    effects: { flags: ['succession_crisis'], spawn: [{ customer: 'prince_agent', inDays: 0 }, { customer: 'serena_agent', inDays: 1 }, { customer: 'night_envoy', inDays: 1 }], schedule: [{ event: 'king_dies', inDays: [6, 7] }] },
-    news: { cat: '왕국', text: '국왕 국정 연설 돌연 취소… 궁 "일정 조정일 뿐"', big: true },
-  },
-  {
-    // 차려입은 신사(왕궁 시의)에게 물약을 팔지 않았다 → 국왕이 반드시 쓰러진다
-    id: 'king_ailing_neglect', once: true, priority: 56,
-    when: { all: [{ flag: 'physician_refused' }, { noFlag: 'succession_crisis' }] },
-    effects: { flags: ['succession_crisis'], spawn: [{ customer: 'prince_agent', inDays: 0 }, { customer: 'serena_agent', inDays: 1 }, { customer: 'night_envoy', inDays: 1 }], schedule: [{ event: 'king_dies', inDays: [6, 7] }] },
-    news: { cat: '속보', text: '국왕 쓰러져… 궁 "과로" 왕자·공주 궁으로', big: true },
-  },
-  {
-    // "내일 다시 오시오"로 미뤘다가 다음 날 물약을 팔았다 → 그래도 절반은 늦었다 (50%)
-    id: 'king_ailing_delay', once: true, priority: 57, chance: 0.5,
-    when: { all: [{ flag: 'physician_delayed' }, { flag: 'physician_helped' }, { noFlag: 'succession_crisis' }] },
-    effects: { flags: ['succession_crisis', 'crisis_heated'], vars: { vampire_power: 6, merc_strength: 3, church_authority: 2 }, spawn: [{ customer: 'prince_agent', inDays: 0 }, { customer: 'serena_agent', inDays: 1 }, { customer: 'night_envoy', inDays: 1 }], schedule: [{ event: 'king_dies', inDays: [6, 7] }] },
-    news: { cat: '속보', text: '궁 불빛 밤새 안 꺼져… 왕자·공주·밤의 귀족들 궁으로', big: true },
+    id: 'king_ailing', once: true, priority: 89,
+    when: { all: [{ realDay: { gte: 14 } }, { noFlag: 'succession_crisis' }, { noFlag: 'crowned' }] },
+    effects: { flags: ['succession_crisis'], unflags: ['court_struggle'] },
+    outcomes: [
+      {
+        // 가면 쓴 귀족에게 독병을 팔았다 (까마귀로 밀고했으면 음모는 막혔다) — 서거가 하루 앞당겨진다
+        when: { all: [{ flag: 'king_poison_sold' }, { noFlag: 'poison_plot_foiled' }] },
+        effects: { flags: ['king_poisoned'], schedule: [{ event: 'king_dies', inDays: 2 }] },
+        news: { cat: '속보', text: '국왕 국정 연설 돌연 취소 뒤 쓰러져… 궁 "과로", 시의들은 입을 닫았다', big: true },
+      },
+      {
+        // 차려입은 신사(왕궁 시의)에게 물약을 팔았다 — 국왕이 사흘은 버틴다
+        when: { flag: 'physician_helped' },
+        effects: { schedule: [{ event: 'king_dies', inDays: 3 }] },
+        news: { cat: '속보', text: '국왕 중태… 시의들 "도성 약방 물약으로 며칠은 버티실 것"', big: true },
+      },
+      {
+        // "내일 다시 오시오"로 미뤘다 — 그사이 왕자 · 공주 · 밤의 귀족들이 궁으로 몰려들었다
+        when: { flag: 'physician_delayed' },
+        effects: { flags: ['crisis_heated'], vars: { vampire_power: 6, merc_strength: 3, church_authority: 2 }, schedule: [{ event: 'king_dies', inDays: [2, 3] }] },
+        news: { cat: '속보', text: '국왕 중태… 궁 불빛 밤새 안 꺼져, 왕자·공주·밤의 귀족들 궁으로', big: true },
+      },
+      {
+        effects: { schedule: [{ event: 'king_dies', inDays: [2, 3] }] },
+        news: { cat: '속보', text: '국왕 중태! 궁 앞에 두 후계자의 마차… "왕좌는 아직 비지 않았다"', big: true },
+      },
+    ],
   },
   {
     // 궁정 다툼의 자연 발생 — 국왕이 쓰러지기 전(9~14일), 왕자·공주 측근들이 먼저 세를 모은다. 궁정 의사에게 "내일 다시 오시오"를 눌러야만 열리던 길(heirs_rising)을
     // 누구나 만날 수 있게 (3단계 QA: 사람처럼 놀아도 court_struggle 이 0%였다). 복선: 신문 amb_court_ladies · amb_court_physician
     id: 'heirs_rising_rumor', once: true, priority: 54, chance: 0.14,
-    when: { all: [{ day: { gte: 8, lte: 14 } }, { noFlag: 'succession_crisis' }, { noFlag: 'court_struggle' }] },
-    effects: { flags: ['court_struggle'], vars: { crown_power: -3 }, schedule: [{ event: 'court_council', inDays: 8 }] },
+    when: { all: [{ day: { gte: 8, lte: 14 } }, { realDay: { lte: 13 } }, { noFlag: 'succession_crisis' }, { noFlag: 'court_struggle' }] },
+    effects: { flags: ['court_struggle'] }, // 복선만 — 다툼은 국왕이 죽은 뒤 (king_dies)
     news: { cat: '왕국', text: '왕자·공주 측근들 도성 곳곳서 사람 모아… 궁 "평소와 같다"', big: true },
   },
   {
     // 하루를 미룬 사이 왕자와 공주가 세를 키웠다 — 왕이 살아 있어도 왕·왕자·공주 셋의 세력 다툼이 시작된다
     id: 'heirs_rising', once: true, priority: 55,
-    when: { flag: 'physician_delayed' },
-    effects: { flags: ['court_struggle'], vars: { crown_power: -3 }, schedule: [{ event: 'court_council', inDays: 8 }] },
+    when: { all: [{ flag: 'physician_delayed' }, { noFlag: 'succession_crisis' }] },
+    effects: { flags: ['court_struggle'] }, // 복선만
     news: { cat: '왕국', text: '왕자·공주 측근들 도성 곳곳서 사람 모아… 궁 "평소와 같다"', big: true },
   },
   {
-    // 어전 회의 — 셋 중 가장 센 쪽이 이긴다 (왕이 이미 쓰러져 왕위 다툼 중이면 왕의 죽음이 결판이므로 열리지 않는다)
-    // v0.9.5 대관식은 마지막 날: 왕자·공주가 이기면 국왕이 양위만 정하고, 왕관은 30일째 밤 대관식(coronation)에서 — 그때까지 공위 기간(interregnum)
-    // court_decided 는 국왕이 버틸 때(crown_holds)만 — 양위(abdication)면 왕좌는 대관식까지 비어 있다 (궁정 줄기가 아직 열려 있다 — talks.js courtOpen)
+    // (옛 저장본에 예약된 어전 회의 — v0.9.6 부터는 예약하지 않는다. 왕위 다툼은 국왕 서거(king_dies) 뒤 공위 기간에만)
     id: 'court_council', trigger: 'scheduled', priority: 82,
     effects: { unflags: ['court_struggle'] },
-    outcomes: [
-      {
-        when: { flag: 'succession_crisis' },
-        news: { cat: '왕국', text: '어전 회의 무기한 연기… 궁은 국왕 병세에 매달려' },
-      },
-      {
-        when: { all: [{ cmp: ['crown_power', '>', 'prince_power'] }, { cmp: ['crown_power', '>', 'princess_power'] }] },
-        effects: { flags: ['crown_holds', 'court_decided'], vars: { kingdom_power: 3, rel_kingdom: 3, kingdom_morale: 3 }, if: { when: { noFlag: 'closed_kingdom' }, then: { flags: ['royal_certified'] } } },
-        news: { cat: '속보', text: '어전 회의, 국왕 편에… 왕자·공주 변방으로', big: true },
-      },
-      {
-        when: { all: [{ cmp: ['prince_power', '>', 'princess_power'] }, { cmp: ['prince_power', '>', 'crown_power'] }] },
-        effects: { flags: ['abdication', 'interregnum'], vars: { succession: 5, kingdom_power: 2, merc_strength: 2 } },
-        news: { cat: '속보', text: `국왕 양위 결정… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤" — 알드릭 왕자 쪽으로 기울어`, big: true },
-      },
-      {
-        when: { all: [{ cmp: ['princess_power', '>', 'prince_power'] }, { cmp: ['princess_power', '>', 'crown_power'] }] },
-        effects: { flags: ['abdication', 'interregnum'], vars: { succession: -5, church_authority: 2, guild_grip: 2 } },
-        news: { cat: '속보', text: `국왕 양위 결정… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤" — 세레나 공주 쪽으로 기울어`, big: true },
-      },
-      {
-        // 엇비슷하면 양위만 정하고 왕관은 대관식 날로 — 두 후계자 모두 사병을 모은다
-        effects: { flags: ['abdication', 'interregnum'], vars: { merc_strength: 4, kingdom_morale: -3 } },
-        news: { cat: '속보', text: `어전 회의 결렬… 양위만 정하고 왕관은 ${WS.data.config.campaignDays}일째 밤 대관식으로, 왕자·공주 모두 사병 모아`, big: true },
-      },
-    ],
+    news: { cat: '왕국', text: '어전 회의 무기한 연기… 궁은 국왕 병세에 매달려' },
   },
   {
     // 신분을 숨긴 손님에게 비싸게 판 대가 — 가끔 경비대가 조사하러 온다
     id: 'court_inquiry', cooldown: 5, priority: 45, chance: 0.2,
-    when: { all: [{ flag: 'court_struggle' }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_princess_secret' }] }] },
+    when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_princess_secret' }] }] },
     effects: { gold: -40, vars: { reputation: -2, rel_kingdom: -2 } },
     news: { cat: '사건', text: '경비대, 신분 숨긴 자들에 칼 판 가게 조사… 벌금' },
   },
@@ -1012,26 +1002,24 @@ WS.data.events = [
     news: { cat: '왕국', text: '경비대, 궁정 독살 음모 적발… "무기점 제보 덕"' },
   },
   {
-    // 국왕 서거 (계승 위기 6~7일 뒤) — v0.9.5: 왕관은 아직 아무에게도 가지 않는다 (docs/DESIGN_CONVERGENCE.md §4).
-    // 섭정 회의가 대관식을 마지막 날(30일째 밤 — coronation)로 못 박고, 그때까지 공위 기간(interregnum).
-    //   외적 위협이 크면 "전시 섭정"(regency_war) — 전쟁의 결과가 대관식 판정에 섞인다 (coronation)
-    //   밤의 궁정 편에 섰고 그들이 충분히 강하면 베른하르트 백작이 섭정 회의를 쥔다(night_regent) — 대관식 밤의 찬탈(vampire_regent)은 그때 다시 따진다
-    id: 'king_dies', trigger: 'scheduled', priority: 80,
+    // 국왕 서거 (중태 이틀~사흘 뒤, 실제 16~17일) — 왕관은 아직 아무에게도 가지 않는다 (docs/DESIGN_CONVERGENCE.md §4).
+    // 섭정 회의가 대관식을 마지막 날(30일째 밤 — coronation)로 못 박고, 그때까지 공위 기간(interregnum) — 계승 다툼은 여기서 시작한다.
+    // 두 후계자와 밤의 궁정이 사람을 보낸다. 21~22일 섭정 회의(재상 · 서부 경비대장 — talks.js ⑤)가 전쟁과 왕좌 가운데 무엇을 먼저 할지 정한다.
+    id: 'king_dies', trigger: 'scheduled', priority: 88,
     when: { noFlag: 'crowned' },
     effects: {
-      flags: ['interregnum', 'king_dead'],
-      // 전시 섭정의 문턱: 전쟁 중(고블린 · 마왕군) · 용이 깨어 있음 · 국경 긴장 45+ · 침공 위기 40+ (30 이면 거의 모든 판이라 뜻이 없었다)
-      if: { when: { any: [{ flag: 'war' }, { flag: 'demon_war' }, { flag: 'dragon_awake' }, { var: 'border_tension', gte: 45 }, { var: 'invasion_risk', gte: 40 }] },
-        then: { flags: ['regency_war'], news: [{ cat: '왕국', text: '적이 국경에 있는 동안은 "전시 섭정" — 섭정 회의 "전쟁의 공과가 왕관을 가른다"' }] } },
+      flags: ['interregnum', 'king_dead'], unflags: ['court_struggle'],
+      spawn: [{ customer: 'prince_agent', inDays: 0 }, { customer: 'serena_agent', inDays: 1 }, { customer: 'night_envoy', inDays: 1 }],
     },
-    news: { cat: '속보', text: `국왕 서거… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤, 그때까지 왕좌는 비워 둔다"`, big: true },
-    outcomes: [
-      {
-        when: { all: [{ flag: 'vampire_backed' }, { var: 'vampire_power', gte: 22 }] },
-        effects: { flags: ['night_regent'], vars: { vampire_power: 4, church_authority: -3, kingdom_morale: -2 } },
-        news: { cat: '왕국', text: '베른하르트 백작, 섭정 회의 의장에… "회의는 해 진 뒤에만 연다"', big: true },
-      },
-    ],
+    news: { cat: '속보', text: `국왕 서거… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤, 그때까지 왕좌는 비워 둔다" — 두 후계자 다툼 시작`, big: true },
+  },
+  {
+    // 밤의 궁정이 섭정 회의를 쥔다 — 공위 기간에 밤의 사절 편에 섰고(vampire_backed — 서거 이튿날 night_envoy) 그들이 충분히 세면.
+    // 대관식 밤의 찬탈(vampire_regent — coronation)은 그때 다시 따진다. 공위 기간의 밤 손님(arcs_wonders.js)이 이 플래그를 본다
+    id: 'night_regent_rises', once: true, priority: 70,
+    when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }, { flag: 'vampire_backed' }, { var: 'vampire_power', gte: 22 }, { noFlag: 'vampire_court_fell' }] },
+    effects: { flags: ['night_regent'], vars: { vampire_power: 4, church_authority: -3, kingdom_morale: -2 } },
+    news: { cat: '왕국', text: '베른하르트 백작, 섭정 회의 의장에… "회의는 해 진 뒤에만 연다"', big: true },
   },
   {
     // 대관식 — 30일째 밤, 결말 판정 바로 앞 (trigger 'final' — DayManager.nextDay → Events.runFinal). 왕이 살아 있으면(왕위 다툼이 없었으면) 열리지 않는다.
@@ -1040,11 +1028,19 @@ WS.data.events = [
     id: 'coronation', trigger: 'final', priority: 90,
     when: { all: [{ any: [{ flag: 'interregnum' }, { flag: 'succession_crisis' }] }, { noFlag: 'crowned' }] },
     effects: {
+      // 전시 섭정: 전쟁 물자를 더 댄 후계자가 공을 가져간다 (war_credit_ald — 왕국 · 용병 · 대성당에 판 무기 · 방어구 / war_credit_ser — 왕국 · 대성당 · 마을에 판 물약,
+      //   공위 기간 · 전시 섭정 동안 — config.throneLever.warCredit). 이긴 전쟁이면 ±3, 진 · 끝나지 않은 전쟁이면 ±2 (전선을 굶긴 쪽에서 표가 빠진다)
       if: [
-        { when: { all: [{ flag: 'regency_war' }, { any: [{ flag: 'kingdom_victory' }, { flag: 'demonlord_repelled' }, { flag: 'dragon_slain' }] }] },
-          then: { vars: { succession: 3 }, news: [{ cat: '왕국', text: '전시 섭정 회의 "전쟁을 이긴 칼이 왕관을 쓴다" — 알드릭 파에 표가 몰렸다' }] } },
-        { when: { all: [{ flag: 'regency_war' }, { any: [{ flag: 'goblin_victory' }, { flag: 'demonlord_victory' }, { flag: 'dragon_razed' }] }] },
-          then: { vars: { succession: -3 }, news: [{ cat: '왕국', text: '전시 섭정 회의, 진 전쟁의 책임을 칼 든 쪽에 물었다 — 세레나 파에 표가 몰렸다' }] } },
+        { when: { all: [{ flag: 'regency_war' }, { any: [{ flag: 'kingdom_victory' }, { flag: 'demonlord_repelled' }, { flag: 'dragon_slain' }] }, { cmp: ['war_credit_ald', '>', 'war_credit_ser'] }] },
+          then: { vars: { succession: 3 }, news: [{ cat: '왕국', text: '전시 섭정 회의 "전쟁을 이긴 물자를 댄 쪽이 왕관을 쓴다" — 창과 방패를 더 댄 알드릭 파에 표가 몰렸다' }] } },
+        { when: { all: [{ flag: 'regency_war' }, { any: [{ flag: 'kingdom_victory' }, { flag: 'demonlord_repelled' }, { flag: 'dragon_slain' }] }, { cmp: ['war_credit_ser', '>', 'war_credit_ald'] }] },
+          then: { vars: { succession: -3 }, news: [{ cat: '왕국', text: '전시 섭정 회의 "전쟁을 이긴 물자를 댄 쪽이 왕관을 쓴다" — 부상병 물약을 더 댄 세레나 파에 표가 몰렸다' }] } },
+        { when: { all: [{ flag: 'regency_war' }, { noFlag: 'kingdom_victory' }, { noFlag: 'demonlord_repelled' }, { noFlag: 'dragon_slain' }, { cmp: ['war_credit_ald', '>', 'war_credit_ser'] }] },
+          then: { vars: { succession: 2 }, news: [{ cat: '왕국', text: '전시 섭정 회의, 이기지 못한 전쟁의 책임을 전선을 굶긴 쪽에 물었다 — 창을 더 댄 알드릭 파에 표가 몰렸다' }] } },
+        { when: { all: [{ flag: 'regency_war' }, { noFlag: 'kingdom_victory' }, { noFlag: 'demonlord_repelled' }, { noFlag: 'dragon_slain' }, { cmp: ['war_credit_ser', '>', 'war_credit_ald'] }] },
+          then: { vars: { succession: -2 }, news: [{ cat: '왕국', text: '전시 섭정 회의, 이기지 못한 전쟁의 책임을 전선을 굶긴 쪽에 물었다 — 물약을 더 댄 세레나 파에 표가 몰렸다' }] } },
+        { when: { all: [{ flag: 'regency_war' }, { cmp: ['war_credit_ald', '==', 'war_credit_ser'] }] },
+          then: { news: [{ cat: '왕국', text: '전시 섭정 회의, 전쟁의 공을 어느 후계자에게도 돌리지 못했다 — 표는 갈린 채 대관식으로' }] } },
         { when: { all: [{ noFlag: 'king_dead' }, { noFlag: 'abdication' }] },
           then: { flags: ['king_dead'], news: [{ cat: '속보', text: '대관식 날 새벽, 국왕이 끝내 숨을 거뒀다 — 섭정 회의는 그날 밤 왕관을 정했다', big: true }] } },
       ],
@@ -1068,8 +1064,9 @@ WS.data.events = [
         news: { cat: '속보', text: '세레나 여왕 대관식… 첫 칙령은 "상업세 인하"', big: true },
       },
       {
-        // 엇비슷하면 대관식장에서 두 후계자 모두 왕관을 요구 — 그 밤 안에 칼이 가른다: 용병이 왕자 편이거나 왕자 쪽 힘이 더 크면 알드릭
-        when: { any: [{ flag: 'merc_prince' }, { cmp: ['prince_power', '>', 'princess_power'] }, { all: [{ cmp: ['prince_power', '==', 'princess_power'] }, { var: 'succession', gt: 0 }] }] },
+        // 엇비슷하면(|계승| < 3) 대관식장에서 두 후계자 모두 왕관을 요구 — 그 밤 안에 칼이 가른다
+        // v0.9.6: 엇비슷해도 계승이 조금이라도 기운 쪽이 이긴다 (전엔 용병 · 왕자 쪽 힘이 먼저라 늘 알드릭). 딱 0 일 때만 두 쪽 힘으로
+        when: { any: [{ var: 'succession', gt: 0 }, { all: [{ var: 'succession', eq: 0 }, { any: [{ flag: 'merc_prince' }, { cmp: ['prince_power', '>', 'princess_power'] }] }] }] },
         effects: { flags: ['king_aldric', 'crowned', 'civil_war', 'coronation_clash'], unflags: ['interregnum'], vars: { kingdom_power: -4, merc_strength: 6, kingdom_morale: -6, border_tension: 3 } },
         news: { cat: '속보', text: '대관식장에서 두 후계자 모두 왕관 요구… 새벽녘 용병들 칼이 알드릭을 왕좌에 앉혔다', big: true },
       },

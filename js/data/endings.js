@@ -1,4 +1,9 @@
-// 엔딩: 위에서부터 처음 조건을 만족하는 것이 선택된다.
+// 엔딩: 곧바로 끝나는 결말(파산 · 밀수왕)은 위에서부터 처음 맞는 것. 30일째 밤의 판정은 js/systems/Clash.js pickEnding —
+//   ① 개인의 길(붉은여울 · 완벽한 장부 · 밀고자 · 청출어람 · 별에서 온 그대)이 채워졌으면 이 목록 순서로 그것
+//   ② 세상의 결말(줄기에 딸린 결말 — talks.js WS.data.routes 의 endings)이 하나면 그것
+//   ③ 여럿이면 가장 최근 충돌에서 플레이어가 밀어 준 줄기(없으면 이긴 줄기)의 결말 → ④ 그래도 없으면 앞선 정도(score)
+// 충돌에 진 줄기는 closed_<줄기> 플래그 — 그 줄기의 결말마다 noFlag 로 막는다 (court · night · knight · goblin · kingdom · dragon · demonlord ·
+//   golem · dwarf · fairy · undead · mist · powder · balance · double).
 // 엔딩은 플레이어를 평가하지 않는다. 플레이어가 만든 세계를 보여줄 뿐이다.
 WS.data.endings = [
   {
@@ -53,7 +58,7 @@ WS.data.endings = [
   },
   {
     // 천칭단의 소라껍데기를 받고(customers.js liga_envoy), 끝까지 세 번째 경고를 듣지 않았을 때
-    id: 'balance_keeper', when: { all: [{ flag: 'liga_member' }, { noFlag: 'liga_failed' }] },
+    id: 'balance_keeper', when: { all: [{ flag: 'liga_member' }, { noFlag: 'liga_failed' }, { noFlag: 'closed_balance' }] },
     title: '균형의 수호자',
     requires: ["천칭단의 소라껍데기를 받아 눈과 귀가 됨", "세 번째 경고를 듣지 않고 끝까지 버팀 (세력 관계의 격차가 25를 넘으면 경고 — 균형을 되찾으면 3일마다 하나씩 지워짐)"],
     text: '소라껍데기는 지금도 카운터 밑 서랍에 있다. 밤마다 귀에 대면 파도 소리 너머로 목소리가 들린다 — 어느 창고에 칼이 쌓이는지, 어느 막사에 물약이 모자라는지. 당신은 어느 편도 아니면서 모든 편의 뒷사정을 안다. 한쪽 접시가 무거워질 때마다 당신 가게의 물건은 반대편으로 조금씩 흘러갔고, 저울은 끝내 넘어지지 않았다. 신문은 그해의 일을 늘 누군가의 세력이 커진 탓으로 적었다. 틀린 말은 아니다. 다만 그 누군가가 매번 달랐을 뿐. 오늘 밤에도 껍데기 속 목소리는 같은 말로 인사를 끝낸다. "균형을 지키시오."',
@@ -61,9 +66,11 @@ WS.data.endings = [
   {
     // 알드릭 왕자 = 두건 쓴 청년 (customers.js prince_hooded · prince_agent). 왕자 쪽에 활을 대 줬거나 붉은 늑대 용병단이 왕자 편에 섰을 때.
     // 결말 글 앞에 컷신: 두건 쓴 청년이 가게에 들어와 두건을 벗는다 (js/render/Cinematic.js 'prince_reveal')
-    id: 'iron_king', when: { all: [{ flag: 'king_aldric' }, { noFlag: 'closed_court' }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { noFlag: 'armed_princess_secret' }, { noFlag: 'backed_serena' }] },
+    // v0.9.6: 공위 기간(국왕 서거 뒤)에만 편들 수 있다. 「한쪽만」은 플래그가 아니라 민 양으로 — 공주 쪽에 물약 몇 병 판 것쯤은 괜찮고,
+    //   세레나를 민 양이 알드릭의 6할을 넘으면 「기회주의자」 쪽 (Conditions.js backing)
+    id: 'iron_king', when: { all: [{ flag: 'king_aldric' }, { noFlag: 'closed_court' }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { backing: 'aldric' }] },
     title: '두건을 벗은 왕',
-    requires: ["궁정 다툼 때 알드릭 쪽에 활을 팔았음 (두건 쓴 청년에게 몰래, 또는 알드릭 왕자에게 외상으로)", `알드릭이 ${WS.data.config.campaignDays}일째 밤 대관식에서 왕관을 씀`, "공주(세레나) 쪽에는 팔거나 기부하지 않았음", "(붉은 늑대 용병단이 그 편에 섰다면 결말 글이 달라짐)"],
+    requires: ["국왕 서거 뒤 공위 기간에 알드릭 쪽에 무기를 댐 (두건 쓴 청년 · 알드릭 왕자 · 친위대)", `알드릭이 ${WS.data.config.campaignDays}일째 밤 대관식에서 왕관을 씀`, "공주(세레나) 쪽은 덜 밀었음 (민 양이 왕자 쪽의 6할 밑)", "(붉은 늑대 용병단이 그 편에 섰다면 결말 글이 달라짐)"],
     cinematic: 'prince_reveal',
     // 선택지(시범) — 게임 상태는 바꾸지 않는, 결말 뒤 짧은 회상 두 갈래
     choices: [
@@ -81,9 +88,9 @@ WS.data.endings = [
   {
     // 「두건을 벗은 왕」의 짝 — 세레나 공주 = 베일 쓴 수녀 (customers.js princess_veiled · serena_agent).
     // 수녀에게 물약을 팔았거나(backed_serena) 공주의 구호소에 기부했을 때만. 결말 글 앞에 컷신 'princess_reveal' (js/render/Cinematic.js)
-    id: 'candle_queen', when: { all: [{ flag: 'queen_serena' }, { noFlag: 'closed_court' }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { noFlag: 'armed_prince_secret' }, { noFlag: 'armed_aldric' }] },
+    id: 'candle_queen', when: { all: [{ flag: 'queen_serena' }, { noFlag: 'closed_court' }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { backing: 'serena' }] },
     title: '베일을 걷은 여왕',
-    requires: ["궁정 다툼 때 세레나 쪽을 도왔음 (베일 쓴 수녀에게 물약을 팔거나, 세레나 공주의 구호소에 기부)", `세레나가 ${WS.data.config.campaignDays}일째 밤 대관식에서 왕관을 씀`, "왕자(알드릭) 쪽에는 팔지 않았음"],
+    requires: ["국왕 서거 뒤 공위 기간에 세레나 쪽에 물약을 댐 (베일 쓴 수녀 · 공주의 구호소 수레 · 기부)", `세레나가 ${WS.data.config.campaignDays}일째 밤 대관식에서 왕관을 씀`, "왕자(알드릭) 쪽은 덜 밀었음 (민 양이 공주 쪽의 6할 밑)"],
     cinematic: 'princess_reveal',
     // 선택지(시범) — 게임 상태는 바꾸지 않는, 결말 뒤 짧은 회상 두 갈래
     choices: [
@@ -122,7 +129,7 @@ WS.data.endings = [
   },
   {
     // 마르가를 끝까지 지켜 줬고(답례를 받음), 고블린과 가깝고(승리까지는 아니어도), 감찰청(왕국)과는 멀고, 다른 수배자는 모두 잡았을 때
-    id: 'forest_benefactor', when: { all: [{ flag: 'marga_thanked' }, { var: 'rel_goblin', gte: 6 }, { var: 'rel_kingdom', lte: 8 }, { flag: 'posters_cleared' }] },
+    id: 'forest_benefactor', when: { all: [{ noFlag: 'closed_goblin' }, { flag: 'marga_thanked' }, { var: 'rel_goblin', gte: 6 }, { var: 'rel_kingdom', lte: 8 }, { flag: 'posters_cleared' }] },
     title: '숲의 은인',
     requires: ["마르가를 끝까지 지켜 답례를 받음", "고블린과의 관계 6 이상", "감찰청(왕국)과의 관계 8 이하", "다른 수배자는 모두 넘김"],
     text: '경비대 장부에서 당신은 가장 성실한 제보자다. 인상서가 꽂힐 때마다 당신은 얼굴을 대조했고, 수배자들은 하나같이 붙잡혔다 — 단 한 장만 빼고. 초승달 흉터의 여인. 당신은 그 얼굴을 알아보고도 물약을 팔았고, 감찰관 앞에서 모른다고 했다. 한 해 뒤 서부 숲에서 온 사절단 맨 앞에 그 흉터가 있었다. 그들은 당신을 "숲의 은인"이라 부른다. 왕국 쪽 서류에는 결코 적히지 않을 이름이다.',
@@ -179,7 +186,7 @@ WS.data.endings = [
     // 화약을 25통 넘게 넘기고(events.js powder_spread) 그중 8통 이상이 해적 손에 들어간 가게 — 해적의 편에 선 화약 상인.
     // 케셀에게 알렸거나(powder_banned) 뒤늦게 신고했으면(powder_reported_late) 오지 않는다
     id: 'thunder_age',
-    when: { all: [{ flag: 'powder_age' }, { noFlag: 'powder_banned' }, { noFlag: 'powder_reported_late' }, { sold: { faction: 'pirate', item: 'black_powder', min: 8, trades: true } }] },
+    when: { all: [{ noFlag: 'closed_powder' }, { flag: 'powder_age' }, { noFlag: 'powder_banned' }, { noFlag: 'powder_reported_late' }, { sold: { faction: 'pirate', item: 'black_powder', min: 8, trades: true } }] },
     title: '천둥의 시대',
     requires: ["화약을 25통 넘게 퍼뜨림", "그중 8통 이상이 해적 손에 들어감", "케셀에게 알리거나 뒤늦게 신고하지 않음"],
     text: '시대가 바뀌었다. 칼과 활은 이제 대포 앞에서 무용지물이다. 세월이 흐르고 세상은 바뀌기 마련이지만, 이 천둥의 시대를 앞당긴 것은 바로 당신이다. 누가 뭐라 해도 당신은 해적의 편이 분명하다. 밖에서 울리는 천둥번개는 당신을 향하지 않는다. 다음 시대가 오기 전까지는 말이다…',
@@ -209,7 +216,7 @@ WS.data.endings = [
   },
   // ───────── 세계를 바꾼 사건 — 개인의 길이 끝까지 가지 못했을 때 남는 큰 결말. 내가 무엇을 했는지가 갈림길: 밤의 궁정 → 용에 대한 선택 → 양쪽에 판 자(「박쥐」) → 마왕에 손을 보탠 자 → 망자 → 안개 → 왕실. (고블린의 나라는 왕국에 비슷하게 팔지 않았을 때만이라 「박쥐」와 겹치지 않는다) ─────────
   {
-    id: 'night_court', when: { all: [{ flag: 'vampire_regent' }, { noFlag: 'closed_court' }] },
+    id: 'night_court', when: { all: [{ flag: 'vampire_regent' }, { noFlag: 'closed_night' }] }, // 궁정 줄기(closed_court)와 따로 — 밤의 궁정 줄기가 닫히면
     title: '피의 대관식',
     requires: [`왕좌가 빈 뒤 ${WS.data.config.campaignDays}일째 밤 대관식 때 밤의 궁정 사절 편에 서 있었음 (백작 저택이 그 전에 함락되지 않음)`, "그리고 그때까지 밤의 궁정 세력이 크게(22 이상) 자라 있었음 — 편들기만으로는 모자라고 그들에게 물건을 대 주거나 궁정의 부탁을 들어줘야 함", "(성수를 쌓아 두거나 섭정과 가까이 지냈다면 결말 글이 달라짐)"],
     text: '새 섭정은 낮에 나타나지 않는다. 궁정 연회는 해가 진 뒤에 열리고, 은 식기는 모두 녹여 종으로 만들었다. 수도는 이상하게 평화롭다. 도둑도 전쟁도 줄었다. 매달 한 번, 누군가 조용히 사라질 뿐이다. 사냥꾼들이 무너진 뒤로, 이 도시에서 성수를 찾는 사람은 없다.',
@@ -256,9 +263,9 @@ WS.data.endings = [
   {
     id: 'opportunist',
     // 궁정 다툼: 두건 쓴 청년(왕자)과 베일 쓴 수녀(공주) 모두에게 몰래 팔았고 결판이 났을 때 — 전쟁 양쪽에 판 「박쥐」와는 다른 결말
-    when: { all: [{ noFlag: 'closed_court' }, { any: [{ flag: 'court_decided' }, { flag: 'crowned' }] }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }] },
+    when: { all: [{ noFlag: 'closed_court' }, { any: [{ flag: 'court_decided' }, { flag: 'crowned' }] }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { backing: 'both' }] },
     title: '기회주의자',
-    requires: ["궁정 다툼 때 두건 쓴 청년과 베일 쓴 수녀 양쪽에 몰래 무기와 물약을 팖", `왕좌의 주인이 가려짐 (${WS.data.config.campaignDays}일째 밤 대관식 — 누가 왕관을 썼느냐에 따라 결말 글이 갈림)`],
+    requires: ["공위 기간에 두 후계자 양쪽을 비슷하게 밀었음 (적은 쪽이 많은 쪽의 6할 이상, 또는 25일 밀리는 쪽의 동맹에 들어감 — 두건 쓴 청년의 활, 베일 쓴 수녀의 물약)", `왕좌의 주인이 가려짐 (${WS.data.config.campaignDays}일째 밤 대관식 — 누가 왕관을 썼느냐에 따라 결말 글이 갈림)`],
     text: '왕좌의 주인은 가려졌다. 대관식 날, 새 군주는 두건 쓴 청년과 베일 쓴 수녀가 같은 무기점에서 장을 봤다는 보고서를 받았다. 당신은 처벌받지 않았다. 다만 궁정의 어느 문도 당신에게 다시 열리지 않았고, 두 사람 중 누구도 당신 이름을 입에 올리지 않는다.',
     // 대관식(events.js coronation)에서 누가 왕관을 썼나 — 알드릭판 / 세레나판
     variants: [
@@ -277,7 +284,7 @@ WS.data.endings = [
     // 마왕군 전쟁: 마왕군 편(동맹 · 마왕군 무기 12+ 이면서 왕국과 3:7 이상) + 인간 편(왕국 무기 20+ · 대성당 무기 10+ · 성기사단 무장)
     // 고블린 전쟁: 고블린에 무기 30+ · 왕국에 무기 30+ · 둘 중 적은 쪽이 합의 40% 이상 (의도가 있어야 — 그냥 손님을 가리지 않고 판 중립 상인은 「중립 상인」)
     id: 'double_dealer',
-    when: { any: [
+    when: { all: [{ noFlag: 'closed_double' }, { any: [
       { all: [
         { any: [{ flag: 'demonlord_victory' }, { flag: 'demonlord_repelled' }] },
         { any: [{ flag: 'demonlord_pact' }, { soldShare: { a: { faction: 'demonlord', tag: 'weapon', min: 12 }, b: { faction: 'kingdom', tag: 'weapon', min: 20 }, share: 0.3 } }] },
@@ -288,7 +295,7 @@ WS.data.endings = [
         { any: [{ flag: 'goblin_victory' }, { flag: 'kingdom_victory' }] },
         { soldShare: { a: { faction: 'goblin', tag: 'weapon', min: 30 }, b: { faction: 'kingdom', tag: 'weapon', min: 30 }, share: 0.4 } },
       ] },
-    ] },
+    ] }] },
     title: '박쥐',
     requires: ["전쟁 중인 양쪽(고블린·왕국, 마왕군·왕국)에 무기를 상당량, 그리고 고르게 팜 (한쪽이 3할~4할 이상 — 고블린 전쟁은 각 30자루 이상)", "전쟁의 승패가 가려짐"],
     text: '전쟁은 끝났다. 이긴 쪽도 진 쪽도 당신 가게의 각인이 찍힌 칼을 들고 있었다. 양쪽 모두 그 사실을 알고 있다.',
