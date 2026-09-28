@@ -228,6 +228,8 @@ WS.sys.Progress = (() => {
     const E = early();
     const day = S().day;
     const kind = tpl.kind || 'buy';
+    // 튜토리얼 기간(storyFromDay 전)엔 이야기 손님을 들이지 않는다 — 그날로 정해 둔 고정 손님(spawn.day)과 spawn.early 만 예외
+    if (E.storyFromDay && day < E.storyFromDay && !(tpl.spawn && (tpl.spawn.day === day || tpl.spawn.early))) return 'story_day';
     if (day <= E.plainUntilDay && kind !== 'buy') return 'plain_days';
     if ((kind === 'trade' || kind === 'sell') && day < E.tradeFromDay) return 'trade_day';
     const disguised = (tpl.trueFaction && tpl.trueFaction !== tpl.faction) || !!tpl.docCheck;

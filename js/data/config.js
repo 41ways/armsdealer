@@ -1,27 +1,28 @@
 // 게임 전역 설정과 세계 상태 변수 정의 (데이터)
 WS.data.config = {
-  version: 'v0.9.2',   // 우상단에 항상 표시 — 배포할 때 올린다
+  version: 'v0.9.3',   // 우상단에 항상 표시 — 배포할 때 올린다
   title: 'Next!',
   startGold: 300,
   rent: 20,
   // 날짜별 기본 임대료 — 가게가 자리 잡을수록 오른다. 3단계 QA: 10/15/20 은 하루 이문(≈130G)의 1할이라 자연스러운 플레이어는 250판 중 1판만 망했다 → 30/45/80/100
+  // v0.9.3 (30일 캠페인): from 은 실제 날짜다 (이야기일 아님 — DayManager.baseRent). 예고 기사는 전날 (events.js rent_notice_*)
+  //   30일 판: 30 / 45(11일~) / 70(21일~). 40일 판의 100(31일~) 단계는 없다 (design/qa_report_4.md)
   rentSchedule: [
     { from: 1, rent: 30 },
     { from: 11, rent: 45 },
-    { from: 21, rent: 80 },
-    { from: 31, rent: 100 },
+    { from: 21, rent: 70 },
   ],
   shopSlots: 20,
   storageExpand: { steps: [{ cost: 250, slots: 10 }, { cost: 400, slots: 10 }, { cost: 600, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (20+30)칸 × 24 = 1200. v0.9.2: 300/500/700 → 250/400/600 (design/qa_report_4.md)
   slotVolume: 24, // 창고 한 칸의 부피. 물건 1개의 부피 = slotVolume ÷ stack (창고 용량 = shopSlots × slotVolume)
-  campaignDays: 40, // 4막 구조 (1~10 개점 / 11~22 확장 / 23~32 격변 / 33~40 결산). 1~20일 콘텐츠는 그대로 둔다
-  // 이야기 날짜 보정 (기본 없음 = 40일 그대로). 캠페인을 줄일 때만 쓴다: [[실제일, 이야기일], ...] — "N일 이후" 조건·임대료 단계가 이야기일 기준이 된다.
-  // 예) campaignDays: 35 + dayWarp: [[25, 25], [35, 40]] → 26~35일이 이야기상 26.5~40일. tools/sim_lib.js 는 환경변수 WS_CFG='{"campaignDays":35,...}' 로 덮어쓴다.
+  campaignDays: 30, // v0.9.3: 40 → 30일. 결말은 30일째 밤이 지난 뒤(= "31일째") 판정. 이야기 날짜는 아래 campaignPresets[30] 의 dayWarp 로 40일 눈금을 그대로 쓴다
+  // 이야기 날짜 보정: [[실제일, 이야기일], ...] — 조건 DSL 의 { day } 와 세계 변수의 밤 변화가 이야기일(옛 40일 눈금) 기준이 된다 (Conditions.eday).
+  // 기본값은 프리셋(campaignPresets[campaignDays])이 채운다. 실제 날짜 ↔ 이야기 날짜 표는 js/data/progress.js 맨 위 주석.
   dayWarp: null,
   dayWarpWorld: true, // dayWarp 가 있을 때 세계 변수의 밤 변화도 이야기일 수만큼 되풀이한다 (false 면 조건 날짜만 앞당김)
   openTime: 9 * 60,
   closeTime: 18 * 60,
-  customersPerDay: [4, 6],
+  customersPerDay: [5, 7], // v0.9.3: [4, 6] → [5, 7]. 1~8일은 progress.js early.customersPerDay 가 정한다 (그 뒤 9일째부터 이 값)
   maxEventsPerNight: 5,
   wholesaleSellRate: 0.5, // 도매상 처분 시 매입가 대비 비율
   // 창고 자리(items.js shelf)별 처분 비율 — 보석·잠긴 궤짝 물건은 되팔 때 덜 깎인다 (그래도 100% 미만이라 사서 곧장 되파는 차익은 없다)
@@ -36,6 +37,11 @@ WS.data.config = {
     { when: { flag: 'queen_serena' }, mult: 0.8 },         // 새 여왕의 상업 장려책
     { when: { all: [{ flag: 'pin_hired' }, { noFlag: 'pin_gone' }] }, mult: 1.2 }, // 견습생 핀의 하루 삯 = 기본 임대료의 2할 (원래 4G — 임대료가 오른 만큼 6~20G, js/data/stories.js)
   ],
+  // 은화 저울 상회 — 가게를 살 때 진 빚 (js/data/stories.js ③). days: 할부 수금일(실제 날짜) · amounts: 할부 금액 · finalDay: 밀린 빚 잔금 청산일 · late: 미룰 때 붙는 이자.
+  // v0.9.3: 40일 판 6·12·18·26일 80·110·140·170G(500G) / 34일 청산 / 이자 30 → 8·13·18·23일 70·100·120·150G(440G) / 29일 청산 / 이자 20 (tools/sim.js 도 이 값을 읽는다)
+  silverScale: { days: [8, 13, 18, 23], amounts: [70, 100, 120, 150], finalDay: 29, late: 20 },
+  // 오벨의 보석(루비 1 · 진주 2)을 쥐수염에게 내줬을 때 물어 줄 값 — 도맷값(원가 135 + 80×2 = 295)쯤 (시세로는 480G). customers.js obel_return
+  obelLoss: 300,
   // 도매가 보정
   costMods: [
     { when: {}, mult: 1.25 },                               // 3단계 QA: 도매 원가 전반 +25% — 초반(5일 300→900G)이 너무 후해서
@@ -57,10 +63,10 @@ WS.data.config = {
   //      → "무기 가격 폭등!" 무기 도매가 fallSpike.mult 배로 도매상 fallSpike.days 번 → "무기 가격 안정화!" (events.js dwarf_prices_settle)
   //   ④ ②를 지켰고 왕국이 무너졌으면 안정화 finalAfter 일 뒤(0 = 그날) 티타니엘의 마지막 부탁 — 사흘 무기를 아무에게도 팔거나 바꾸지 않기 → forest_remembers
   fairyDwarf: {
-    firstVisit: [6, 8],   // 첫 방문 날 (이 사이 하루 — 광석 궤짝은 5일째에 열린다)
-    secondVisit: 15,
-    pleaDay: 16,          // "내일이라도 다시 오겠소" → 이튿날(17일) 한 번 더
-    pleaOre: 30,          // 5일째 열리는 광석 궤짝(progress.js)은 20개 — 나머지는 전령이 오기 전에 사 두어야 한다 (14일부터 나흘 도매상 철광석이 동난다: events.js ore_run_begins)
+    firstVisit: [6, 8],   // 첫 방문 날 — 이야기일. firstVisit[0]−1(이야기 5일 = 실제 5일) 새벽에 실제 1~3일 뒤로 예약 → 실제 6~8일
+    secondVisit: 15,      // 이야기일 15~16 (실제 11~12일) 가운데 첫 약속을 지킨 뒤 처음 오는 날 (customers.js fairy_envoy_return)
+    pleaDay: 12,          // 실제 날짜 (customers.js dwarf_herald spawn.day — 옛 40일 판의 16일). "내일이라도 다시 오겠소" → 이튿날(13일) 한 번 더
+    pleaOre: 30,          // 2일째 열리는 광석 궤짝(progress.js)은 30개인데 4일째 브론이 20개를 사 간다 — 나머지는 전령이 오기 전에 사 두어야 한다 (이야기 14일 = 실제 11일부터 나흘 도매상 철광석이 동난다: events.js ore_run_begins)
     fallSpike: { mult: 2, days: 3 }, // 무너진 이튿날부터 도매상 days 번 동안 무기 도매가 ×mult, 그 뒤 원래대로
     finalAfter: 0,        // 무기값이 안정된 날로부터 며칠 뒤
     finalDust: 2,         // 마지막 약속에 두고 가는 요정 가루
@@ -83,7 +89,7 @@ WS.data.config = {
   // 덤(요구 밖 물건을 얹어 줌: 시세 합 ≤ 원래 값 × giftCap) 이나 「그냥 가져가시오」(값 면제)로 호의를 보이면 소속 세력 우호도가 오르고,
   // 며칠 뒤 감사 손님(customers.js grateful_visit)이 작은 보답을 하러 온다 (한 틀에 한 번 — flag grate_<틀>). TransactionManager.gift / forgive
   poor: {
-    chance: 0.12, minDay: 3, offerRange: [0.55, 0.75], giftCap: 2, giftMin: 40, // 덤 시세 합의 상한 = max(원래 값 x giftCap, giftMin)
+    chance: 0.12, minDay: 5, offerRange: [0.55, 0.75], giftCap: 2, giftMin: 40, // 덤 시세 합의 상한 = max(원래 값 x giftCap, giftMin)
     archs: { v_hunter: 'yo', v_oath_folk: 'yo', k_adventurer: 'yo', k_soldier: 'hao', k_soldier2: 'hao', tv_pilgrim: 'hao' }, // 틀 id → 말투 (voice_guide: 마을·모험가 해요체 / 병사·순례자 하오체)
     favor: { gift: 1, giftBig: 2, bigRatio: 0.5, forgive: 2, rep: 1 }, // giftBig: 덤 시세가 원래 값의 bigRatio 배 이상
     greet: {
@@ -391,11 +397,19 @@ WS.data.rumors = [
 WS.data.relationWords = [[-15, '적대'], [-5, '냉담'], [5, '중립'], [15, '우호'], [999, '신뢰']];
 
 // ───────── 캠페인 길이 프리셋 ─────────
-// campaignDays 를 프리셋이 있는 값(35)으로 바꾸면 그 프리셋이 config 에 깊이 합쳐진다 (객체는 합치고 배열·숫자는 덮어쓴다). 40(기본)에는 프리셋이 없어 아무 일도 안 한다.
-// 이 파일이 맨 앞에 읽히므로 이후의 데이터 파일들(events.js · endings.js …)이 프리셋이 적용된 config 를 본다. 자세한 근거: design/campaign_35.md
+// campaignDays 에 맞는 프리셋이 config 에 깊이 합쳐진다 (객체는 합치고 배열·숫자는 덮어쓴다). 40 에는 프리셋이 없다 (dayWarp 없음 = 실제일 = 이야기일).
+// 이 파일이 맨 앞에 읽히므로 이후의 데이터 파일들(events.js · endings.js …)이 프리셋이 적용된 config 를 본다.
+// 30(기본, v0.9.3): 1~4일 튜토리얼 · 5일부터 이야기. 표는 js/data/progress.js 맨 위 주석, 근거는 design/qa_report_4.md.
 WS.data.campaignPresets = {
+  30: {
+    dayWarp: [[4, 4], [9, 12], [18, 24], [27, 36], [30, 40]], // 1~4일 그대로 · 5~9일 → 이야기 6~12일 · 10~18일 → 13~24일 · 19~27일 → 25~36일 · 28~30일 → 37~40일
+    dayWarpWorld: true,
+    // 밀수왕 · 완벽한 장부: 35일 프리셋과 같은 완화 (짐 셋을 더 짧은 날 안에 · 칭찬받을 일을 만날 날이 줄어든 만큼)
+    smuggling: { unlock: { blackmarket: 10, rel_bandit: 2 }, retryDays: 2, returnDays: [1, 1], batch: { total: [4, 4] } },
+    ledgerIntegrity: 14,
+  },
   35: {
-    dayWarp: [[25, 25], [35, 40]], // 26~35일이 이야기상 27~40일 — "N일 이후" 조건 · 임대료 단계 · 세계 변수의 밤 변화가 이야기일 기준 (dayWarpWorld)
+    dayWarp: [[25, 25], [35, 40]], // 26~35일이 이야기상 27~40일 — "N일 이후" 조건 · 세계 변수의 밤 변화가 이야기일 기준 (dayWarpWorld). (옛 40일 튜토리얼 기준 — 30일 판의 튜토리얼과는 맞지 않는다)
     dayWarpWorld: true,
     // 밀수왕: 세 짐을 5일 안에 더 빨리 — 장물아비가 3일 일찍(암시장 12→10 · 도적단 3→2) 오고, 짐은 4개(칼·활·방패·물약 하나씩), 비면 이튿날 새 짐 (40일 31% → 35일 원안 12% → 27%)
     smuggling: { unlock: { blackmarket: 10, rel_bandit: 2 }, retryDays: 2, returnDays: [1, 1], batch: { total: [4, 4] } },
@@ -412,3 +426,21 @@ WS.data.applyCampaignPreset = () => {
   if (P) merge(C, P);
 };
 WS.data.applyCampaignPreset();
+
+// ───────── 실제 날짜 ↔ 이야기 날짜 (config.dayWarp) ─────────
+// storyDay(실제일): 그날의 이야기일 (옛 40일 눈금). 마디 사이는 직선으로 이어 반올림, 첫 마디 앞은 그대로, 마지막 마디 뒤는 기울기 1.
+//   Conditions.eday 가 이것을 쓴다. 조건 { day: N } 은 "오늘이 덮는 이야기일 (storyDay(어제), storyDay(오늘)] 에 N 이 있는가" (Conditions.js).
+// realDay(이야기일): 그 이야기일을 처음 덮는 실제 날짜 — 플레이어에게 보이는 글(엔딩 조건 · 수금 일정)에 날짜를 적을 때 쓴다.
+WS.data.storyDay = real => {
+  const w = WS.data.config.dayWarp;
+  if (!w || !w.length || real <= w[0][0]) return real;
+  for (let i = 1; i < w.length; i++) {
+    if (real <= w[i][0]) { const a = w[i - 1], b = w[i]; return Math.round(a[1] + (real - a[0]) * (b[1] - a[1]) / (b[0] - a[0])); }
+  }
+  const l = w[w.length - 1];
+  return l[1] + (real - l[0]);
+};
+WS.data.realDay = story => {
+  for (let r = 1; r < 200; r++) if (WS.data.storyDay(r) >= story) return r;
+  return story;
+};

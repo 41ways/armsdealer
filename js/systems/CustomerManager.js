@@ -448,13 +448,17 @@ WS.sys.Customers = (() => {
     // early.tutorialDayStory 명까지만, 다른 날은 밀린 손님을 early.backlogPerDay 명까지만 들이고 나머지는 또 하루 미룬다.
     const E = G().early();
     const postponed = [];
-    const storyCap = tutorials.length && st.day !== 1 ? (E.tutorialDayStory ?? Infinity) : Infinity;
+    // 튜토리얼이 끝난 뒤 며칠(early.storyPerDay: { 날짜: 명 })도 이야기 손님이 한꺼번에 몰리지 않게 — 넘치면 하루 미룬다.
+    // spawn.pinned: true 인 손님(쥐수염 · 오벨 · 수금원 — 날짜가 약속된 손님)은 이 상한을 받지 않는다 (수에는 든다)
+    const dayCap = (E.storyPerDay || {})[st.day] ?? Infinity;
+    const storyCap = Math.min(tutorials.length && st.day !== 1 ? (E.tutorialDayStory ?? Infinity) : Infinity, dayCap);
     const backlogCap = E.backlogPerDay ?? Infinity;
     let story = 0, backlog = 0;
     const admit = (t, held) => {
       const later = () => (postponed.push({ customer: t.id, day: st.day + 1, held: true }), false);
       if (G().blockReason(t)) return later();
-      if (story >= storyCap || (held && backlog >= backlogCap)) return later();
+      const pinned = !!(t.spawn && t.spawn.pinned);
+      if (!pinned && (story >= storyCap || (held && backlog >= backlogCap))) return later();
       story++;
       if (held) backlog++;
       return true;
@@ -500,10 +504,13 @@ WS.sys.Customers = (() => {
     const cal = WS.sys.Calendar, live = st.day > 1 && !G().isPlainDay(), calBonus = cal && live ? cal.crowdBonus() : 0;
     // 간판을 새로 단 가게는 하루 손님이 늘어난다 (data/shop.js sign.customers)
     const bonus = calBonus + (live && WS.sys.Shop ? WS.sys.Shop.signCustomers() : 0), prefer = calBonus ? cal.crowdFac() : null;
-    const target = st.day === 1 ? returners.length + fixed.length + extra.length
-      : Math.max(U.randInt(...perDay) + bonus, returners.length + fixed.length + extra.length);
+    // early.storyOnTop: [첫날, 끝날] — 튜토리얼 직후 며칠은 이야기 손님이 하루 손님 수를 잡아먹지 않고 그 위에 더해진다
+    //   (옛 40일 판의 5~11일 이야기가 5~8일에 몰려, 물건을 사는 손님이 한두 명뿐인 날이 생겼다)
+    const onTop = E.storyOnTop && st.day >= E.storyOnTop[0] && st.day <= E.storyOnTop[1];
+    const counted = returners.length + (onTop ? 0 : fixed.length + extra.length);
+    const target = st.day === 1 ? counted : Math.max(U.randInt(...perDay) + bonus, counted);
     const randoms = [];
-    while (returners.length + fixed.length + extra.length + randoms.length < target) randoms.push(randomCustomer(prefer));
+    while (counted + randoms.length < target) randoms.push(randomCustomer(prefer));
 
     // 해가 진 뒤에만 오는 손님(late)은 맨 뒤로
     const mixed = U.shuffle(extra.concat(randoms));

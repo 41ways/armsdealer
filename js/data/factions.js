@@ -3,7 +3,8 @@
 // perUnit[category]: 해당 분류 물건 1개(× item.impact) 판매 시 세계 변수 변화
 // perDeal: 거래 1건당 변화 (sell / refuse / trade — trade 가 없으면 sell 을 쓴다)
 // visit: 방문 가중치 = base + 관계 × relScale + Σ(scaleVars 변수 × 배율) + Σ(bonus[].when 이 맞으면 add). 등장 가능한 archetype 이 없으면 오지 않는다
-// archetypes: 랜덤 손님 생성 틀. wants[].when 으로 조건부 요청 가능. minDay / when 으로 등장 시기 제한
+// archetypes: 랜덤 손님 생성 틀. wants[].when 으로 조건부 요청 가능. minDay(실제 날짜) / when 으로 등장 시기 제한
+//   v0.9.3 30일 캠페인: 튜토리얼(1~4일)엔 왕국·고블린·드워프·마을 손님만 — minDay 3·4 → 5, 5 → 6
 //   kind: 'trade' 인 틀은 wants 대신 trades: [{ w, give: {item, qty}, want: {item, qty}, gold, when }] 를 쓴다
 //   (give = 손님이 내놓는 것, want = 손님이 원하는 내 물건, gold = 손님이 얹는 웃돈. 음수면 내가 얹는다)
 WS.data.factions = {
@@ -58,14 +59,14 @@ WS.data.factions = {
         greet: ['부대 보급이오. {item} {qty}개, {offer}G.', '{item} {qty}개, {offer}G. 영수증은 꼭 써 주시오.'],
       },
       {
-        id: 'k_hero', look: 'hero', job: '견습 용사', portrait: '🤴', weight: 1, minDay: 3,
+        id: 'k_hero', look: 'hero', job: '견습 용사', portrait: '🤴', weight: 1, minDay: 5,
         names: ['아서', '레이나'],
         wants: [{ item: 'dwarf_steel_sword', w: 3, qty: [1, 1], when: { flag: 'dwarf_steel_unlocked' } }, { item: 'iron_sword', w: 1, qty: [1, 1] }, { item: 'shield', w: 1, qty: [1, 1] }],
         lines: { sold: ['와, 고마워요! 이걸로 오우거도 문제없어요!'], refused: ['에이… 다음에 또 올게요.'], partial: '있는 것만이라도 살게요!' },
         greet: ['오우거 잡으러 가요! {item} {qty}개, {offer}G요!', '용사 수련 중이에요. {item} {qty}개, {offer}G뿐인데…'],
       },
       {
-        id: 'k_mage', look: 'mage', job: '궁정 마법사', portrait: '🧙', weight: 1, minDay: 4,
+        id: 'k_mage', look: 'mage', job: '궁정 마법사', portrait: '🧙', weight: 1, minDay: 5,
         names: ['엘로웬', '마그누스', '티르'],
         wants: [
           { item: 'mana_crystal', w: 3, qty: [2, 4] }, { item: 'abyss_pearl', w: 1, qty: [1, 1] },
@@ -173,7 +174,7 @@ WS.data.factions = {
         greet: ['{item} {qty}개, {offer}G일세. 흥정은 안 하네. 허허.', '용광로가 식겠네. {item} {qty}개, {offer}G에 주게.'],
       },
       {
-        id: 'd_collector', look: 'dwarf', job: '광물 수집가', portrait: '🧔', weight: 1, minDay: 3, when: { noFlag: 'dwarf_fallen' },
+        id: 'd_collector', look: 'dwarf', job: '광물 수집가', portrait: '🧔', weight: 1, minDay: 5, when: { noFlag: 'dwarf_fallen' },
         names: ['노리', '글로인'],
         wants: [{ item: 'iron_ore', w: 3, qty: [20, 40] }, { item: 'iron_sword', w: 1, qty: [2, 3] }],
         lines: { sold: ['좋은 광석이네. 허허.'], refused: ['흠. 딴 데를 뒤져 보겠네.'], partial: '있는 만큼이라도 챙겨 가겠네.' },
@@ -252,7 +253,7 @@ WS.data.factions = {
     },
     archetypes: [
       {
-        id: 'dm_broker', look: 'stranger', job: '계약 중개인', portrait: '🌫️', weight: 3, minDay: 3, late: true,
+        id: 'dm_broker', look: 'stranger', job: '계약 중개인', portrait: '🌫️', weight: 3, minDay: 5, late: true,
         names: ['흐린 목소리', '젖은 장갑', '회색 외투', '등불 없는 이', '이름을 두고 온 이'],
         wants: [
           { item: 'potion', w: 4, qty: [3, 8] }, { item: 'mana_crystal', w: 3, qty: [2, 4] },
@@ -262,7 +263,7 @@ WS.data.factions = {
         greet: ['{item} {qty}개, {offer}G… 모자라면 다른 걸로 치르지. 기억 같은 걸로.', '얼굴은 보지 말게, 어차피 잊을 테니. {item} {qty}개, {offer}G.'],
       },
       {
-        id: 'dm_barterer', look: 'hooded', job: '안개 행상', portrait: '🌫️', weight: 3, minDay: 3, kind: 'trade', late: true,
+        id: 'dm_barterer', look: 'hooded', job: '안개 행상', portrait: '🌫️', weight: 3, minDay: 5, kind: 'trade', late: true,
         names: ['이름 모를 행상', '물기 어린 외투', '잿빛 장갑', '늦은 손님'],
         trades: [
           { w: 3, give: { item: 'mana_crystal', qty: [2, 4] }, want: { item: 'potion', qty: [4, 7] } },
@@ -338,7 +339,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_fairy: 2 }, trade: { rel_fairy: 2.5, fairy_grace: 0.5 }, refuse: { rel_fairy: -1 } },
     archetypes: [
       {
-        id: 'f_sprite', look: 'fairy', job: '숲의 요정', portrait: '🧚', weight: 3, minDay: 5,
+        id: 'f_sprite', look: 'fairy', job: '숲의 요정', portrait: '🧚', weight: 3, minDay: 6,
         when: { all: [{ eventFired: 'fairy_court_appears' }, { var: 'fairy_grace', gte: 14 }] },
         names: ['피오', '린들', '세이렌', '모스', '티티'],
         wants: [
@@ -350,7 +351,7 @@ WS.data.factions = {
         greet: ['{item} {qty}개예요! 금화 {offer}닢 줄게요. 오늘은 진짜예요.', '으, 쇠 냄새. 그래도 {item} {qty}개, {offer}G예요!', '깎기 놀이 할래요? {item} {qty}개에 {offer}G부터요!'],
       },
       {
-        id: 'f_barter', look: 'fairy', job: '이슬 행상', portrait: '🧚', weight: 2, minDay: 5, kind: 'trade',
+        id: 'f_barter', look: 'fairy', job: '이슬 행상', portrait: '🧚', weight: 2, minDay: 6, kind: 'trade',
         when: { all: [{ eventFired: 'fairy_court_appears' }, { var: 'fairy_grace', gte: 18 }] },
         names: ['방울', '나리', '엘린'],
         trades: [
@@ -392,7 +393,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_mage: 1.5 }, refuse: { rel_mage: -0.8 } },
     archetypes: [
       {
-        id: 'mg_scholar', look: 'guild_mage', job: '길드 연구원', portrait: '🧙', weight: 3, minDay: 4,
+        id: 'mg_scholar', look: 'guild_mage', job: '길드 연구원', portrait: '🧙', weight: 3, minDay: 5,
         names: ['아르카', '펠릭스', '노바', '이그니스', '루미'],
         wants: [
           { item: 'mana_crystal', w: 4, qty: [2, 5] }, { item: 'alchemy_reagent', w: 1, qty: [3, 5] },
@@ -407,7 +408,7 @@ WS.data.factions = {
         greet: ['{item}의 기운이 느껴지는군. {qty}개, {offer}G일세.', '{item} {qty}개, {offer}G. 영수증엔 "문구류"로 써 주게.'],
       },
       {
-        id: 'mg_apprentice', look: 'guild_mage', job: '견습 마법사', portrait: '🧙', weight: 2, minDay: 4,
+        id: 'mg_apprentice', look: 'guild_mage', job: '견습 마법사', portrait: '🧙', weight: 2, minDay: 5,
         names: ['토비', '에이미', '릭'],
         wants: [{ item: 'potion', w: 3, qty: [2, 4] }, { item: 'mana_crystal', w: 2, qty: [1, 2] }, { item: 'alchemy_reagent', w: 2, qty: [2, 3] }, { item: 'mana_potion', w: 3, qty: [2, 4] }],
         lines: { sold: ['고마워요! 스승님이 좋아하실 거예요.'], refused: ['으, 스승님께 혼나겠어요…'], partial: '있는 만큼이라도 주세요!' },
@@ -432,7 +433,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_merc: 1.5, blackmarket: 0.2 }, refuse: { rel_merc: -1 } },
     archetypes: [
       {
-        id: 'mc_sellsword', look: 'mercenary', job: '용병', portrait: '🐺', weight: 3, minDay: 5,
+        id: 'mc_sellsword', look: 'mercenary', job: '용병', portrait: '🐺', weight: 3, minDay: 6,
         when: { any: [{ flag: 'war' }, { flag: 'demon_war' }, { flag: 'civil_war' }, { var: 'border_tension', gte: 16 }, { var: 'invasion_risk', gte: 18 }, { var: 'merc_strength', gte: 12 }] },
         names: ['바르고', '레드', '실라', '곤', '말로'],
         wants: [
@@ -486,7 +487,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_hunter: 1.5, rel_village: 0.3 }, refuse: { rel_hunter: -1 } },
     archetypes: [
       {
-        id: 'ht_tracker', look: 'lodge_hunter', job: '조합 사냥꾼', portrait: '🏹', weight: 3, minDay: 3,
+        id: 'ht_tracker', look: 'lodge_hunter', job: '조합 사냥꾼', portrait: '🏹', weight: 3, minDay: 5,
         when: { any: [{ var: 'monster_pop', gte: 38 }, { flag: 'vampire_known' }, { var: 'undead_power', gte: 12 }] },
         names: ['쥬드', '카산드라', '올릭', '벤', '레아'],
         wants: [
@@ -501,7 +502,7 @@ WS.data.factions = {
         greet: ['현상금이 올랐소. {item} {qty}개, {offer}G. 서두르시오.', '{item} {qty}개, {offer}G. 밤 사냥감은… 사람 얼굴이오.'],
       },
       {
-        id: 'ht_trophy', look: 'lodge_hunter', job: '전리품 사냥꾼', portrait: '🏹', weight: 1, minDay: 5, kind: 'sell',
+        id: 'ht_trophy', look: 'lodge_hunter', job: '전리품 사냥꾼', portrait: '🏹', weight: 1, minDay: 6, kind: 'sell',
         when: { any: [{ var: 'monster_pop', gte: 36 }, { flag: 'dragon_slain' }, { var: 'undead_power', gte: 15 }] },
         names: ['브랜트', '미샤'],
         offers: [
@@ -580,7 +581,7 @@ WS.data.factions = {
     },
     archetypes: [
       {
-        id: 'ud_acolyte', look: 'necromancer', job: '교단 복사', portrait: '☠️', race: '인간', weight: 3, minDay: 5, late: true,
+        id: 'ud_acolyte', look: 'necromancer', job: '교단 복사', portrait: '☠️', race: '인간', weight: 3, minDay: 6, late: true,
         when: { any: [{ var: 'undead_power', gte: 12 }, { flag: 'graves_opened' }] },
         names: ['모라크', '셀라', '그레이브', '노스'],
         wants: [
@@ -662,7 +663,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_guild: 1, economy: 0.3 }, buy: { rel_guild: 0.8, guild_grip: 0.3 }, refuse: { rel_guild: -0.5 } },
     archetypes: [
       {
-        id: 'gd_broker', look: 'guild_merchant', job: '길드 중개인', portrait: '💼', weight: 3, minDay: 3,
+        id: 'gd_broker', look: 'guild_merchant', job: '길드 중개인', portrait: '💼', weight: 3, minDay: 5,
         names: ['오르신', '데보라', '클라우스', '핌'],
         wants: [
           { item: 'iron_ore', w: 4, qty: [15, 30] }, { item: 'potion', w: 2, qty: [5, 10] },
@@ -675,7 +676,7 @@ WS.data.factions = {
         greet: ['길드 도매가요. {item} {qty}개, {offer}G. 꾸준히 사지요.', '{item} {qty}개, {offer}G부터. 흥정은 길드의 예절이오.'],
       },
       {
-        id: 'gd_supplier', look: 'guild_merchant', job: '길드 납품업자', portrait: '💼', weight: 2, minDay: 4, kind: 'sell',
+        id: 'gd_supplier', look: 'guild_merchant', job: '길드 납품업자', portrait: '💼', weight: 2, minDay: 5, kind: 'sell',
         names: ['마티아스', '훌다'],
         offers: [
           { w: 3, item: 'potion', qty: [6, 10], price: 0.8 }, { w: 2, item: 'iron_ore', qty: [15, 25], price: 0.8 },
@@ -704,7 +705,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_church: 1.5, reputation: 1, kingdom_morale: 0.3 }, refuse: { rel_church: -1.5, reputation: -0.3 } },
     archetypes: [
       {
-        id: 'ch_priest', look: 'priest', job: '대성당 사제', portrait: '⛪', weight: 3, minDay: 4,
+        id: 'ch_priest', look: 'priest', job: '대성당 사제', portrait: '⛪', weight: 3, minDay: 5,
         when: { any: [{ var: 'church_authority', gte: 27 }, { var: 'demon_influence', gte: 10 }, { var: 'undead_power', gte: 10 }, { var: 'monster_pop', gte: 36 }, { flag: 'war' }, { flag: 'succession_crisis' }] },
         names: ['베네딕트', '아그네스', '요한', '클라라'],
         wants: [
@@ -816,7 +817,7 @@ WS.data.factions = {
     },
     archetypes: [
       {
-        id: 'bd_cutthroat', look: 'bandit', job: '두건 쓴 사내', portrait: '🗡️', weight: 3, minDay: 4,
+        id: 'bd_cutthroat', look: 'bandit', job: '두건 쓴 사내', portrait: '🗡️', weight: 3, minDay: 5,
         when: { any: [{ var: 'bandit_power', gte: 11 }, { var: 'trade_routes', lt: 42 }, { var: 'economy', lt: 45 }, { flag: 'village_fell' }] },
         names: ['까마귀', '외팔이', '토끼', '녹슨칼'],
         wants: [
@@ -828,7 +829,7 @@ WS.data.factions = {
         greet: ['{item} {qty}개, {offer}G. 팔 거지? 요즘 밤길 험하던데.', '(복면 속 웃음) {item} {qty}개, {offer}G. 가게 오래 가야지.'],
       },
       {
-        id: 'bd_loot', look: 'bandit', job: '약탈품 짐꾼', portrait: '🗡️', weight: 2, minDay: 5, kind: 'trade',
+        id: 'bd_loot', look: 'bandit', job: '약탈품 짐꾼', portrait: '🗡️', weight: 2, minDay: 6, kind: 'trade',
         when: { any: [{ var: 'bandit_power', gte: 13 }, { var: 'rel_bandit', gte: 4 }] },
         names: ['자루', '짝귀'],
         trades: [
@@ -840,7 +841,7 @@ WS.data.factions = {
         greet: ['"주운" {give} {giveQty}개. 네 {want} {wantQty}개랑 바꾸자.'],
       },
       {
-        id: 'sy_buyer', look: 'fence', job: '뒷골목 매입꾼', portrait: '🕶️', weight: 3, minDay: 4,
+        id: 'sy_buyer', look: 'fence', job: '뒷골목 매입꾼', portrait: '🕶️', weight: 3, minDay: 5,
         when: { any: [{ var: 'blackmarket', gte: 14 }, { flag: 'bribed_inspector' }, { var: 'rel_bandit', gte: 3 }] },
         names: ['쥐', '반장', '미소', '장갑'],
         wants: [
@@ -855,7 +856,7 @@ WS.data.factions = {
         greet: ['{item} {qty}개, {offer}G. 어디 쓰냐고 묻지 마.', '뭐든 사. {item} {qty}개, {offer}G. 장부엔 안 적어도 돼.'],
       },
       {
-        id: 'sy_fence', look: 'fence', job: '장물아비', portrait: '🕶️', weight: 2, minDay: 4, kind: 'sell',
+        id: 'sy_fence', look: 'fence', job: '장물아비', portrait: '🕶️', weight: 2, minDay: 5, kind: 'sell',
         when: { any: [{ var: 'blackmarket', gte: 16 }, { var: 'rel_bandit', gte: 4 }] },
         names: ['손가락', '먼지', '할멈'],
         offers: [
@@ -987,7 +988,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_alchemist: 1.5 }, buy: { rel_alchemist: 0.5 }, refuse: { rel_alchemist: -0.8 } },
     archetypes: [
       {
-        id: 'al_researcher', look: 'alchemist', job: '연금술사', portrait: '⚗️', weight: 3, minDay: 4,
+        id: 'al_researcher', look: 'alchemist', job: '연금술사', portrait: '⚗️', weight: 3, minDay: 5,
         when: { any: [{ var: 'arcane_power', gte: 14 }, { has: { item: 'alchemy_reagent', min: 3 } }, { has: { item: 'bone_dust' } }, { has: { item: 'fairy_dust' } }] },
         names: ['테오프라', '파라셀', '니콜라', '마리아'], // 케셀은 따로 오는 손님 (customers.js alchemist_kessel)
         wants: [
@@ -1001,7 +1002,7 @@ WS.data.factions = {
         greet: ['{item} {qty}개! {offer}G! 오늘 실험은 성공할 걸세.', '{item} {qty}개, {offer}G. 뭘 만들지는 나도 모른다네.'],
       },
       {
-        id: 'al_peddler', look: 'alchemist', job: '물약 행상', portrait: '⚗️', weight: 2, minDay: 5, kind: 'sell',
+        id: 'al_peddler', look: 'alchemist', job: '물약 행상', portrait: '⚗️', weight: 2, minDay: 6, kind: 'sell',
         when: { any: [{ var: 'alchemy_progress', gte: 9 }, { var: 'monster_pop', gte: 36 }, { flag: 'war' }] },
         names: ['탈리아', '보리스'],
         offers: [
@@ -1063,7 +1064,7 @@ WS.data.factions = {
     perDeal: { sell: { rel_traveler: 1.5, trade_routes: 0.3 }, buy: { rel_traveler: 1, economy: 0.2 }, refuse: { rel_traveler: -0.5 } },
     archetypes: [
       {
-        id: 'tv_pilgrim', look: 'traveler', job: '순례자', portrait: '🧳', weight: 3, minDay: 4,
+        id: 'tv_pilgrim', look: 'traveler', job: '순례자', portrait: '🧳', weight: 3, minDay: 5,
         when: { var: 'trade_routes', gte: 45 },
         names: ['사이다', '하산', '마르코', '이븐'],
         wants: [{ item: 'potion', w: 3, qty: [2, 4] }, { item: 'bow', w: 1, qty: [1, 1] }, { item: 'iron_sword', w: 1, qty: [1, 1] }, { item: 'holy_water', w: 1, qty: [1, 3] },
@@ -1073,7 +1074,7 @@ WS.data.factions = {
         greet: ['사막을 건너왔소. {item} {qty}개, {offer}G. 이야기는 덤이오.', '{item} {qty}개, {offer}G. 길에서 들은 얘기, 들어 보겠소?'],
       },
       {
-        id: 'tv_peddler', look: 'traveler', job: '이국 행상', portrait: '🧳', weight: 2, minDay: 4, kind: 'sell',
+        id: 'tv_peddler', look: 'traveler', job: '이국 행상', portrait: '🧳', weight: 2, minDay: 5, kind: 'sell',
         when: { var: 'trade_routes', gte: 45 },
         names: ['자파르', '린', '오마르'],
         offers: [

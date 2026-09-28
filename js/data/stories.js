@@ -1,3 +1,5 @@
+// v0.9.3: 30일 캠페인. 이 머리말의 날짜는 옛 40일 눈금(이야기일)이다 — 조건 { day } 도 이야기일. spawn.day 와 수금일(DEBT_DAYS)만 실제 날짜.
+//   실제 ↔ 이야기 날짜 표는 js/data/progress.js 맨 위.
 // 인물 이야기 네 편 — 같은 얼굴이 몇 번이고 다시 찾아오고, 그때 한 선택이 나중 얼굴·편지·신문·엔딩에 드러난다.
 // (Papers, Please 의 단골들처럼.) 데이터만 — 손님은 WS.data.customers, 사건은 WS.data.events 에 덧붙인다.
 // 이 파일은 customers.js · events.js · news.js · letters.js · config.js 뒤에 읽혀야 한다 (index.html 데이터 칸).
@@ -28,8 +30,8 @@
 //    결말: 가게 후계(pin_heir → 엔딩 pin_heir) · 대장장이 · 병사 · 도둑 · 행방불명
 //    하루 삯은 기본 임대료의 2할(원래 4G)로 임대료에 붙는다 (config.js rentMods). 대신 사흘마다 심부름 삯 8G · 평판 +1
 //
-// ③ 은화 저울 상회 — 가게를 살 때 진 빚 500G
-//    수금 6·12·18·26일 (80 · 110 · 140 · 170G) → 밀린 게 있으면 34일 잔금 청산
+// ③ 은화 저울 상회 — 가게를 살 때 진 빚 (v0.9.3: 440G — config.silverScale)
+//    수금 8·13·18·23일 (70 · 100 · 120 · 150G, 이자 20G) → 밀린 게 있으면 29일 잔금 청산 (v0.9.3 실제 날짜 — config.silverScale. 40일 판은 6·12·18·26일 80·110·140·170G, 34일, 이자 30G)
 //    평범한 대부업자(상인 길드 쪽)다. 뒷골목과 얽힌 데는 없다.
 //    선택: 낸다(밀린 것까지 한꺼번에 내면 경고가 지워진다) / 이번 것만 / 손님 장부·독병으로 낸다(그 할부 대신)
 //          / 다음에(이자 30G, 경고 +1) / 내쫓는다(이자 30G, 경고 +2, 이튿날 밤 유리창이 깨진다)
@@ -53,7 +55,8 @@
 
   const gobWeapons = min => ({ sold: { faction: 'goblin', tag: 'weapon', min } });
   // 9일째부터 고블린에게 칼을 한 자루라도 (교환 포함) — 레온의 단장길이 닫힌다
-  const gobBladeLate = { sold: { faction: 'goblin', tag: 'blade', fromDay: 9, trades: true } };
+  // (fromDay 는 장부의 실제 날짜 — 레온이 경고하러 오는 날(이야기 8일을 처음 덮는 날 = 실제 7일)의 이튿날부터)
+  const gobBladeLate = { sold: { faction: 'goblin', tag: 'blade', fromDay: WS.data.realDay(8) + 1, trades: true } };
   // 레온과 계약서를 쓴 뒤의 고블린 거래 (종류 불문 — Conditions dealt)
   const gobDealAfterContract = { dealt: { faction: 'goblin', after: { tpl: 'leon_commander_visit', action: 'sign' } } };
   const contractLive = [{ flag: 'leon_contract' }, { noFlag: 'leon_contract_broken' }];
@@ -258,7 +261,7 @@
   C.push(
     {
       id: 'pin_hire', look: 'pin', name: '핀', race: '인간', job: '떠돌이 고아', faction: 'village', portrait: '🧒', kind: 'talk',
-      spawn: { day: 4, order: 1 },
+      spawn: { day: 5, order: 1 }, // 실제 날짜 — 튜토리얼(1~4일)이 끝난 첫날
       ask: { tag: '일자리', note: '하루 삯 4G' },
       greet: '(맨발 소년) 비질이든 뭐든 할게요. 먹여만 주세요.',
       choices: [
@@ -466,10 +469,15 @@
   );
 
   // ════════════════════ ③ 은화 저울 상회 ════════════════════
-  // 할부 80 · 110 · 140 · 170G (6 · 12 · 18 · 26일). 미루면 그 할부에 이자 30G 가 붙어 밀린 빚(debt_due)이 된다.
-  // 밀린 빚은 늘 [110, 140, 170, 200] 중 몇 개의 합이다 — 선택지는 그 값마다 하나씩 만들어 두고 when 으로 하나만 보인다.
-  const INST = [80, 110, 140, 170];
-  const LATE = 30;
+  // 할부·수금일·이자는 config.silverScale (v0.9.3: 70 · 100 · 120 · 150G, 실제 8 · 13 · 18 · 23일, 이자 20G). 미루면 그 할부에 이자가 붙어 밀린 빚(debt_due)이 된다.
+  // 밀린 빚은 늘 [할부+이자, …] 중 몇 개의 합이다 — 선택지는 그 값마다 하나씩 만들어 두고 when 으로 하나만 보인다.
+  // 할부 금액 · 수금일 · 청산일 · 연체 이자는 config.silverScale (수금일은 실제 날짜 — 조건에는 이야기일 storyDay 로 적는다).
+  // tools/sim.js 도 같은 값을 읽는다 (중수·고수가 할부 몫을 남겨 둔다)
+  const SS = WS.data.config.silverScale;
+  const INST = SS.amounts;
+  const sday = WS.data.storyDay;
+  const DEBT_DAYS = SS.days, DEBT_FINAL = SS.finalDay;
+  const LATE = SS.late;
   const sums = list => list.reduce((acc, x) => acc.concat(acc.map(s => s + x)), [0]).filter((v, i, a) => a.indexOf(v) === i).sort((a, b) => a - b);
   const overdueBefore = k => sums(INST.slice(0, k).map(x => x + LATE));
   const ALL_OVERDUE = sums(INST.map(x => x + LATE)).filter(x => x > 0);
@@ -529,21 +537,21 @@
     ];
     return {
       id: `debt_collector_${k + 1}`, ...COLLECTOR,
-      spawn: { when: { all: prev.concat(debtOpen) } },
+      spawn: { when: { all: prev.concat(debtOpen) }, pinned: true }, // 수금일은 약속된 날 — 하루 이야기 손님 상한을 받지 않는다
       ask: { tag: '할부금', gold: -inst, note },
       greet, choices,
     };
   }
 
   C.push(
-    collectorVisit(0, 6, '은화 저울 상회다. 가게 빚 500G, 첫 할부 80G.', '6·12·18·26일 수금'),
-    collectorVisit(1, 12, '두 번째 할부 110G다. 밀린 게 있으면 같이 받는다.', '밀린 빚 있으면 더함'),
-    collectorVisit(2, 18, '세 번째 할부 140G. 상회는 기다리는 걸 싫어한다.', '밀린 빚 있으면 더함'),
-    collectorVisit(3, 26, '마지막 할부 170G다. 이걸로 끝나면 좋겠군.', '밀리면 34일 청산'),
+    collectorVisit(0, sday(DEBT_DAYS[0]), `은화 저울 상회다. 가게 빚 ${INST.reduce((a, b) => a + b, 0)}G, 첫 할부 ${INST[0]}G.`, `${DEBT_DAYS.join('·')}일 수금`),
+    collectorVisit(1, sday(DEBT_DAYS[1]), `두 번째 할부 ${INST[1]}G다. 밀린 게 있으면 같이 받는다.`, '밀린 빚 있으면 더함'),
+    collectorVisit(2, sday(DEBT_DAYS[2]), `세 번째 할부 ${INST[2]}G. 상회는 기다리는 걸 싫어한다.`, '밀린 빚 있으면 더함'),
+    collectorVisit(3, sday(DEBT_DAYS[3]), `마지막 할부 ${INST[3]}G다. 이걸로 끝나면 좋겠군.`, `밀리면 ${DEBT_FINAL}일 청산`),
     {
       // 26일 뒤에도 밀린 빚이 남았으면 34일에 잔금 청산
       id: 'debt_final', ...COLLECTOR,
-      spawn: { when: { all: [{ day: { gte: 34 } }, { customerSeen: 'debt_collector_4' }, { var: 'debt_due', gt: 0 }].concat(debtOpen) } },
+      spawn: { when: { all: [{ day: { gte: sday(DEBT_FINAL) } }, { customerSeen: 'debt_collector_4' }, { var: 'debt_due', gt: 0 }].concat(debtOpen) } },
       ask: { tag: '잔금 청산', note: '밀린 할부+이자 전부' },
       greet: '잔금 청산일이다. 밀린 할부와 이자, 오늘 다 받는다.',
       choices: [
@@ -572,14 +580,14 @@
     },
     {
       id: 'debt_bailiff_call', priority: 74,
-      when: { all: [{ day: { gte: 27 } }, { var: 'debt_strikes', gte: 3 }, { noFlag: 'debt_bailiff_due' }, { noFlag: 'shop_seized' }] },
+      when: { all: [{ day: { gte: sday(DEBT_DAYS[3] + 1) } }, { var: 'debt_strikes', gte: 3 }, { noFlag: 'debt_bailiff_due' }, { noFlag: 'shop_seized' }] },
       effects: { flags: ['debt_bailiff_due'], spawn: [{ customer: 'debt_bailiff', inDays: 0 }] },
       news: { cat: '경제', text: '은화 저울 상회, 할부 세 번 밀린 가게에 집행관', big: true },
     },
     {
       // 26일 전 — 경고가 쌓여도 압류 대신 행패로 조인다 (나흘에 한 번)
       id: 'debt_pressure', cooldown: 4, priority: 56,
-      when: { all: [{ day: { lte: 26 } }, { var: 'debt_strikes', gte: 3 }].concat(debtOpen) },
+      when: { all: [{ day: { lte: sday(DEBT_DAYS[3] - 1) } }, { var: 'debt_strikes', gte: 3 }].concat(debtOpen) },
       effects: { gold: -30, take: { iron_sword: 1, potion: 1 }, vars: { reputation: -1 } },
       news: { cat: '사건', text: '무기점 문짝에 붉은 낙서 "빚 갚아라"… 손님들 발길 뚝' },
     },
@@ -600,7 +608,7 @@
   C.push(
     {
       id: 'carpenter_ledger', look: 'dwarf', name: '목수 드발', race: '드워프', job: '떠돌이 목수', faction: 'dwarf', portrait: '🔨', kind: 'talk',
-      spawn: { day: 14, order: 1 },
+      spawn: { day: 10, order: 1 }, // 실제 날짜 (옛 40일 판의 14일)
       ask: { tag: '발견물', note: '서류함 밑 옛 장부' },
       greet: '서류함 밑에 옛 장부가 있었네. "붉은여울행 칼 40, 가렛"',
       choices: [
@@ -774,14 +782,14 @@
   const debtLive = [{ noFlag: 'shop_seized' }, { noFlag: 'debt_cleared' }];
   L.story = (L.story || []).concat([
     // 은화 저울 상회 — 경고와 수금 예고 (까마귀는 6일째부터)
-    { id: 'debt_warn1', from: 'silverscale', when: { all: [{ var: 'debt_strikes', gte: 1 }].concat(debtLive) }, subject: '독촉장', body: '할부가 밀렸소. 이자 30G를 얹었소. 끝까지 밀리면 집행관이 열쇠를 받으러 가오. — 은화 저울 상회' },
+    { id: 'debt_warn1', from: 'silverscale', when: { all: [{ var: 'debt_strikes', gte: 1 }].concat(debtLive) }, subject: '독촉장', body: `할부가 밀렸소. 이자 ${LATE}G를 얹었소. 끝까지 밀리면 집행관이 열쇠를 받으러 가오. — 은화 저울 상회` },
     { id: 'debt_warn2', from: 'silverscale', when: { all: [{ var: 'debt_strikes', gte: 2 }].concat(debtLive) }, subject: '마지막 경고', body: '두 번 밀렸소. 더 밀리면 가게가 편하지 않을 거요. 한꺼번에 내면 경고는 지워 드리오. — 은화 저울 상회' },
-    { id: 'debt_notice3', from: 'silverscale', when: { all: [{ day: { gte: 17 } }, { not: { customerSeen: 'debt_collector_3' } }].concat(debtLive) }, subject: '세 번째 수금 안내', body: '곧 세 번째 할부 140G를 받으러 간다. 밀린 빚이 있으면 함께 준비해 둬. — 수금원 모트' },
-    { id: 'debt_notice4', from: 'silverscale', when: { all: [{ day: { gte: 25 } }, { not: { customerSeen: 'debt_collector_4' } }].concat(debtLive) }, subject: '마지막 할부 안내', body: '곧 마지막 할부 170G를 받으러 간다. 그때도 밀린 게 남으면 34일째에 잔금을 청산한다. — 수금원 모트' },
-    { id: 'debt_notice_final', from: 'silverscale', when: { all: [{ day: { gte: 33 } }, { customerSeen: 'debt_collector_4' }, { var: 'debt_due', gt: 0 }].concat(debtLive) }, subject: '잔금 청산 예고', body: '내일 잔금 청산일이오. 밀린 할부와 이자를 모두 받겠소. 못 내면 가게 열쇠를 받겠소. — 은화 저울 상회' },
+    { id: 'debt_notice3', from: 'silverscale', when: { all: [{ day: { gte: sday(DEBT_DAYS[2] - 1) } }, { not: { customerSeen: 'debt_collector_3' } }].concat(debtLive) }, subject: '세 번째 수금 안내', body: `곧 세 번째 할부 ${INST[2]}G를 받으러 간다. 밀린 빚이 있으면 함께 준비해 둬. — 수금원 모트` },
+    { id: 'debt_notice4', from: 'silverscale', when: { all: [{ day: { gte: sday(DEBT_DAYS[3] - 1) } }, { not: { customerSeen: 'debt_collector_4' } }].concat(debtLive) }, subject: '마지막 할부 안내', body: `곧 마지막 할부 ${INST[3]}G를 받으러 간다. 그때도 밀린 게 남으면 ${DEBT_FINAL}일째에 잔금을 청산한다. — 수금원 모트` },
+    { id: 'debt_notice_final', from: 'silverscale', when: { all: [{ day: { gte: sday(DEBT_FINAL - 1) } }, { customerSeen: 'debt_collector_4' }, { var: 'debt_due', gt: 0 }].concat(debtLive) }, subject: '잔금 청산 예고', body: '내일 잔금 청산일이오. 밀린 할부와 이자를 모두 받겠소. 못 내면 가게 열쇠를 받겠소. — 은화 저울 상회' },
     { id: 'debt_paid', from: 'silverscale', when: { flag: 'debt_cleared' }, subject: '완납 증서', body: '가게 빚을 모두 받았소. 이 증서를 액자에 거시오. 상회는 좋은 채무자를 잊지 않소. — 은화 저울 상회' },
     // 강철수염 씨족 — 16일 전령이 오기 전의 귀띔 (events.js ore_run_begins: 14일부터 나흘 도매상 철광석이 동난다)
-    { id: 'dwarf_ore_notice', from: 'dwarf', when: { all: [{ day: { gte: 11 } }, { noFlag: 'dwarf_saved' }, { noFlag: 'dwarf_fallen' }] }, subject: '광석을 쌓아 두시오', body: '산채 성문이 갈라졌네. 며칠 안에 우리 전령이 철광석 서른 개를 청하러 갈 걸세. 창고 궤짝의 스무 개로는 모자라고, 그 무렵엔 도매상 광석이 동날 테니 미리 더 사 두게. 값은 시세대로 치르겠네. — 강철수염 씨족 교역소' },
+    { id: 'dwarf_ore_notice', from: 'dwarf', when: { all: [{ day: { gte: 11 } }, { noFlag: 'dwarf_saved' }, { noFlag: 'dwarf_fallen' }] }, subject: '광석을 쌓아 두시오', body: '산채 성문이 갈라졌네. 며칠 안에 우리 전령이 철광석 서른 개를 청하러 갈 걸세. 창고 궤짝에 남은 것으로는 모자라고, 그 무렵엔 도매상 광석이 동날 테니 미리 더 사 두게. 값은 시세대로 치르겠네. — 강철수염 씨족 교역소' },
     // 레온
     { id: 'leon_squad_letter', from: 'leon', when: { all: [{ flag: 'leon_squad_armed' }, { day: { gte: 19 } }, { noFlag: 'leon_fell' }] }, subject: '초소에서', body: '방패 넷, 전부 서부 숲 초소에 걸었소. 외상은 반드시 갚겠소. 숲이 조용하지 않소. — 레온' },
     // 계약 뒤 고블린과 거래한 이튿날 아침 (사건 leon_contract_broken_ev 와 같은 조건 — 같은 새벽)

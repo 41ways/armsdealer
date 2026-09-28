@@ -810,7 +810,7 @@ WS.data.events = [
   // ───────── 임대료 인상 예고 — 하루 전 신문에 (config.rentSchedule). 3단계 QA: 예고 없이 오르면 임대료가 함정이 된다 ─────────
   ...WS.data.config.rentSchedule.filter(r => r.from > 1).map(r => ({
     id: `rent_notice_${r.from}`, once: true, priority: 60,
-    when: { day: r.from - 1 },
+    when: { realDay: r.from - 1 }, // 실제 날짜 (config.rentSchedule 의 from 도 실제 날짜)
     news: { cat: '경제', text: `건물주 "${r.from}일째부터 임대료 하루 ${r.rent}골드"… 상점가 술렁`, big: true },
   })),
 

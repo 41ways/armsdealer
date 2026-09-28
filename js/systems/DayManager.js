@@ -47,7 +47,8 @@ WS.sys.Day = (() => {
   const GUILD_RESCUE_DAYS = 14;   // 상인회 구제 대출 기한
   const GUILD_RESCUE_CUSHION = 40; // 모자란 임대료에 얹어 주는 여유 (이틀치)
   // 그날의 기본 임대료 (config.rentSchedule) × 조건별 보정 (rentMods)
-  const baseRent = () => (cfg().rentSchedule || []).filter(r => WS.sys.Conditions.eday() >= r.from).reduce((v, r) => r.rent, cfg().rent);
+  // from 은 실제 날짜 (v0.9.3 — 이야기일이 아니다. 예고 기사 events.js rent_notice_* 도 실제 날짜)
+  const baseRent = () => (cfg().rentSchedule || []).filter(r => S().day >= r.from).reduce((v, r) => r.rent, cfg().rent);
   const rent = () => Math.round((cfg().rentMods || []).reduce((m, r) => (WS.sys.Conditions.check(r.when) ? m * r.mult : m), baseRent()));
 
   function toPrep() {

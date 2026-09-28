@@ -38,13 +38,14 @@ WS.data.shop = {
   calendar: {
     lookahead: 7,
     schedule: [
-      { id: 'fair', name: '장날', icon: '🎪', days: [8, 16, 24, 32], span: 1, hint: '읍내에 장이 선다 — 사람이 몰리고 시세가 잠잠하다' },
-      { id: 'parade', name: '왕실 열병식', icon: '🎺', days: [12, 30], span: 3, hint: '왕실 열병식 — 사흘간 칼·방어구를 찾는다' },
-      { id: 'harvest', name: '수확제', icon: '🌾', days: [20], span: 2, hint: '수확제 — 마을 사람이 물약·향신료를 찾는다' },
+      // days 는 실제 날짜 (v0.9.3 30일 캠페인: 장날 8/16/24/32 → 6/12/18/24 · 열병식 12/30 → 9/22 · 수확제 20 → 15)
+      { id: 'fair', name: '장날', icon: '🎪', days: [6, 12, 18, 24], span: 1, hint: '읍내에 장이 선다 — 사람이 몰리고 시세가 잠잠하다' },
+      { id: 'parade', name: '왕실 열병식', icon: '🎺', days: [9, 22], span: 3, hint: '왕실 열병식 — 사흘간 칼·방어구를 찾는다' },
+      { id: 'harvest', name: '수확제', icon: '🌾', days: [15], span: 2, hint: '수확제 — 마을 사람이 물약·향신료를 찾는다' },
     ],
     random: [
-      { id: 'plague', chance: 0.08, range: [10, 30] },
-      { id: 'disaster', chance: 0.05, range: [15, 35] },
+      { id: 'plague', chance: 0.08, range: [8, 23] },     // 실제 날짜 (40일 판 10~30)
+      { id: 'disaster', chance: 0.05, range: [11, 26] },  // 실제 날짜 (40일 판 15~35)
     ],
     omenDays: 3,
     omenText: '흉흉한 징조 — 저잣거리 분위기가 심상치 않다',

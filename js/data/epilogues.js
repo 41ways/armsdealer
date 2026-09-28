@@ -115,7 +115,9 @@
       id: 'obel', who: '보석상 오벨', icon: '💍',
       variants: [
         { when: { flag: 'obel_gems_returned' }, text: '"금고보다 믿을 가게"라며 은방울 단골들을 이 가게로 보낸다.' },
-        { when: { flag: 'obel_repaid' }, text: '400G는 받았지만, 그 루비만은 끝내 다시 찾지 못했다.' },
+        { when: { flag: 'obel_paid_loss' }, text: `가짜 심부름꾼에게 넘어간 보석값 ${WS.data.config.obelLoss}G는 받았다. 이 가게에 다시 맡기지는 않는다.` },
+        { when: { flag: 'obel_refused_fined' }, text: '보석값은 경비대 벌금으로 받아 냈다. 보석방 거리엔 "떼먹는 가게"라고 소문을 냈다.' },
+        { when: { flag: 'obel_repaid' }, text: `${WS.data.config.obelLoss}G는 받았지만, 그 루비만은 끝내 다시 찾지 못했다.` },
         { when: { flag: 'obel_gems_lost' }, text: '보석방 거리에서 이 가게 이름이 나오면 조용히 자리를 뜬다.' },
         { when: { flag: 'refused_obel_gems' }, text: '보석은 다른 금고에 맡겼다. 그 금고는 그해 털렸다.' },
       ],

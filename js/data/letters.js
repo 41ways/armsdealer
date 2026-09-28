@@ -110,7 +110,7 @@ WS.data.letters = {
       },
     },
     {
-      id: 'ratwhisker', from: 'guard', when: { all: [{ day: { gte: 11 } }, { unlocked: 'docs' }] }, catches: ['gem_thief'],
+      id: 'ratwhisker', from: 'guard', when: { all: [{ day: { gte: 4 } }, { unlocked: 'docs' }] }, catches: ['gem_thief'],
       subject: '[인상서] 보석방 거리 금고털이',
       body: '보석방 거리 금고 두 곳이 털렸소. 범인 "쥐수염"은 남의 심부름꾼 행세를 하오. 보석을 찾으러 오면 경비대를 부르시오. — 경비대 제3초소',
       poster: {

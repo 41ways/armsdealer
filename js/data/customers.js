@@ -1,8 +1,10 @@
 // 고정(스크립트) 손님 데이터. 데이터만 추가하면 등장한다.
 //
 // spawn:
-//   { day: N, order: k }             → N일차에 반드시 등장
-//   { when: 조건, chance, minDay }     → 조건 만족 시 등장 (기본 1회)
+//   { day: N, order: k }             → N일차에 반드시 등장 (N 은 실제 날짜 — v0.9.3 30일 캠페인. 조건 DSL 의 { day } 는 이야기일, 표는 js/data/progress.js 맨 위)
+//   { when: 조건, early: true }        → early: 튜토리얼 기간(progress.js early.storyFromDay 전)에도 들인다 (2일째 레온·즈긱처럼 첫날의 뒷이야기)
+//   pinned: true                      → 하루 이야기 손님 상한(early.tutorialDayStory · storyPerDay · backlogPerDay)을 받지 않는다 (약속된 날에 꼭 와야 하는 손님)
+//   { when: 조건, chance, minDay }     → 조건 만족 시 등장 (기본 1회). minDay 는 실제 날짜
 //   { queuedOnly: true }              → 이벤트/효과의 spawn 으로만 등장
 // kind: 'buy'(손님이 삼) | 'sell'(손님이 팜) | 'talk'(선택지 대화) | 'trade'(물물교환)
 // trade: { give: [{ item, qty }], want: [{ item, qty }], gold } — give = 손님이 내놓는 것, want = 원하는 내 물건,
@@ -75,7 +77,7 @@ WS.data.customers = [
   },
   {
     id: 'd1_dwarf', look: 'dwarf_smith', name: '브론', race: '드워프', job: '대장장이', faction: 'dwarf', portrait: '🧔',
-    spawn: { day: 6, order: 1 }, // 광석 궤짝은 5일째에 열린다 (js/data/progress.js) — 이튿날 도매상에서 채울 틈을 두고 온다
+    spawn: { day: 4, order: 1 }, // 광석 궤짝은 2일째에 열린다 (첫 물건 철광석 30 — js/data/progress.js). 이틀 뒤, 튜토리얼 마지막 날의 평범한 주문
     greet: '강철수염 씨족 브론이네. {item} {qty}개, {offer}골드일세. 허허.',
     request: { item: 'iron_ore', qty: 20, offer: 130 },
     lines: { sold: '좋은 광석이군. 언젠가 갚겠네.', refused: '흠. 다른 데를 알아보겠네.' },
@@ -85,7 +87,7 @@ WS.data.customers = [
   // ───────── 튜토리얼 손님 (js/data/progress.js tutorialCustomers) ─────────
   // 그날 대기열 맨 앞에 와서 새 창고 자리의 물건을 딱 1개, 시세 그대로 산다. 카운터 앞에 서면 그 자리가 열리고
   // 그 자리의 첫 물건(progress.js stock)과 이 손님이 살 물건 1개가 뒷문으로 들어온다.
-  // 1 레온(무기) · 3 오스릭(방어구) · 5 고트·마사(재료) · 7 세실(물약) · 9 오벨(보석) · 11 파울(서류함) · 13 둥지지기(까마귀)
+  // 1 레온(무기) · 2 오스릭(방어구)·고트(광석)·마사(재료 자루) · 3 세실(물약)·오벨(보석) · 4 파울(서류함 — 인상서). 까마귀는 1일째 밤
   {
     id: 'tut_shield', look: 'soldier', name: '오스릭', race: '인간', job: '왕국 경비병', faction: 'kingdom', portrait: '💂',
     spawn: { queuedOnly: true },
@@ -115,7 +117,7 @@ WS.data.customers = [
     lines: { sold: '살았다! 고마워요.', refused: '아, 없군요….' },
   },
   {
-    // 11일째: 인상서를 손으로 건넨다 → 서류함 해금, 인상서가 서류함에 꽂힌다 (Letters.handPosters — 까마귀 없이)
+    // 4일째: 인상서를 손으로 건넨다 → 서류함 해금, 인상서가 서류함에 꽂힌다 (Letters.handPosters — 까마귀 없이)
     id: 'guard_courier', look: 'soldier', name: '경비대 전령 파울', race: '인간', job: '왕국 경비대 전령', faction: 'kingdom', portrait: '📯', kind: 'talk',
     spawn: { queuedOnly: true },
     ask: { tag: '인상서 전달', note: '서류함 열림' },
@@ -138,34 +140,36 @@ WS.data.customers = [
   // ───────── DAY 2 ─────────
   {
     id: 'd2_zgik_friends', look: 'goblin_trader', name: '즈긱과 친구들', race: '고블린', job: '행상단', faction: 'goblin', portrait: '👺',
-    spawn: { when: { flag: 'sold_zgik', day: 2 } },
+    spawn: { when: { flag: 'sold_zgik', day: 2 }, early: true },
     greet: '친구! 즈긱 친구들 데려왔다구! {item} {qty}개, {offer}골드 줄게, 킥킥!',
     request: { item: 'bow', qty: 3, offer: 165 },
     lines: { sold: '킥킥! 이제 기사들도 숲에 못 온다구!', refused: '어제는 팔았잖아? 변덕쟁이 인간! 즈긱 서운하다구.' },
   },
   {
     id: 'd2_leon_worried', look: 'knight', name: '레온', race: '인간', job: '기사', faction: 'kingdom', portrait: '🤺',
-    spawn: { when: { flag: 'helped_leon', day: 2, sold: { faction: 'goblin', tag: 'weapon', min: 3, withinDays: 1 } } },
+    spawn: { when: { flag: 'helped_leon', day: 2, sold: { faction: 'goblin', tag: 'weapon', min: 3, withinDays: 1 } }, early: true },
     greet: '고블린들이 새 칼을 들었더군. {item} {qty}개, {offer}골드.',
     request: { item: 'shield', qty: 3, offer: 90 },
     lines: { sold: '…아무튼 고맙소. 조심하는 게 좋을 거요.', refused: '그런가. 알겠소.' },
   },
 
-  // ───────── 9~13일째: 맡긴 보석 (보석함 해금 · 인상서 연습) ─────────
-  // 9일째 오벨(튜토리얼 손님 — progress.js tut_gem)이 오면 보석함이 열리고, 보석을 맡거나 거절한다.
-  // 11일째 경비대 전령이 인상서("쥐수염")를 건네 서류함이 열리고, 이튿날(12일째) 보석이 아직 창고에 있으면
-  // 쥐수염이 오벨의 심부름꾼 행세를 하며 온다 (progress.js gem_thief_visit). 오벨은 맡긴 지 사흘이 지나고
-  // 쥐수염이 다녀간 뒤에 찾으러 온다 — 보통 13일째 (deposit.after — Progress.dawn).
+  // ───────── 3~7일째: 맡긴 보석 (보석함 해금 · 인상서 연습) ─────────
+  // 3일째 오벨(튜토리얼 손님 — progress.js tut_gem)이 오면 보석함이 열리고, 보석을 맡거나 거절한다.
+  // 4일째 경비대 전령이 인상서("쥐수염")를 건네 서류함이 열린다. 6일째 보석이 아직 창고에 있으면 쥐수염이 오벨의
+  // 심부름꾼 행세를 하며 온다 (progress.js gem_thief_visit). 겉보기엔 멀쩡한 심부름꾼이다 — 인상서의 인상착의(초록 두건 ·
+  // 가는 수염 · 귀 끝)를 기억하는 사람만 알아챈다. 오벨은 맡긴 지 나흘이 지나고 쥐수염이 다녀간 뒤에 찾으러 온다 — 보통 7일째
+  // (deposit.after — Progress.dawn). 쥐수염에게 내줬으면 오벨은 보석값 config.obelLoss 를 물어 달라고 한다:
+  //   물어 준다 → flag obel_paid_loss / 거절 → 경비대 벌금으로 같은 값을 떼이고(오늘 밤 임대료는 남긴다) 평판·길드 관계가 깎인다 → flag obel_refused_fined
   {
     id: 'obel_deposit', look: 'noble', name: '보석상 오벨', race: '인간', job: '보석방 거리 "은방울" 주인', faction: 'guild', portrait: '💍', kind: 'talk',
-    spawn: { queuedOnly: true }, // 9일째 튜토리얼 손님 — 보석함을 연다 (js/data/progress.js)
+    spawn: { queuedOnly: true }, // 3일째 튜토리얼 손님 — 보석함을 연다 (js/data/progress.js)
     ask: { tag: '맡아 달라', items: { ruby: 1, pearl: 2 }, give: true, note: '며칠 뒤 찾으러 옴' },
     greet: '금고털이가 무섭소. 루비 1, 진주 2를 며칠만 맡아 주오.',
     choices: [
       {
         id: 'keep', label: '맡아 준다',
         reply: '고맙소. 며칠 뒤 내가 직접 오겠소. 아무도 주지 마오.',
-        effects: { unlock: ['gem'], deposit: { owner: 'obel', name: '보석상 오벨', items: { ruby: 1, pearl: 2 }, inDays: 3, customer: 'obel_return', after: 'gem_thief' }, vars: { rel_guild: 1 }, flags: ['kept_obel_gems'] },
+        effects: { unlock: ['gem'], deposit: { owner: 'obel', name: '보석상 오벨', items: { ruby: 1, pearl: 2 }, inDays: 4, customer: 'obel_return', after: 'gem_thief' }, vars: { rel_guild: 1 }, flags: ['kept_obel_gems'] },
       },
       {
         id: 'decline', label: '남의 보석은 안 맡소',
@@ -175,19 +179,22 @@ WS.data.customers = [
     ],
   },
   {
-    id: 'gem_thief', look: 'gem_thief', name: '심부름꾼 하인', race: '인간', job: '보석상 심부름꾼(자칭)', faction: 'traveler', trueFaction: 'bandit', portrait: '🐀', kind: 'talk',
-    spawn: { queuedOnly: true },
-    ask: { tag: '대신 찾아가기', deposit: 'obel' },
+    // 겉으로는 평범한 심부름꾼 — 보석 내역(루비 1 · 진주 2)까지 알고 온다. 수상한 티는 인상서를 본 사람에게만 (초록 두건 · 가는 수염 · 왼쪽 귀 끝).
+    // 소속을 물으면 은방울(상인 길드) 심부름꾼이라 하고 인장은 없다고 한다 — 심부름꾼에겐 흔한 일이다.
+    id: 'gem_thief', look: 'gem_thief', name: '심부름꾼 토비', race: '인간', job: '보석방 거리 "은방울" 심부름꾼', faction: 'guild', trueFaction: 'bandit', portrait: '📦', kind: 'talk',
+    spawn: { queuedOnly: true, pinned: true }, // 날짜가 정해진 튜토리얼 뒷이야기 — 하루 이야기 손님 상한(progress.js early.storyPerDay)을 받지 않는다
+    affil: { claim: 'guild', seal: 'none', line: '은방울 심부름꾼입죠. 인장은 나리 금고에 있고요… 대신 이렇게 보석 내역을 외워 왔습니다.' },
+    ask: { tag: '대신 찾아가기', deposit: 'obel', note: '오벨의 심부름' },
     // 인상서 "쥐수염"의 주인공 (letters.js wanted.catches) — 이튿날 까마귀로 밀고해도 잡힌다
     caughtFlag: 'caught_gem_thief',
     reportDetail: '초록 두건에 귀 끝 잘린 그자, 인상서 그대로였소.',
     onReport: { flags: ['caught_gem_thief', 'caught_gem_thief_by_crow'] },
-    greet: '(초록 두건) 오벨 나리 심부름이오. 맡긴 보석 찾으러 왔소.',
+    greet: '(초록 두건 아래로 가는 수염을 쓸어내리며) 은방울 오벨 나리 심부름 왔습니다. 급한 손님을 받으셔서, 맡기신 루비 하나랑 진주 둘을 대신 받아 오라십니다.',
     lines: {},
     choices: [
       {
-        id: 'hand_over', label: '돌려준다', when: { deposit: { owner: 'obel' } },
-        reply: '나리께 잘 전하지요. 수고비요. (서둘러 나간다)',
+        id: 'hand_over', label: '보석을 내준다', when: { deposit: { owner: 'obel' } },
+        reply: '나리께 잘 전해 드립죠. 이건 나리가 주신 수고비고요. (서둘러 나간다)',
         effects: { withdraw: { owner: 'obel', to: 'gem_thief' }, gold: 15, vars: { blackmarket: 1 }, flags: ['gave_gems_to_thief'] },
       },
       {
@@ -197,17 +204,23 @@ WS.data.customers = [
         effects: { gold: 50, vars: { reputation: 2, rel_kingdom: 2, rel_bandit: -3 }, flags: ['caught_gem_thief'], news: [{ cat: '왕국', text: '보석 도둑 "쥐수염" 체포… 인상서 알아본 무기점에 포상금', big: true }] },
       },
       {
-        id: 'send_away', label: '거절한다',
-        reply: '…그렇소? 잘못 찾아왔나 보군.',
+        id: 'send_away', label: '주인이 직접 오라고 한다',
+        reply: '…그렇소? 나리께 그리 여쭙지요. (두건을 눌러쓰고 나간다)',
         effects: { flags: ['sent_gem_thief_away'] },
       },
     ],
   },
   {
+    // 7일째. 보석이 다 있으면 돌려준다. 쥐수염에게 내줬으면 보석값(config.obelLoss)을 물어 달라고 한다 — 물어 주거나(obel_paid_loss),
+    // 거절하면 경비대 벌금으로 같은 값을 떼인다(obel_refused_fined — 금고가 모자라면 오늘 밤 임대료만 남기고). 두 플래그는 분석 지표로 모은다.
+    // 내가 팔아 버려서 없으면(쥐수염과 무관) 예전처럼 물어 주거나 털어놓는다.
     id: 'obel_return', look: 'noble', name: '보석상 오벨', race: '인간', job: '보석방 거리 "은방울" 주인', faction: 'guild', portrait: '💍', kind: 'talk',
-    spawn: { queuedOnly: true },
+    spawn: { queuedOnly: true, pinned: true }, // 날짜가 정해진 튜토리얼 뒷이야기 — 하루 이야기 손님 상한(progress.js early.storyPerDay)을 받지 않는다
     ask: { tag: '돌려 달라', deposit: 'obel' },
     greet: '오벨이오. 맡긴 루비 1, 진주 2를 돌려주시오.',
+    greetWhen: [
+      { when: { flag: 'gave_gems_to_thief' }, text: `오벨이오. 맡긴 보석을 찾으러… 심부름꾼? 나는 아무도 안 보냈소! 루비 하나, 진주 둘 — 도맷값으로 쳐서 ${WS.data.config.obelLoss}G, 물어 주시오.` },
+    ],
     choices: [
       {
         id: 'give_back', label: '보석을 돌려준다', when: { deposit: { owner: 'obel', intact: true } },
@@ -215,12 +228,25 @@ WS.data.customers = [
         effects: { withdraw: 'obel', gold: 60, vars: { reputation: 2, rel_guild: 3 }, flags: ['obel_gems_returned'] },
       },
       {
-        id: 'repay', label: '400G로 물어 준다', when: { all: [{ not: { deposit: { owner: 'obel', intact: true } } }, { gold: { gte: 400 } }] },
-        reply: '…돈으로 받을 거면 안 맡겼소. 그래도 됐소.',
-        effects: { withdraw: 'obel', gold: -400, vars: { reputation: -1, rel_guild: -1 }, flags: ['obel_repaid'] },
+        id: 'pay_loss', label: `보석값 ${WS.data.config.obelLoss}G를 물어 준다`, when: { all: [{ flag: 'gave_gems_to_thief' }, { gold: { gte: WS.data.config.obelLoss } }] },
+        reply: '…셈은 셈이오. 다음부턴 맡긴 사람 얼굴을 기억하시오.',
+        effects: { withdraw: 'obel', gold: -WS.data.config.obelLoss, vars: { rel_guild: -1 }, flags: ['obel_paid_loss'] },
       },
       {
-        id: 'confess', label: '없다고 털어놓는다', when: { not: { deposit: { owner: 'obel', intact: true } } },
+        id: 'refuse_loss', label: '물어 줄 수 없소', when: { flag: 'gave_gems_to_thief' },
+        reply: '심부름꾼 탓이라고? …경비대에 가겠소. 벌금으로라도 받아 내겠소.',
+        effects: {
+          withdraw: 'obel', steal: { pct: 1, max: WS.data.config.obelLoss, keepRent: true }, vars: { reputation: -4, rel_guild: -5, rel_kingdom: -1 }, flags: ['obel_refused_fined'],
+          news: [{ cat: '사건', text: '보석상 오벨 "가짜 심부름꾼에 보석 내준 가게" 고발… 경비대, 무기점에 벌금 {stolen}골드', big: true }],
+        },
+      },
+      {
+        id: 'repay', label: `${WS.data.config.obelLoss}G로 물어 준다`, when: { all: [{ noFlag: 'gave_gems_to_thief' }, { not: { deposit: { owner: 'obel', intact: true } } }, { gold: { gte: WS.data.config.obelLoss } }] },
+        reply: '…돈으로 받을 거면 안 맡겼소. 그래도 됐소.',
+        effects: { withdraw: 'obel', gold: -WS.data.config.obelLoss, vars: { reputation: -1, rel_guild: -1 }, flags: ['obel_repaid'] },
+      },
+      {
+        id: 'confess', label: '없다고 털어놓는다', when: { all: [{ noFlag: 'gave_gems_to_thief' }, { not: { deposit: { owner: 'obel', intact: true } } }] },
         reply: '없다고?! …경비대에 가겠소.',
         effects: { withdraw: 'obel', vars: { reputation: -6, rel_guild: -4, rel_kingdom: -1 }, flags: ['obel_gems_lost'], schedule: [{ event: 'obel_complaint', inDays: 1 }] },
       },
@@ -692,7 +718,8 @@ WS.data.customers = [
     // ② 두 번째 약속 (secondVisit, 첫 약속을 지켰을 때만) — 사흘 더, 쇠를 캐는 이들(드워프·골렘·길드)에게 광석 금지.
     //    이튿날 강철수염 전령이 광석을 청하러 온다 (dwarf_herald) → events.js fairy_oath2_check
     id: 'fairy_envoy_return', look: 'fairy_queen', name: '이슬궁의 티타니엘', race: '요정', job: '요정 여왕의 사절', faction: 'fairy', portrait: '🧚', kind: 'talk',
-    spawn: { when: { all: [{ day: WS.data.config.fairyDwarf.secondVisit }, { flag: 'fairy_blessing' }, { noFlag: 'fairy_betrayed' }] } },
+    // 이야기일 secondVisit~+1 (실제 11~12일) 가운데 첫날 — 첫 약속 확인(사흘 뒤 새벽)이 늦게 끝나도 놓치지 않게 이틀 폭
+    spawn: { when: { all: [{ day: { gte: WS.data.config.fairyDwarf.secondVisit, lte: WS.data.config.fairyDwarf.secondVisit + 1 } }, { flag: 'fairy_blessing' }, { noFlag: 'fairy_betrayed' }] } },
     ask: { tag: '판매 금지', note: '사흘 드워프·골렘·길드 광석 금지' },
     greet: '또 왔어요. 사흘만 더, 쇠를 캐는 이들에게 광석을 주지 말아 줘요.',
     choices: [
@@ -1312,7 +1339,7 @@ WS.data.customers = [
   {
     // 1. 겉보기엔 그냥 행상 — 실은 천칭단. 어느 편이냐는 물음에 "장사를 할 뿐"이라 답해야 길이 열린다
     id: 'liga_merchant', look: 'traveler', name: '떠돌이 행상', race: '인간', job: '행상', faction: 'traveler', portrait: '🎒', kind: 'talk',
-    spawn: { minDay: 12, when: { all: [{ topRel: { gte: 6 } }, { noFlag: 'liga_open' }, { noFlag: 'liga_closed' }] }, chance: 0.5 },
+    spawn: { minDay: 9, when: { all: [{ topRel: { gte: 6 } }, { noFlag: 'liga_open' }, { noFlag: 'liga_closed' }] }, chance: 0.5 },
     ask: { tag: '질문', note: '어느 편인지' },
     greet: '요즘 {top} 쪽 손님이 부쩍 드나든다던데… 주인장은 요즘 어느 편이오?',
     choices: [
@@ -1352,10 +1379,10 @@ WS.data.customers = [
   // ════════════════════ "들어오면 알려 주오" — 귀한 물건을 기다리는 손님 ════════════════════
   // 찾는 물건이 없으면 "들어오면 기별하겠소"(효과 notify, ends)로 소원을 남기고 떠난다 → state.letters.wishes.
   // 물건을 구하면 까마귀 편지 "들어왔다고 알리기"로 부르고, 이튿날 웃돈을 얹어 사러 온다 (js/systems/Letters.js).
-  // 8·10·12일째 손님은 까마귀(6일째부터)로 기별을 받는다. 물건은 도매상(미스릴 10일째~)·공급 제안 편지로 구한다.
+  // 날짜는 실제 날짜 (v0.9.3: 9·11·13·14·16일 — 옛 40일 판 8·10·12·15·18일). 까마귀는 첫날 밤부터 있다. 물건은 도매상(미스릴 8일째~)·공급 제안 편지로 구한다.
   {
     id: 'wish_mithril', look: 'dwarf_smith', name: '갑옷장이 두린', race: '드워프', job: '떠돌이 갑옷장이', faction: 'dwarf', portrait: '⛏️',
-    spawn: { day: 8, order: 3 },
+    spawn: { day: 9, order: 3 },
     greet: '미스릴 갑옷 주문을 받았네. {item} {qty}개, {offer}골드.',
     request: { item: 'mithril_ore', qty: 1, offer: { mult: 1.4 } },
     lines: { sold: '이 빛깔이야. 좋은 갑옷이 나오겠네.', refused: '없나. 흠, 딴 데를 뒤지지.' },
@@ -1367,7 +1394,7 @@ WS.data.customers = [
   },
   {
     id: 'wish_scale', look: 'knight_official', name: '갑옷장 세드릭', race: '인간', job: '제7기사단 갑옷장', faction: 'kingdom', portrait: '🛡️',
-    spawn: { day: 10, order: 3 },
+    spawn: { day: 11, order: 3 },
     greet: '단장님 흉갑에 댈 {item} {qty}장, {offer}골드.',
     request: { item: 'dragon_scale', qty: 1, offer: { mult: 1.4 } },
     lines: { sold: '용비늘이라니… 단장님이 기뻐하시겠소.', refused: '그렇소. 다른 방도를 찾지.' },
@@ -1379,7 +1406,7 @@ WS.data.customers = [
   },
   {
     id: 'wish_star', look: 'star_keeper', name: '별지기 오르나', race: '인간', job: '언덕 위 별지기 노파', faction: 'mage', portrait: '🔭', kind: 'talk',
-    spawn: { day: 12, order: 3 },
+    spawn: { day: 13, order: 3 },
     ask: { tag: '구해 달라', note: '별조각 1 · 들어오면 기별' },
     greet: '별조각을 찾소. 하나면 되오. 들어오면 알려 주겠소?',
     choices: [
@@ -1392,7 +1419,7 @@ WS.data.customers = [
   },
   {
     id: 'wish_fairy', look: 'noble_lady', name: '향수 장인 리네트', race: '인간', job: '"달빛 병" 향수 공방 주인', faction: 'guild', portrait: '🌸',
-    spawn: { day: 15, order: 3 },
+    spawn: { day: 14, order: 3 },
     greet: '새 향수에 넣을 {item} {qty}병, {offer}골드면 될까요?',
     request: { item: 'fairy_dust', qty: 3, offer: { mult: 1.4 } },
     lines: { sold: '반짝이는 향이 나겠네요. 고마워요.', refused: '아쉽네요. 딴 데를 알아볼게요.' },
@@ -1404,7 +1431,7 @@ WS.data.customers = [
   },
   {
     id: 'wish_golem', look: 'puppeteer', name: '인형술사 핍', race: '인간', job: '태엽 인형 공방 견습', faction: 'golem', portrait: '🤖',
-    spawn: { day: 18, order: 3 },
+    spawn: { day: 16, order: 3 },
     greet: '제 인형에 심장을 달고 싶어요. {item} {qty}개, {offer}골드!',
     request: { item: 'golem_core', qty: 1, offer: { mult: 1.4 } },
     lines: { sold: '째깍! 움직여요! 고마워요!', refused: '역시 귀한 물건이구나….' },

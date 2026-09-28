@@ -175,7 +175,7 @@ WS.sys.News = (() => {
     st.pendingNews = [];
     for (const n of raw) {
       const r = resolve(n);
-      if (r.text && !story.some(s => s.text === r.text)) story.push({ ...r, carried: n.carried });
+      if (r.text && !story.some(s => s.text === r.text)) story.push({ ...r, carried: n.carried, arc: n.arc });
     }
     story.sort((a, b) => (b.big ? 1 : 0) - (a.big ? 1 : 0));
     // 사건 기사 자리: 보통 2건 (유행이 시작된 날엔 1건). 큰 기사가 더 많을 때만 5건까지 늘어난다
@@ -184,8 +184,10 @@ WS.sys.News = (() => {
     const cap = Math.min(MAX - keep, Math.max(MIN - keep, story.filter(n => n.big).length));
     // key: 확인할 정보(사건 · 유행 · 시세) — 신문에 ✔ 를 붙인다. 채움 기사는 분위기용이라 key 가 없다
     let list = story.slice(0, cap).map(n => ({ ...n, key: true }));
-    // 못 실은 사건 기사는 내일 신문으로 한 번 미룬다 (이미 미뤄진 기사는 버린다)
-    story.slice(cap).filter(n => !n.carried).forEach(n => st.pendingNews.push({ cat: n.cat, text: n.text, big: n.big, carried: true }));
+    // 못 실은 사건 기사는 내일 신문으로 한 번 미룬다 (이미 미뤄진 기사는 버린다). 이야기 줄기(arc) 기사는 두 번까지
+    //   carried: 미룬 횟수 (예전 저장본의 true 는 1번)
+    story.slice(cap).filter(n => (+n.carried || 0) < (n.arc ? 2 : 1))
+      .forEach(n => st.pendingNews.push({ cat: n.cat, text: n.text, big: n.big, carried: (+n.carried || 0) + 1, ...(n.arc ? { arc: true } : {}) }));
     // 2) 고블린 유행 — 시작한 날은 반드시, 그 뒤엔 자리가 있을 때 (없으면 내일 다시)
     if (tDue === 'fresh' || (tDue === 'due' && list.length < TARGET)) list.push({ ...trendNews(tDue === 'fresh'), key: true });
     // 2.5) 소문의 진위 (Rumors.js) — 정정·확인 기사는 ✔(확인할 정보)로 뒤에 붙이고, 새 소문은 자리가 있을 때만 ❓ 뱃지로 싣는다.

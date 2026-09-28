@@ -12,7 +12,7 @@
 //   spawn:    [{ customer: 'id', inDays: 1 }]  손님 예약 (0 = 오늘, 새벽에만 의미 있음)
 //   schedule: [{ event: 'id', inDays: [2,3] }] 이벤트 예약
 //   steal:    100                              금고에서 그만큼 사라진다 (0 밑으로는 안 감 — 실제로 가져간 액수는 {stolen})
-//             { pct: 0.4, max: 300 }           가진 돈의 4할, 많아야 300
+//             { pct: 0.4, max: 300 }           가진 돈의 4할, 많아야 300 (keepRent: true 면 오늘 밤 임대료는 남긴다)
 //   news:     [{ cat, text }]                  다음 날 신문에 실릴 기사. text 의 {top} 등은 싣는 순간의 선두 세력으로 (World.textCtx)
 //   trend:    'random' | itemId                고블린 유행 변경
 //   newsFrom: 'travelerTales'                  WS.data.newsPools[이름] 에서 조건 맞는 기사 하나를 골라 싣는다
@@ -55,8 +55,10 @@ WS.sys.Effects = (() => {
     }
     if (eff.steal) {
       // { pct, max }: 가진 돈의 그만큼 (많아야 max) — 금고를 다 비워 파산으로 끝나지 않게
+      // keepRent: true — 오늘 밤 임대료만큼은 남긴다 (벌금처럼 "있는 만큼 떼 가되 가게는 문을 닫지 않게")
       const want = typeof eff.steal === 'object' ? Math.min(eff.steal.max ?? Infinity, Math.round(Math.max(0, st.gold) * eff.steal.pct)) : eff.steal;
-      st.lastStolen = Math.max(0, Math.min(want, st.gold));
+      const room = typeof eff.steal === 'object' && eff.steal.keepRent && WS.sys.Day ? st.gold - WS.sys.Day.rent() : st.gold;
+      st.lastStolen = Math.max(0, Math.min(want, room));
       st.gold -= st.lastStolen;
     }
     if (eff.give) for (const [id, n] of Object.entries(eff.give)) WS.sys.Inventory.add(id, n, true);
@@ -106,7 +108,9 @@ WS.sys.Events = (() => {
   function fire(ev, fired) {
     const st = S();
     st.eventLog[ev.id] = st.day;
-    const fill = WS.sys.Effects.fillNews;
+    // 이야기 줄기 파일(js/data/arcs_*.js — id 가 rl_/wd_/tr_)의 기사는 자리가 없으면 하루 더 미뤄 준다 (NewsManager.compose — arc)
+    const arc = /^(rl|wd|tr)_/.test(ev.id || '');
+    const fill = n => { const x = WS.sys.Effects.fillNews(n); return arc && x && typeof x === 'object' ? { ...x, arc: true } : x; };
     WS.sys.Effects.apply(ev.effects);
     if (ev.news) fired.push(...[].concat(ev.news).map(fill));
     if (ev.outcomes) {

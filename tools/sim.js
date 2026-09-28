@@ -156,7 +156,10 @@ function makeWorld(seed, cfgOverride, set) {
 
 // ───────── 한 판 ─────────
 const MAX_DAYS = 60;
-const SAMPLE_DAYS = [5, 10, 20, 30, 40];
+// 판마다 켜졌는지 세는 플래그 (분석 지표) — 오벨의 보석 · 쥐수염 (customers.js obel_* / gem_thief)
+const MARKS = ['kept_obel_gems', 'refused_obel_gems', 'gave_gems_to_thief', 'caught_gem_thief', 'sent_gem_thief_away',
+  'obel_gems_returned', 'obel_paid_loss', 'obel_refused_fined', 'obel_repaid', 'obel_gems_lost'];
+const SAMPLE_DAYS = [5, 10, 15, 20, 25, 30]; // v0.9.3: 30일 캠페인
 
 function playRun(seed, opt) {
   const ctx = makeWorld(seed, opt.cfg, opt.set);
@@ -312,7 +315,8 @@ function playRun(seed, opt) {
   function handleCustomer(c) {
     if (c.kind === 'buy') noteDemand(c);
     if (c.kind === 'talk') {
-      const list = T.availableChoices(c).filter(ch => ch.needs !== 'poster');
+      // 인상서 대조(needs: 'poster')는 고수만 한다 — 인상서를 기억해 두는 꼼꼼한 사람 (쥐수염에게 보석을 내주지 않는다)
+      const list = T.availableChoices(c).filter(ch => ch.needs !== 'poster' || TIER === 'expert');
       const ch = choosePolicy(list, c);
       if (ch) T.choose(c, ch.id);
     } else if (c.kind === 'buy') handleBuy(c);
@@ -340,9 +344,10 @@ function playRun(seed, opt) {
   // UI 는 모두 까마귀 서신 작성 화면(mail-send → Letters.send)으로 한다: paper_sub · guard_hire · shop{good} · expand · loan{amount} · loan_repay
   const nightlyCost = () => D.rent() + (S().subscribed ? WS.data.shop.paper.fee : 0) + (WS.sys.Shop.guarded() ? WS.data.shop.guard.wage : 0);
   const spend = fn => { const g = S().gold; const r = fn(); if (r && r.ok && S().gold < g) res.sink += g - S().gold; return r; };
-  // 은화 저울 상회 할부 (js/data/stories.js — 6·12·18·26일 80·110·140·170G, 수금원이 일정을 말해 준다) + 밀린 빚.
-  // 중수·고수는 사흘 안에 올 할부와 밀린 빚을 남겨 두고 물품을 산다 (초보는 따지지 않는다)
-  const INST = [[6, 80], [12, 110], [18, 140], [26, 170]];
+  // 은화 저울 상회 할부 (js/data/config.js silverScale — 실제 날짜의 수금일 · 금액, 수금원이 일정을 말해 준다) + 밀린 빚.
+  // 중수·고수는 사흘 안에 올 할부와 밀린 빚을 남겨 두고 물품을 산다 (초보는 따지지 않는다). 게임 데이터에서 읽으므로 따로 고칠 것 없다
+  const SSC = WS.data.config.silverScale;
+  const INST = SSC.days.map((d, i) => [d, SSC.amounts[i]]);
   function debtReserve() {
     const st = S();
     if (st.flags.debt_cleared !== undefined || st.flags.shop_seized !== undefined) return 0;
@@ -487,6 +492,7 @@ function playRun(seed, opt) {
     }
     const st = S();
     res.ending = st.ending || null;
+    res.marks = MARKS.filter(f => st.flags[f] !== undefined);
     if (!res.ending && !res.over60) res.noEnding = true;
     if (st.flags.bankrupt !== undefined) {
       res.bankruptDay = st.flags.bankrupt;
@@ -523,7 +529,7 @@ function summarize(runs, opt) {
   const gold = {};
   SAMPLE_DAYS.forEach(d => { const v = runs.map(r => r.gold[d]).filter(x => x !== undefined); gold[d] = { median: median(v), n: v.length }; });
   const bankDays = {};
-  bank.forEach(r => { const b = r.bankruptDay <= 10 ? '1-10' : r.bankruptDay <= 20 ? '11-20' : r.bankruptDay <= 30 ? '21-30' : '31-40'; bankDays[b] = (bankDays[b] || 0) + 1; });
+  bank.forEach(r => { const b = r.bankruptDay <= 10 ? '1-10' : r.bankruptDay <= 20 ? '11-20' : r.bankruptDay <= 30 ? '21-30' : '31+'; bankDays[b] = (bankDays[b] || 0) + 1; });
   return {
     set: opt.set || null, n, policy: opt.policy, seed: opt.seed, paper: opt.paper, dump: opt.dump, buffer: opt.buffer, cfg: opt.cfg || null,
     bankrupt: bank.length, bankruptRate: bank.length / n, bankruptMedianDay: median(bank.map(r => r.bankruptDay)), bankruptByPeriod: bankDays,
@@ -535,6 +541,8 @@ function summarize(runs, opt) {
     // 4일째부터 판마다 가장 낮았던 금고(아침 구매 뒤 · 마감 뒤)의 중앙값 / 하위 10% / 50G 밑으로 떨어진 판 비율
     minGold: median(mins), minGoldP10: pctl(mins, 0.1), dipUnder50: runs.filter(r => r.minGold < 50).length / n,
     loanRuns: runs.filter(r => r.loans > 0).length / n, sinkMedian: median(runs.map(r => r.sink)),
+    marks: Object.fromEntries(MARKS.map(f => [f, runs.filter(r => (r.marks || []).includes(f)).length])),
+    markBankrupt: Object.fromEntries(MARKS.map(f => [f, runs.filter(r => (r.marks || []).includes(f) && r.ending === 'bankrupt').length])),
     endingMax: Object.entries(endings).filter(([k]) => k !== 'bankrupt').reduce((b, e) => (e[1] > b[1] ? e : b), ['-', 0]),
   };
 }
@@ -547,6 +555,7 @@ function print(sum) {
   console.log(`금고 중앙값(마감 뒤) ${SAMPLE_DAYS.map(d => `${d}일 ${sum.gold[d].median ?? '-'}(n${sum.gold[d].n})`).join(' · ')}`);
   console.log(`예외 ${sum.exceptions} · 엔딩 없음 ${sum.noEnding} · 60일 초과 ${sum.over60} · 막힌 손님 ${sum.stuckCustomers}`);
   console.log(`최저 금고(4일째~) 중앙값 ${sum.minGold} · 하위10% ${sum.minGoldP10} · 50G 밑 ${pct(sum.dipUnder50)} · 대출 쓴 판 ${pct(sum.loanRuns)} · 돈 쓴 곳 합 중앙값 ${sum.sinkMedian}G · 최다 엔딩 ${sum.endingMax[0]} ${pct(sum.endingMax[1] / sum.n)}`);
+  console.log('플래그(판 수 / 그중 파산): ' + Object.entries(sum.marks).filter(([, v]) => v).map(([k, v]) => `${k} ${v}/${sum.markBankrupt[k]}`).join(', '));
   console.log('엔딩: ' + Object.entries(sum.endings).map(([k, v]) => `${k} ${v}`).join(', '));
   for (const [m, k] of Object.entries(sum.errors)) console.log(`  예외 ×${k}: ${m}`);
 }

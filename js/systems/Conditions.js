@@ -13,17 +13,24 @@ WS.sys.Conditions = (() => {
     return true;
   }
 
-  // 이야기 날짜 (config.dayWarp) — 캠페인을 줄일 때 "N일 이후" 조건을 앞당겨 순서를 지킨다. dayWarp 가 없으면(기본) 실제 날짜 그대로.
-  //   dayWarp: [[실제일, 이야기일], ...] 오름차순 마디 — 마디 사이는 직선으로 이어 반올림, 첫 마디 앞은 그대로(1:1), 마지막 마디 뒤는 기울기 1
+  // 이야기 날짜 (config.dayWarp — 표는 js/data/progress.js 맨 위). dayWarp 가 없으면 실제 날짜 그대로. 계산은 WS.data.storyDay (config.js)
   function eday(d) {
     const day = d === undefined ? S().day : d;
-    const w = WS.data.config.dayWarp;
-    if (!w || !w.length || day <= w[0][0]) return day;
-    for (let i = 1; i < w.length; i++) {
-      if (day <= w[i][0]) { const a = w[i - 1], b = w[i]; return Math.round(a[1] + (day - a[0]) * (b[1] - a[1]) / (b[0] - a[0])); }
-    }
-    const l = w[w.length - 1];
-    return l[1] + (day - l[0]);
+    return WS.data.storyDay ? WS.data.storyDay(day) : day;
+  }
+  // { day: … } 조건: 오늘이 덮는 이야기일 구간 (eday(어제), eday(오늘)] 에 조건을 채우는 이야기일이 하나라도 있으면 참.
+  //   캠페인을 줄여 이야기일이 하루에 둘 이상 넘어가도 { day: 15 } 같은 딱 그날 조건 · 좁은 구간이 건너뛰어지지 않는다.
+  //   dayWarp 가 없으면 구간이 [오늘, 오늘] 이라 예전과 똑같다.
+  function dayMatch(spec) {
+    const hi = eday(), lo = S().day > 0 ? Math.min(hi, eday(S().day - 1) + 1) : hi;
+    if (typeof spec === 'number') return spec >= lo && spec <= hi;
+    let a = lo, b = hi;
+    if (spec.gte !== undefined) a = Math.max(a, spec.gte);
+    if (spec.gt !== undefined) a = Math.max(a, Math.floor(spec.gt) + 1);
+    if (spec.eq !== undefined) { a = Math.max(a, spec.eq); b = Math.min(b, spec.eq); }
+    if (spec.lte !== undefined) b = Math.min(b, spec.lte);
+    if (spec.lt !== undefined) b = Math.min(b, Math.ceil(spec.lt) - 1);
+    return a <= b;
   }
 
   const val = x => (typeof x === 'number' ? x : WS.sys.World.get(x));
@@ -91,7 +98,9 @@ WS.sys.Conditions = (() => {
     var: (name, c) => compare(WS.sys.World.get(name), c),
     flag: f => !!S().flags[f],
     noFlag: f => !S().flags[f],
-    day: spec => compare(eday(), spec),
+    day: dayMatch,
+    // { realDay: 8 } / { realDay: { gte: 5 } } 실제 날짜 (이야기일 보정 없음) — 임대료 예고처럼 플레이어에게 날짜를 말하는 것
+    realDay: spec => compare(S().day, spec),
     dayMod: ([mod, rem]) => S().day % mod === rem,
     gold: spec => compare(S().gold, spec),
     sold: spec => soldQty(spec) >= (spec.min || 1),
