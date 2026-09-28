@@ -458,4 +458,40 @@ seed 2(N=10, 확인용)에서도 같은 경향: 초보 1/10 · 중수 1/10 · �
 
 ### 남은 것
 - `closed_goblin` + `closed_kingdom` 동시 닫힘으로 인한 중립 — Clash.js/talks.js/endings.js 를 함께 봐야 하는 문제라 다음 손질감.
+
+## v0.9.9 — 헛헛한 이중 닫힘 고침 · 얽힘 더하기
+
+### closed_goblin + closed_kingdom 고침
+v0.9.8 끝에 남겼던 문제를 열어 보니, `closed_goblin` 이 서부 전쟁의 상대(왕실 · 궁정)가 아니라 용 · 마왕군 · 골렘 같은 곁가지 충돌에서
+지는 바람에 서기도 했고, `events.js` 의 `goblin_war_stands_down`(전쟁 중 closed_goblin 이 서면 그 자리서 승패 없이 전쟁을 끝내 버림)이
+"누구에게 졌든" 똑같이 발동해 실제 전쟁 승패(`goblin_victory`/`kingdom_victory`)가 영영 못 나는 판이 있었다. 왕실 조달청 쪽도 마찬가지로
+북부(마왕군)에서 곁가지로 졌을 뿐인데 그 뒤 서부 전쟁을 실제로 이겨도 `kingdom_armory` 는 `closed_kingdom` 에 막혀 못 닿았다.
+
+고침: `Conditions.js` 에 `closedBy: { route, by }` 를 더해 "그 줄기가 진짜 라이벌(kingdom · court)에게 져서 닫혔나"를 가릴 수 있게 하고,
+`events.js` 전쟁 사건 다섯 곳의 게이트를 그걸로 좁혔다(곁가지 패배는 전쟁을 못 끝낸다). `endings.js` 는 `goblin_nation`·`kingdom_armory`
+의 하드 승패 경로(`goblin_victory`/`kingdom_victory`)가 자신의 `closed_*` 를 더는 안 가리게 했다(형세만으로 닿는 물렁한 경로는 그대로
+가린다). `epilogues.js` 에 `world_west` 를 더해, 그래도 남는 진짜 우유부단(전쟁이 애초에 안 붙은 판)은 뒷이야기로 채웠다.
+
+검증: `Conditions.check` 단위 시험 3건(헛헛한 닫힘 + 실제 승패 → 결말 뚫림 / 헛헛한 닫힘인데 승패 플래그가 끝내 없음 → 여전히 막힘) 모두
+기대대로. `tools/sim.js` 240판(초보·중수·숙련 × seed 1~4, 절반은 --buyall):
+
+| | 초보 | 중수 | 숙련 |
+|---|---|---|---|
+| 예외·엔딩 없음·60일 초과·막힌 손님 | 전부 0 (80판) | 전부 0 (80판) | 전부 0 (80판) |
+| 파산 | seed1 0%, seed3·4 10%(2/20) — 기존 범위 그대로 | 0% | 0% |
+| 중립 | 1,1,2,3 / 20 (네 배치) | 1,2,1 / 20 | 1,1 / 20 |
+| kingdom_armory 등장 | seed1 4, seed2(buyall) 4, seed3 3, seed4(buyall) 1 | seed1 3, seed2(buyall) 1, seed3 0, seed4(buyall) 0 | seed1 0, seed2(buyall) 0, seed3 1, seed4(buyall) 0 |
+
+중립 240판 중 13판(5.4%) — v0.9.8 의 3.3~6.7%(30판) 범위와 비슷해 0으로 몰리지 않았다. `kingdom_armory` 는 v0.9.8 이전 1200판 조사에서
+딱 1회였던 것과 비교하면(design/qa_report_4.md 위쪽 "엔딩(여섯 칸 합, 1200판)" 절) 20판 표본에도 여러 번 등장할 만큼 도달률이 크게 늘었다
+— 고침이 의도대로 "실제 승패는 있었는데 결말만 막힌" 헛헛한 사례를 뚫었다는 뜻으로 읽었다.
+
+### 얽힘 더하기
+- ★9(신설, `config.js` weaveRules `w9_powder_pirates`): 연금술 화약 확산(`alchemy_progress`≥20) → 해적 세력(`pirate_power`) ↑, 신문
+  "연금술 학회의 화약이 남쪽 항구로 흘러든 뒤로, 검은 돛에도 포가 실렸다는 말이 돈다". §3.4b 에 제안만 있던 산업↔북부 다리를 처음 놓았다.
+- 뒷북 콜백 셋(`greetWhen` 한 줄씩, 새 변수·플래그 없음): 재의 산 공개경보(`dragon_alarm`) → 고블린 전령(`tk_gc_envoy`), 검은 군단 동맹
+  거절(`demonlord_resist`) → 숲을 지키러 온 고블린(`tk_dgo_goblin`), 청동심장 전력투구(`golem_allin`) → 공방장 헤파(`tk_gg_foreman`).
+  브라우저(`dev.html`)에서 플래그를 강제로 켜고 `Conditions.check` 로 세 곳 모두 새 대사가 뜨는 걸 확인했다(콘솔 에러 없음).
+- 손 안 댄 것: court · dragon · knight · golem 의 곁가지 폐쇄는 이미 `epilogues.js world_throne` 로 뒷이야기가 채워지는 **의도된** 설계라
+  이번엔 안 건드렸다 (`docs/DESIGN_CONVERGENCE.md` §9 참고).
 - `court_decided`·`abdication` 죽은 플래그 정리(급하지 않음).

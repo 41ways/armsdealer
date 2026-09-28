@@ -47,6 +47,7 @@
 | ★6 | 산과 숲: 용 각성 → 서부 전선: 서부 방어가 빔 / 왕좌: 계승 휴전 | 모두가 성벽으로 |
 | ★7 | 왕좌: 공위 기간 → 북부의 그림자: 흡혈귀 찬탈 위험 | 빈 왕좌를 노리는 밤 |
 | ★8 | 산과 숲: 골렘 군단 → 서부 전선: 용병 수요 ↓ | 쇠 병사는 삯을 받지 않는다 |
+| ★9 | 산과 숲: 연금술 화약 확산 → 북부의 그림자: 해적 세력 ↑ (v0.9.9) | 화약은 바다와 산을 동시에 바꾼다 — §3.4b 제안을 구현, 두 흐름 사이 처음 놓은 다리 |
 
 - 3.1 ~ 3.4b 의 나머지 관계는 **흐름 안쪽의 배경**이다. 밤마다 작게 움직이고, 혼자서 결말을 가르지 않는다.
 
@@ -337,7 +338,51 @@ talk: [ { say: '…', choices: [ { label, reply, next: 1 | effects, closes?: '�
 - 숙련도별 결말 분포: 한 결말이 30%를 넘지 않게.
 - 대관식이 30일째에 판정되는지, 공위 기간 회유 손님이 우세한 쪽에서 오는지.
 
-## 9. 작업 단계
+## 9. v0.9.9 — 헛헛한 이중 닫힘(closed_goblin + closed_kingdom) 고침
+
+v0.9.8 끝에서 찾았던 문제: `closed_goblin`·`closed_kingdom` 이 서로 무관한 충돌(고블린은 용·마왕군·골렘 중 하나에게, 왕실은 마왕군에게)에서
+각각 닫히면, 정작 둘 사이의 실제 서부 전쟁(events.js `war`/`war_progress` → `goblin_victory`/`kingdom_victory`)이 결정되었어도 두 결말
+(「명예 고블린」·「왕실 공식 무기상」) 이 동시에 막혀 중립으로 떨어졌다. 근본 원인은 `goblin_war_stands_down`·`war_goblin_victory` 가
+"누구에게 졌든" `closed_goblin` 만 서면 전쟁 자체를 무효로 돌렸던 것 — 왕실(kingdom·court)과의 진짜 승부와, 용·마왕군·골렘 같은
+곁가지 승부를 구분하지 않았다.
+
+고침 (셋을 함께, Problem 1 이 제시한 세 방향 중 "실제 승패가 더 센 증거" 쪽으로 블렌드):
+- `Conditions.js` `closedBy: { route, by: [...] }` — 그 줄기가 그 상대들에게 져서 닫혔는지만 본다 (`state.closedWhy` 재사용, 새 상태 없음).
+- `events.js` — 전쟁 관련 사건 넷(`war_outbreak`·`war_goblin_victory`·`war_stalemate_tiebreak_goblin`·`war_stalemate_tiebreak_kingdom`·
+  `goblin_war_stands_down`)의 `closed_goblin` 게이트를 `closedBy(route:'goblin', by:['kingdom','court'])` 로 좁혔다. 왕실에게 직접 져서
+  닫힌 거면 예전대로 전쟁이 끝나지만, 용·마왕군·골렘한테 밀려 닫힌 거면 전쟁은 그대로 진행해 실제 승패를 낸다.
+- `endings.js` — `goblin_nation`·`kingdom_armory` 의 `when` 에서 하드 승패 플래그(`goblin_victory`/`kingdom_victory`)는 `noFlag: closed_*` 를
+  더 이상 보지 않는다(위 게이트 좁힘 덕에 왕실에게 직접 져서 닫힌 경우는 애초에 그 플래그가 안 선다 — 안전). 형세로만 닿는 물렁한 경로
+  (`goblin_unified`+`west_goblin`, `crown_holds`+`crown_supplier`, `royal_certified`+관계)는 여전히 `closed_*` 를 가린다 — 이건 곁가지
+  승부가 아니라 그 줄기 자체의 이야기라서.
+- `epilogues.js` — 궁정의 `world_throne`(대관식은 궁정 줄기가 닫혀도 늘 결정된다, 기존 v0.9.6 설계)과 같은 꼴로 `world_west` 를 추가.
+  전쟁이 실제로 어느 쪽으로 끝났는지, 어떤 결말로도 안 이어져도 뒷이야기 책에 남는다 — "진짜 우유부단"만 남기고 "그냥 방치돼서 헛헛한" 중립은 줄인다.
+
+검증: `Conditions.check` 를 고른 상태로 직접 두드려(단위 시험) 헛헛한 경우엔 결말이 뚫리고, 진짜 우유부단(승패 플래그가 끝내 하나도 안 섬)은
+여전히 막힘을 확인. `tools/sim.js` 240판(초·중·숙 × seed 여러 개, buyall 섞음): 예외 0 · 파산율 기존 범위 그대로 · 중립 5%대(0 아님) ·
+`kingdom_armory` 도달 빈도가 뚜렷이 늘었다(qa_report_4.md v0.9.8 이전 1200판 중 1회 → 이번 20판 표본에도 자주 등장).
+
+## 10. v0.9.9 — 얽힘 더하기 (Problem 2)
+
+- **★9 (신설)**: 산과 숲(연금술 화약) → 북부의 그림자(해적 세력) — §3.4b 에 "화약은 바다와 산을 동시에 바꾼다"로 제안만 되어 있던 걸
+  `config.js` weaveRules `w9_powder_pirates` 로 구현. 두 흐름은 그동안 이어진 게 없었다(§3.0 표의 빈 칸).
+  원인 → 결과 → 신문: 연금술 진척(`alchemy_progress`) ≥ 20 → 해적 세력(`pirate_power`) 서서히 ↑ → "연금술 학회의 화약이 남쪽 항구로
+  흘러든 뒤로, 검은 돛에도 포가 실렸다는 말이 돈다".
+- **뒷북 콜백 셋** (정치적 결단 §⑥ → 나중 장면): 값싸게(`greetWhen` 한 줄) 붙여, 결단이 며칠 뒤 다른 손님 입에서 다시 나오게 했다.
+  - 재의 산 공개경보(`dragon_alarm`, tk_dr_alarm) → 서부 숲 부족 전령(`tk_gc_envoy`, 고블린↔궁정 충돌): "국경 초소가 텅 비었다구!"
+  - 검은 군단 임시 동맹을 거절(`demonlord_resist`, tk_dm_decision) → 숲을 지키러 온 고블린(`tk_dgo_goblin`, 마왕군↔고블린 충돌):
+    "왕국이 걷어찬 화를 우리가 받는다구!" — 왕국이 버틴 화가 만만한 숲으로 튀는 인과.
+  - 청동심장 공방 전력투구(`golem_allin`, tk_gl_allin) → 공방장 헤파(`tk_gg_foreman`, 골렘↔고블린 충돌): "광석이 배로 든다오."
+  - 이미 있던 `rl_aldric_levy`(sidedAldric 체크) 와 같은 꼴 — 새 변수·새 플래그 없이 기존 결단 플래그를 다른 손님이 다시 읽을 뿐이다.
+- **일부러 손 안 댄 것**: 궁정(court)·용(dragon)·기사단(knight)·골렘(golem) 도 곁가지 충돌에서 지면 그 결말(`iron_king`·`candle_queen`·
+  `opportunist`·`dragonfall` 등)이 `closed_*` 로 막히지만, 이쪽은 `events.js` coronation 주석에 이미 "궁정 줄기가 닫혀도 나라에는
+  왕이 선다 — 그 결말은 일부러 막는다"로 **의도된 설계**임이 적혀 있고(`epilogues.js world_throne` 이 뒷이야기를 대신 준다), 대관식은
+  30일째 밤에 조건 없이 반드시 일어나는 사건이라 goblin/kingdom 처럼 "전쟁이 아예 못 붙는" 실패 모드가 없다. 그래서 이번엔 goblin/kingdom
+  에만 좁혀 고쳤다 — 같은 패턴이 court 쪽에도 필요해 보이면(사용자 판단) 다음 손질감으로 남겨 둔다.
+- 화력을 더 쏟을 수 있었지만(교차 흐름 링크 추가·정치적 결단 신설) 이번엔 "읽히게 하는 규칙"(§3.0)을 지키려고 하나씩만 골랐다 — 한 판에서
+  다 마주치긴 어려운 양이라 시뮬 결말 분포에는 표가 잘 안 나지만, 스폿체크로 값 갱신과 신문 줄 발화를 확인했다.
+
+## 11. 작업 단계 (v0.9.6 이전 초안)
 
 0. 대화 손님 화면(3.A) — 창고 칸을 차지하는 대화창 · 요약 한 줄 · 여러 번 주고받기 · 혼잣말 · 까마귀 신고 선택지.
 1. 얽힘 규칙(3절)과 대관식 재구성(4절) — 궁정 · 고블린 · 마왕군 · 용.

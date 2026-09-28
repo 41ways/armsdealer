@@ -160,21 +160,25 @@ WS.data.events = [
       },
     ],
   },
+  // 줄기가 닫혀도(closed_goblin) 그게 왕국(kingdom · court)과의 직접 대결에서 진 게 아니면(용 · 마왕군 · 골렘한테 밀린 곁가지)
+  //   서부 전쟁 자체는 계속 붙을 수 있다 — Problem 1: 예전엔 아무 상대에게 지든 closed_goblin 만 서면 전쟁이 영영 못 붙어,
+  //   왕국의 「왕실 공식 무기상」도 kingdom_victory 를 못 받아 둘 다 막힌 채 중립으로 떨어지는 "헛헛한 이중 닫힘"이 났다.
   {
     id: 'war_outbreak', once: true, priority: 80,
-    when: { all: [{ var: 'goblin_power', gte: 28 }, { var: 'kingdom_power', gte: 25 }, { var: 'border_tension', gte: 24 }, { noFlag: 'closed_goblin' }] },
+    when: { all: [{ var: 'goblin_power', gte: 28 }, { var: 'kingdom_power', gte: 25 }, { var: 'border_tension', gte: 24 }, { not: { closedBy: { route: 'goblin', by: ['kingdom', 'court'] } } }] },
     effects: { flags: ['war'], vars: { iron_price: 25, economy: -8 } },
     news: { cat: '속보', text: '왕국-고블린 전쟁 발발! 서부 전역에 동원령', big: true },
   },
   {
-    // 고블린 줄기가 닫혔을 때 전쟁 중이었다면 전선이 멎는다 (까닭을 적은 기사는 talks.js 의 충돌 결과가 싣는다)
+    // 고블린 줄기가 왕국(kingdom · court)에게 밀려 닫혔을 때 전쟁 중이었다면 전선이 멎는다 (까닭을 적은 기사는 talks.js 의 충돌 결과가 싣는다)
+    //   용 · 마왕군 · 골렘 같은 딴 상대에게 밀려 닫힌 거면 서부 전쟁 자체는 그대로 둔다 — 진짜 라이벌이 아니라서
     id: 'goblin_war_stands_down', once: true, priority: 86,
-    when: { all: [{ flag: 'war' }, { flag: 'closed_goblin' }] },
+    when: { all: [{ flag: 'war' }, { flag: 'closed_goblin' }, { closedBy: { route: 'goblin', by: ['kingdom', 'court'] } }] },
     effects: { unflags: ['war'], set: { war_progress: 0 }, vars: { border_tension: -6, goblin_power: -3 } },
   },
   {
     id: 'war_goblin_victory', once: true, priority: 85,
-    when: { all: [{ flag: 'war' }, { var: 'war_progress', gte: 20 }, { noFlag: 'closed_goblin' }] }, // 줄기 닫힘(closed_*)은 js/data/talks.js 충돌 장면이 켠다 — 닫힌 줄기의 세계 사건은 더 일어나지 않는다 (닫는 기사도 talks.js 몫)
+    when: { all: [{ flag: 'war' }, { var: 'war_progress', gte: 20 }, { not: { closedBy: { route: 'goblin', by: ['kingdom', 'court'] } } }] }, // 줄기 닫힘(closed_*)은 js/data/talks.js 충돌 장면이 켠다 — 왕국(kingdom·court)에게 밀려 닫힌 거면 세계 사건도 더 안 일어난다(닫는 기사는 talks.js 몫). 딴 상대에게 밀려 닫힌 거면 전쟁은 그대로 간다(Problem 1)
     effects: { flags: ['goblin_victory'], unflags: ['war'], vars: { kingdom_power: -6, kingdom_morale: -10 } }, // 3단계: −10/−15 였다 — 같은 kingdom_power 를 마왕군 전쟁도 봐서 「검은 깃발 아래」가 「명예 고블린」를 가렸다
     news: { cat: '속보', text: '고블린 연합 승리… 왕국, 서부 숲 포기 선언', big: true },
   },
@@ -191,13 +195,13 @@ WS.data.events = [
   // 지나서야 막 터진 판(그래서 war_progress 가 밤에 한 번도 못 움직인 판)도 그날 안에 바로 가른다.
   {
     id: 'war_stalemate_tiebreak_goblin', once: true, priority: 75,
-    when: { all: [{ flag: 'war' }, { realDay: { gte: 27 } }, { var: 'war_progress', gte: 0 }, { var: 'war_progress', lte: 10 }, { noFlag: 'closed_goblin' }] },
+    when: { all: [{ flag: 'war' }, { realDay: { gte: 27 } }, { var: 'war_progress', gte: 0 }, { var: 'war_progress', lte: 10 }, { not: { closedBy: { route: 'goblin', by: ['kingdom', 'court'] } } }] },
     effects: { flags: ['goblin_victory'], unflags: ['war'], vars: { kingdom_power: -6, kingdom_morale: -10 } },
     news: { cat: '속보', text: '서부 전선 지루한 교착 끝… 왕국 쪽 보급이 먼저 끊긴 쪽이 물러났다, 고블린 연합 사실상 서부 장악', big: true },
   },
   {
     id: 'war_stalemate_tiebreak_kingdom', once: true, priority: 75,
-    when: { all: [{ flag: 'war' }, { realDay: { gte: 27 } }, { var: 'war_progress', lt: 0 }, { var: 'war_progress', gte: -10 }, { noFlag: 'closed_goblin' }] },
+    when: { all: [{ flag: 'war' }, { realDay: { gte: 27 } }, { var: 'war_progress', lt: 0 }, { var: 'war_progress', gte: -10 }, { not: { closedBy: { route: 'goblin', by: ['kingdom', 'court'] } } }] },
     effects: { flags: ['kingdom_victory'], unflags: ['war'], vars: { goblin_power: -15, kingdom_morale: 10 } },
     news: { cat: '속보', text: '서부 전선 지루한 교착 끝… 고블린 쪽 보급이 먼저 끊긴 쪽이 물러났다, 왕국군 서부 숲 사실상 평정', big: true },
   },

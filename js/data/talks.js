@@ -340,6 +340,8 @@
       greetWhen: [
         { when: { flag: 'tk_gc_told_guard' }, text: '킥… 경비대장한테 우리 얘기 했다며? 숲은 다 안다구. 그래도 한 번 더 묻는다구. 궁이 싸우는 지금이 기회다. 내일 칼 열 자루, 도와줄 거냐구!' },
         { when: { flag: 'tk_gc_a_yes' }, text: '킥, 어제 경비대장한테 창 준다 했다며? 숲은 다 안다구. 그래도 묻는다구. 인간 왕좌가 빈 지금이 기회다. 내일 칼 열 자루!' },
+        // 재의 산 공개경보(tk_dr_alarm) 이후 국경 초소 병력까지 산으로 끌려갔다 — 며칠 뒤 즈락이 그걸 안다 (Problem 2: 결단의 뒷북)
+        { when: { flag: 'dragon_alarm' }, text: '킥킥! 재의 산 경보 때문에 국경 초소가 텅 비었다구! 인간들이 죄다 산 쪽만 본다구. 지금이 기회다구! 내일 칼 열 자루!' },
       ],
       choices: [
         { id: 'yes', label: '내일 준비해 두겠소', reply: '킥킥! 내일 해 지기 전에 온다구!', effects: { flags: ['tk_gc_b_yes'], spawn: [{ customer: 'tk_gc_envoy_cart', inDays: 1 }] } },
@@ -483,6 +485,8 @@
       id: 'tk_dgo_goblin', ...krakBase, kind: 'talk', spawn: { queuedOnly: true },
       summary: '고블린 부족 — 검은 깃발이 숲을 내놓으라 한다, 내일 활 8',
       greet: '킥… 검은 깃발 놈들이 숲을 통째로 내놓으래. 오크까지 데리고 와서! 우린 안 준다구! 내일 활 여덟 자루, 숲 지키게 도와 달라구!',
+      // 검은 군단의 임시 동맹 제안(tk_dm_decision)을 완강히 거절했으면(demonlord_resist), 폐하는 왕국 대신 만만한 숲부터 노린다 — 그 화가 여기로 튄다
+      greetWhen: [{ when: { flag: 'demonlord_resist' }, text: '킥… 폐하가 왕국엔 코빼기도 안 비치더니, 숲으로 창끝을 돌렸다구! 왕국이 걷어찬 화를 우리가 받는다구! 내일 활 여덟 자루, 숲 지키게 도와 달라구!' }],
       choices: [
         { id: 'yes', label: '내일 준비해 두겠소', reply: '킥킥! 숲이 이 가게를 기억할 거라구!', effects: { flags: ['tk_dgo_a_yes'], spawn: [{ customer: 'tk_dgo_goblin_cart', inDays: 1 }] } },
         { id: 'no', label: '활은 못 대겠소', mutter: '…숲이 무너지면 부족은 검은 깃발 밑으로 흩어지겠지.', reply: '…인간은 숲이 타도 모른 척한다구.', effects: { vars: { rel_goblin: -1 } } },
@@ -540,7 +544,11 @@
       id: 'tk_gg_foreman', ...hepaBase, kind: 'talk', spawn: { queuedOnly: true },
       summary: '청동심장 공방 — 서부 숲 가장자리 광맥으로 증설, 내일 철광석 15',
       greet: '공방을 늘려야 하오. 서부 숲 가장자리에 옛 광맥이 드러났는데, 부족들이 창을 들고 막아서오. 골렘 열 기면 부족도 길을 비킬 거요. 골렘 다리에 들어갈 철광석 열다섯, 내일 받으러 오겠소. 골렘이 성문을 지키면 용병 삯도 아낄 수 있소.',
-      greetWhen: [{ when: { flag: 'golem_army' }, text: '군단은 섰지만 광석이 모자라오. 서부 숲 가장자리 옛 광맥을 파야 하는데, 부족들이 창을 들고 막아서오. 골렘 열 기를 더 세우면 길을 비킬 거요. 내일 철광석 열다섯, 받으러 오겠소.' }],
+      greetWhen: [
+        { when: { flag: 'golem_army' }, text: '군단은 섰지만 광석이 모자라오. 서부 숲 가장자리 옛 광맥을 파야 하는데, 부족들이 창을 들고 막아서오. 골렘 열 기를 더 세우면 길을 비킬 거요. 내일 철광석 열다섯, 받으러 오겠소.' },
+        // 전력투구(tk_gl_allin)를 골랐으면 광맥 증설이 더 급해졌다 — 그 결단이 며칠 뒤 이 충돌로 이어진다
+        { when: { flag: 'golem_allin' }, text: '전력투구로 정한 뒤로 광석이 배로 든다오. 서부 숲 가장자리 옛 광맥을 파야 하는데, 부족들이 창을 들고 막아서오. 골렘 열 기면 부족도 길을 비킬 거요. 내일 철광석 열다섯, 받으러 오겠소.' },
+      ],
       choices: [
         { id: 'yes', label: '공방 몫으로 준비하겠소', reply: '좋소. 톱니는 거짓말을 안 하오.', effects: { flags: ['tk_gg_a_yes'], spawn: [{ customer: 'tk_gg_foreman_cart', inDays: 1 }] } },
         { id: 'no', label: '광석은 못 대겠소', mutter: '…광석을 안 대면 공방 증설은 멈춘다. 톱니의 시대도 거기까지겠지.', reply: '길드 창고에서 구하지. 더 비싸겠지만.', effects: { vars: { rel_golem: -1 } } },

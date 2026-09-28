@@ -18,6 +18,15 @@
 
 - **v0.9.8**: 서부 전선 교착 방지(27일 이후 무승부면 그날 밤 승패), 손님 얼굴 겹침 완전 정리(시트 하나당 이름 있는 손님 4명 이하), 새 콘텐츠 150여 개 전수 점검(죽은 참조 없음 확인). 중립 결말 초보 6.7%·중급/숙련 3.3%(30판). 남은 것: `closed_goblin`+`closed_kingdom` 동시 닫힘으로 인한 잔여 중립.
 
+- **v0.9.9 — 헛헛한 이중 닫힘 고침 · 얽힘 더하기 · 뒷북 몇 개**: `closed_goblin`/`closed_kingdom` 이 서부 전쟁과 무관한 딴 충돌(용·마왕군·골렘)에서 곁가지로 닫히면, 그 사이 events.js 가 실제로 결정한 서부 전쟁 승패(`goblin_victory`/`kingdom_victory`)까지 덩달아 막혀 두 결말이 동시에 사라지고 중립으로 떨어지던 문제를 고쳤다.
+  - `Conditions.js` 에 `closedBy` 조건 추가(`state.closedWhy` 를 읽어 "그 줄기가 누구에게 져서 닫혔나"를 본다).
+  - `events.js`: `war_outbreak`·`war_goblin_victory`·`war_stalemate_tiebreak_*`·`goblin_war_stands_down` 이 `closed_goblin` 을 무조건 전쟁 종료 신호로 보던 걸, "왕국(kingdom·court)에게 직접 져서 닫힌 경우"로만 좁혔다 — 용·마왕군·골렘한테 밀려 닫힌 거면 서부 전쟁 자체(과 그 승패)는 그대로 간다.
+  - `endings.js`: `goblin_nation`·`kingdom_armory` 의 `when` 에서, 이미 결정 난 전쟁 승패 플래그(`goblin_victory`/`kingdom_victory`)는 그 줄기 자신의 `closed_*` 를 가리지 않게 했다(딴 이야기의 곁가지 승부보다 실제 전쟁 승패가 더 센 증거라서). 그 밖의 "형세로 이김" 경로(`goblin_unified`+`west_goblin`, `crown_holds`+`crown_supplier` 등)는 그대로 `closed_*` 를 본다.
+  - `epilogues.js`: 궁정의 `world_throne` 과 같은 꼴로 `world_west`(서부 전선) 를 추가 — 어느 결말로도 안 이어져도 서부 전쟁이 실제로 어떻게 끝났는지 뒷이야기에 남는다.
+  - 검증: `Conditions.check` 단위 시험 + `tools/sim.js` 240판(초·중·숙 × seed 여러 개, buyall 섞음) — 예외/무한대기 0, 중립 5%대 유지(0으로 안 떨어짐), `kingdom_armory` 도달률이 눈에 띄게 늘었다(예전 1200판 중 1회 수준 → 20판 표본에도 자주 등장).
+  - 얽힘: `config.js` weaveRules 에 ★9(연금술 화약 확산 → 해적 세력, §3.4b 에 제안만 있던 산업↔북부 다리를 처음 놓음) 추가. 정치적 결단 네 개(§⑥) 중 세 개(재의 산 경보·검은 군단 동맹·청동심장 전력투구)에 뒷북 `greetWhen` 을 붙여, 그 결단이 며칠 뒤 고블린·골렘 충돌 손님 대사에서 언급되게 했다.
+  - 설계 `docs/DESIGN_CONVERGENCE.md` Problem 1·2, 측정 `design/qa_report_4.md` v0.9.9 절.
+
 ### 이전 기록 (v0.9.1)
 
 아래 우선순위(§27)를 코드와 대조한 결과. 이미 있는 것은 다시 만들지 않는다.

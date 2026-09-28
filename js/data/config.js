@@ -469,6 +469,10 @@ WS.data.worldVars = {
     // 공방을 잃은 대장장이는 용병이 된다 (산 → 서부)
     { id: 'w_dwarf_refugees', when: { flag: 'dwarf_fallen' }, vars: { merc_strength: 0.2 },
       news: { cat: '생활', text: '공방을 잃은 강철수염 대장장이들이 용병 천막으로 모여든다' } },
+    // ★9 화약이 퍼지면 해적이 포를 갖춘다 (산과 숲의 연금술 → 북부의 그림자의 해적 — §3.4b "화약은 바다와 산을 동시에 바꾼다" 반영, 3.0 표의 빈 칸 채움)
+    //   산과 숲과 북부의 그림자는 그동안 이어진 게 없었다 — 연금술 학회가 커질수록 남쪽 항구로 화약통이 흘러든다는 인과로 처음 잇는다
+    { id: 'w9_powder_pirates', when: { var: 'alchemy_progress', gte: 20 }, vars: { pirate_power: 0.15 },
+      news: { cat: '소문', text: '연금술 학회의 화약이 남쪽 항구로 흘러든 뒤로, 검은 돛에도 포가 실렸다는 말이 돈다' } },
   ];
 })();
 

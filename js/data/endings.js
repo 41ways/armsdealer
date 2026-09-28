@@ -169,7 +169,11 @@ WS.data.endings = [
     ],
   },
   {
-    id: 'goblin_nation', when: { all: [{ noFlag: 'closed_goblin' }, { any: [{ flag: 'goblin_victory' }, { all: [{ flag: 'goblin_unified' }, { flag: 'west_goblin' }] }] }, { sold: { faction: 'goblin', tag: 'weapon', min: 45 } },
+    // goblin_victory(events.js 서부 전쟁의 실제 승패)는 closed_goblin 을 가리지 않는다 — 그 닫힘이 용 · 마왕군 · 골렘 같은
+    //   딴 상대에게 곁가지로 밀려 난 거면(Clash.js Problem 1), 정작 왕국과의 전쟁 자체는 events.js 가 그대로 결정하고 있어서다.
+    //   (왕국이 직접 이겨 닫힌 거면 war_goblin_victory 쪽이 애초에 closedBy 검사로 goblin_victory 를 안 켠다 — js/data/events.js)
+    //   부족 연합만으로 숲을 차지한 「(goblin_unified && west_goblin)」쪽은 여전히 closed_goblin 이 안 서 있어야 한다 — 그건 곁가지 승부가 아니라 이 줄기 자체의 이야기라서.
+    id: 'goblin_nation', when: { all: [{ any: [{ flag: 'goblin_victory' }, { all: [{ noFlag: 'closed_goblin' }, { flag: 'goblin_unified' }, { flag: 'west_goblin' }] }] }, { sold: { faction: 'goblin', tag: 'weapon', min: 45 } },
       // 왕국에도 비슷하게 팔았다면 그건 「박쥐」 (양쪽에 판 자)
       { not: { soldShare: { a: { faction: 'goblin', tag: 'weapon', min: 30 }, b: { faction: 'kingdom', tag: 'weapon', min: 30 }, share: 0.4 } } }] },
     title: '명예 고블린',
@@ -357,7 +361,13 @@ WS.data.endings = [
     ],
   },
   {
-    id: 'kingdom_armory', when: { all: [{ noFlag: 'closed_kingdom' }, { any: [{ flag: 'kingdom_victory' }, { all: [{ flag: 'crown_holds' }, { flag: 'crown_supplier' }] }, { all: [{ flag: 'royal_certified' }, { var: 'rel_kingdom', gte: 12 }] }] }] },
+    // kingdom_victory(events.js 서부 전쟁의 실제 승패)는 closed_kingdom 을 가리지 않는다 — 북부 전선(마왕군 등) 곁다리에서
+    //   왕실 조달 이야기가 먼저 닫혔어도, 서부에서 실제로 이긴 전쟁까지 없던 일이 되진 않는다 (Clash.js Problem 1 — closed_goblin 쪽과 짝맞춤).
+    //   전시 섭정 · 인증 쪽(crown_holds·royal_certified)은 이 줄기 자체의 곁다리 충돌로 갈리는 값이라 여전히 closed_kingdom 이 안 서 있어야 한다.
+    id: 'kingdom_armory', when: { all: [{ any: [{ flag: 'kingdom_victory' }, { all: [{ noFlag: 'closed_kingdom' }, { any: [
+      { all: [{ flag: 'crown_holds' }, { flag: 'crown_supplier' }] },
+      { all: [{ flag: 'royal_certified' }, { var: 'rel_kingdom', gte: 12 }] },
+    ] }] }] }] },
     variants: [
       {
         when: { flag: 'crown_holds' },

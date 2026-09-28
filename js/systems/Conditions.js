@@ -155,6 +155,10 @@ WS.sys.Conditions = (() => {
     upgrade: k => !!WS.sys.Shop && WS.sys.Shop.owned(k),
     // { todayDone: { gte: 3 } } 오늘 응대를 마친 손님 수
     todayDone: spec => compare((S().queue || []).filter(c => c.status === 'done').length, spec),
+    // { closedBy: { route: 'goblin', by: ['kingdom', 'court'] } } 그 줄기(route)가 그 상대들(by) 중 하나에게 져서 닫혔나.
+    //   state.closedWhy 는 Clash.js resolve() 가 적는다 — 아직 안 닫혔으면 false. 무관한 상대(예: 용 · 마왕군 · 골렘)에게 진 건 안 친다.
+    //   실제 라이벌(kingdom ↔ goblin의 서부 전쟁 등)에게 진 닫힘과, 딴 데서 밀려 곁다리로 닫힌 걸 갈라 보려고 만들었다 (docs/DESIGN_CONVERGENCE.md Problem 1).
+    closedBy: spec => { const c = (S().closedWhy || {})[spec.route]; return !!c && (spec.by || []).includes(c.by); },
   };
 
   function check(c) {

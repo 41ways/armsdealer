@@ -177,5 +177,16 @@
         { when: { flag: 'crown_holds' }, text: '늙은 왕은 끝내 왕좌를 지켰다. 왕자와 공주는 변방 영지에서 때를 기다린다.' },
       ],
     },
+    {
+      // 서부 전선 — 고블린-왕국 전쟁의 실제 승패(events.js war_goblin_victory · war_kingdom_victory · west_takeover).
+      //   「명예 고블린」·「왕실 공식 무기상」으로 이어지지 않았어도(closed_goblin·closed_kingdom 이 딴 충돌로 먼저 닫혔어도,
+      //   또는 다른 결말로 판이 끝났어도) 서부에서 실제로 벌어진 일은 그대로 뒷이야기에 남는다 (Problem 1 — 헛헛한 중립 보완).
+      id: 'world_west', who: '서부 전선', icon: '🏹',
+      variants: [
+        { when: { flag: 'goblin_victory' }, text: '왕국은 끝내 서부 숲을 포기했다. 옛 초소 지붕마다 부족 연합의 깃발이 걸렸다.' },
+        { when: { flag: 'kingdom_victory' }, text: '왕국군이 서부 숲을 평정했다. 흩어진 부족들 소식은 그 뒤로 끊겼다.' },
+        { when: { flag: 'west_goblin' }, text: '서부 교역로는 여전히 부족의 땅을 지난다. 통행세를 내는 쪽은 이제 왕국 상인들이다.' },
+      ],
+    },
   ];
 })();
