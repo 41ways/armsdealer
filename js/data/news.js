@@ -76,7 +76,9 @@ WS.data.ambientNews = [
   { id: 'amb_cartel', cat: '경제', text: '철광석 창고마다 길드 자물쇠… "칼 만들 쇠가 없다"', when: { flag: 'iron_cartel' }, weight: 3, cooldown: 3 },
   { id: 'amb_fence', cat: '사건', text: '도난 신고된 칼이 상점가 진열대에… 주인 "정식으로 샀다"', when: { bought: { faction: 'bandit', min: 2 } }, weight: 2, cooldown: 4 },
   // 귀족 / 계승
-  { id: 'amb_succession', cat: '왕국', text: '궁정 연회, 왕자파와 공주파가 다른 문으로 입장', when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }] }, weight: 3, cooldown: 2 },
+  { id: 'amb_succession', cat: '왕국', text: '궁정 연회, 왕자파와 공주파가 다른 문으로 입장', when: { all: [{ flag: 'succession_crisis' }, { noFlag: 'crowned' }, { noFlag: 'interregnum' }] }, weight: 3, cooldown: 2 },
+  // 공위 기간 (왕 서거 · 양위 결정 ~ 30일째 밤 대관식 — events.js king_dies · coronation). 우세한 쪽 기사는 talks.js tk_amb_*
+  { id: 'amb_regency_war', cat: '왕국', text: '전시 섭정 회의, 대관식 비용 절반을 성벽과 초소로 돌려', when: { all: [{ flag: 'regency_war' }, { flag: 'interregnum' }, { noFlag: 'crowned' }] }, weight: 2, cooldown: 4 },
   // 복선: 궁정 귀족은 세레나 공주 편, 붉은 늑대 용병단은 알드릭 왕자 편 (config.courtGossip — 손님 인사말 · 판매 효과와 짝)
   { id: 'amb_court_physician', cat: '왕국', text: '왕궁 시의들 도성 약방 돌며 회복 물약 사재기… "국왕 침소 불빛이 안 꺼진다"', when: { all: [{ day: { gte: 8, lte: 13 } }, { noFlag: 'succession_crisis' }, { noFlag: 'physician_helped' }] }, weight: 4, cooldown: 3 },
   { id: 'amb_court_ladies', cat: '왕국', text: '귀족 부인들, 공주의 구호소 후원 모임… 왕자 측 초대장은 반송', when: { all: [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }, { day: { gte: 10 } }] }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }] }, weight: 3, cooldown: 5 },

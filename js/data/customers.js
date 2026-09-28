@@ -430,8 +430,8 @@ WS.data.customers = [
           if: [
             // "내일 다시 오시오"를 두 번 들은 뒤의 마지막 방문 — 받아는 가지만 계약은 끝
             { when: { flag: 'dwarf_contract_last' }, then: { flags: ['dwarf_contract_broken'] } },
-            { when: { all: [{ noFlag: 'dwarf_contract_broken' }, { var: 'dwarf_deliveries', gte: 4 }] }, then: { flags: ['dwarf_golden_age'] } },
-            { when: { all: [{ noFlag: 'dwarf_contract_broken' }, { noFlag: 'dwarf_golden_age' }] }, then: { spawn: [{ customer: 'dwarf_porter', inDays: 3 }] } },
+            { when: { all: [{ noFlag: 'dwarf_contract_broken' }, { noFlag: 'closed_dwarf' }, { var: 'dwarf_deliveries', gte: 4 }] }, then: { flags: ['dwarf_golden_age'] } },
+            { when: { all: [{ noFlag: 'dwarf_contract_broken' }, { noFlag: 'dwarf_golden_age' }, { noFlag: 'closed_dwarf' }] }, then: { spawn: [{ customer: 'dwarf_porter', inDays: 3 }] } },
           ],
         },
       },
@@ -628,7 +628,7 @@ WS.data.customers = [
   },
   {
     id: 'demon_king', look: 'demon_king', name: '???', race: '마족', job: '두건 쓴 귀빈', faction: 'demonlord', portrait: '👑', kind: 'talk',
-    spawn: { when: { all: [{ var: 'rel_demonlord', gte: 8 }, { flag: 'armed_demonlord' }] }, minDay: 8, chance: 0.5 },
+    spawn: { when: { all: [{ var: 'rel_demonlord', gte: 8 }, { flag: 'armed_demonlord' }, { noFlag: 'closed_demonlord' }] }, minDay: 8, chance: 0.5 },
     ask: { tag: '동맹 제안', gold: 300, note: '마왕군 편에 선다' },
     greet: '(불빛이 기운다) 짐의 군대가 네 칼을 든다. 편에 서겠나?',
     choices: [
@@ -888,7 +888,7 @@ WS.data.customers = [
   {
     // 왕·왕자·공주 다툼 중: 왕정 조달관 — 늘 값싸게 사 간다 (시세의 7할). 팔면 왕정 쪽 힘이 는다
     id: 'crown_quartermaster', look: 'knight_official', name: '왕정 조달관 마르텔', race: '인간', job: '왕실 보급 담당', faction: 'kingdom', portrait: '📜',
-    spawn: { when: { all: [{ flag: 'court_struggle' }, { noFlag: 'crowned' }] }, once: false, chance: 0.5 },
+    spawn: { when: { all: [{ flag: 'court_struggle' }, { noFlag: 'crowned' }, { noFlag: 'closed_kingdom' }] }, once: false, chance: 0.5 },
     affil: { claim: 'royal', seal: 'real', sealOf: 'royal', line: '국왕 직속 조달청이오. 왕실 인장을 보시오.' },
     greet: '왕실 조달이오. 칼 4자루, 값은 규정대로.',
     request: { item: 'iron_sword', qty: 4, offer: 150, partialOk: true },
@@ -1053,15 +1053,17 @@ WS.data.customers = [
     id: 'prince_agent', look: 'prince', name: '알드릭 왕자', race: '인간', job: '제1왕자 (변장했지만 티가 난다)', faction: 'noble', portrait: '🤴',
     spawn: { queuedOnly: true },
     affil: { claim: 'royal', seal: 'real', sealOf: 'royal', line: '왕가의 사람이다. 이 인장이면 됐겠지.' },
-    greet: '왕자다. {item} {qty}자루, {offer}골드. 반은 대관식 날 주마.',
+    greet: '왕자다. {item} {qty}자루, {offer}골드. 반은 이레 안에 주마.',
     // 궁정 다툼 때 두건을 쓰고 활을 사 간 그 청년이다 — 그때 팔았으면 알아본다 (greetWhen: 먼저 맞는 것이 greet 대신)
     greetWhen: [
-      { when: { flag: 'armed_prince_secret' }, text: '그때 사 간 활, 잘 썼네. 앞으로도 잘 부탁하네. {item} {qty}자루, {offer}골드. 반은 대관식 날 주마.' },
+      { when: { flag: 'armed_prince_secret' }, text: '그때 사 간 활, 잘 썼네. 앞으로도 잘 부탁하네. {item} {qty}자루, {offer}골드. 반은 이레 안에 주마.' },
     ],
     request: { item: 'bow', qty: 4, offer: { mult: 1.6 }, partialOk: true },
-    payment: { credit: { now: 0.5, inDays: [5, 7], defaultWhen: { any: [{ flag: 'queen_serena' }, { flag: 'vampire_regent' }] }, defaultText: '알드릭 왕자에게 받을 외상값 {amount}G는 휴지 조각이 되었다. 왕이 되지 못한 자의 약속이다.' } },
+    // 대관식은 마지막 날이라 갚는 날엔 아직 왕이 없다 — 그때 섭정 회의에서 크게 밀렸거나(세레나 쪽 −8 이하) 밤의 백작이 섭정이면 떼인다
+    payment: { credit: { now: 0.5, inDays: [5, 7], defaultWhen: { any: [{ flag: 'queen_serena' }, { flag: 'vampire_regent' }, { flag: 'night_regent' }, { all: [{ flag: 'interregnum' }, { var: 'succession', lte: -8 }] }] }, defaultText: '알드릭 왕자에게 받을 외상값 {amount}G는 들어오지 않았다. 섭정 회의에서 밀린 왕자의 금고는 비어 있었다.' } },
     lines: { sold: '이 활들이 왕관을 지킨다. 기억하겠다.', partial: '모자란 만큼 덜 기억하겠지.', refused: '누이 쪽이냐? …상인은 이길 쪽에 걸지.' },
-    onSell: { flags: ['armed_aldric'], vars: { succession: 7, rel_noble: 3, merc_strength: 3 } },
+    // v0.9.5: +7 → +5 — 파는 길(돈이 들어옴)이 기부하는 길(세레나 −7, 120G가 나감)보다 쉬워 시뮬에서 왕좌가 알드릭 쪽으로 쏠렸다 (design/qa_report_4.md)
+    onSell: { flags: ['armed_aldric'], vars: { succession: 5, rel_noble: 3, merc_strength: 3 } },
     onRefuse: { vars: { succession: -1, rel_noble: -2 } },
   },
   {

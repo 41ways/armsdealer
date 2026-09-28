@@ -126,7 +126,7 @@
     },
     {
       id: 'leon_commander_visit', look: 'knight', name: '기사단장 레온', race: '인간', job: '제7기사단 단장', faction: 'kingdom', portrait: '🤺', kind: 'talk',
-      spawn: { when: { all: [{ flag: 'leon_commander' }, { day: { gte: 25 } }] } },
+      spawn: { when: { all: [{ flag: 'leon_commander' }, { day: { gte: 25 } }, { noFlag: 'closed_knight' }] } },
       ask: { tag: '납품 계약', gold: 150, note: '고블린과 거래 금지' },
       greet: '기사단장이 됐네. 납품을 맡기겠네. 단, 고블린과는 어떤 거래도 하지 말게. 칼 한 자루라도 숲으로 가면 계약은 끝일세.',
       choices: [

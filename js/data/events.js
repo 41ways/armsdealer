@@ -150,7 +150,7 @@ WS.data.events = [
     id: 'west_takeover', trigger: 'scheduled', priority: 70,
     outcomes: [
       {
-        when: { cmp: ['goblin_power', '>', 'kingdom_power'] },
+        when: { all: [{ cmp: ['goblin_power', '>', 'kingdom_power'] }, { noFlag: 'closed_goblin' }] },
         effects: { flags: ['west_goblin'], vars: { goblin_unity: 6, kingdom_morale: -6, economy: -4, border_tension: 5 } },
         news: { cat: '전쟁', text: '고블린 부족, 서부 숲 장악… 왕국은 서부 교역로 봉쇄', big: true },
       },
@@ -162,13 +162,19 @@ WS.data.events = [
   },
   {
     id: 'war_outbreak', once: true, priority: 80,
-    when: { all: [{ var: 'goblin_power', gte: 28 }, { var: 'kingdom_power', gte: 25 }, { var: 'border_tension', gte: 24 }] },
+    when: { all: [{ var: 'goblin_power', gte: 28 }, { var: 'kingdom_power', gte: 25 }, { var: 'border_tension', gte: 24 }, { noFlag: 'closed_goblin' }] },
     effects: { flags: ['war'], vars: { iron_price: 25, economy: -8 } },
     news: { cat: '속보', text: '왕국-고블린 전쟁 발발! 서부 전역에 동원령', big: true },
   },
   {
+    // 고블린 줄기가 닫혔을 때 전쟁 중이었다면 전선이 멎는다 (까닭을 적은 기사는 talks.js 의 충돌 결과가 싣는다)
+    id: 'goblin_war_stands_down', once: true, priority: 86,
+    when: { all: [{ flag: 'war' }, { flag: 'closed_goblin' }] },
+    effects: { unflags: ['war'], set: { war_progress: 0 }, vars: { border_tension: -6, goblin_power: -3 } },
+  },
+  {
     id: 'war_goblin_victory', once: true, priority: 85,
-    when: { all: [{ flag: 'war' }, { var: 'war_progress', gte: 20 }] },
+    when: { all: [{ flag: 'war' }, { var: 'war_progress', gte: 20 }, { noFlag: 'closed_goblin' }] }, // 줄기 닫힘(closed_*)은 js/data/talks.js 충돌 장면이 켠다 — 닫힌 줄기의 세계 사건은 더 일어나지 않는다 (닫는 기사도 talks.js 몫)
     effects: { flags: ['goblin_victory'], unflags: ['war'], vars: { kingdom_power: -6, kingdom_morale: -10 } }, // 3단계: −10/−15 였다 — 같은 kingdom_power 를 마왕군 전쟁도 봐서 「검은 깃발 아래」가 「명예 고블린」를 가렸다
     news: { cat: '속보', text: '고블린 연합 승리… 왕국, 서부 숲 포기 선언', big: true },
   },
@@ -255,7 +261,7 @@ WS.data.events = [
   },
   {
     id: 'royal_contract', once: true, priority: 40,
-    when: { var: 'rel_kingdom', gte: 8 },
+    when: { all: [{ var: 'rel_kingdom', gte: 8 }, { noFlag: 'closed_kingdom' }] },
     effects: { spawn: [{ customer: 'royal_quartermaster', inDays: 0 }] },
     news: { cat: '왕국', text: '왕실 보급청, 민간 무기상 납품 계약 늘린다' },
   },
@@ -280,7 +286,7 @@ WS.data.events = [
   },
   {
     id: 'goblin_unified', once: true, priority: 60,
-    when: { var: 'goblin_unity', gte: 24 },
+    when: { all: [{ var: 'goblin_unity', gte: 24 }, { noFlag: 'closed_goblin' }] },
     effects: { flags: ['goblin_unified'], vars: { goblin_power: 4 } },
     news: { cat: '고블린', text: '서부 숲 고블린 부족들, 한 족장 아래 통합 선언', big: true },
   },
@@ -330,7 +336,7 @@ WS.data.events = [
     id: 'mist_return', trigger: 'scheduled', priority: 55,
     outcomes: [
       {
-        when: { noFlag: 'mist_contract_broken' },
+        when: { all: [{ noFlag: 'mist_contract_broken' }, { noFlag: 'closed_mist' }] },
         effects: { vars: { demon_influence: 2 }, spawn: [{ customer: 'mist_contract2', inDays: 0 }] },
         news: { cat: '사건', text: '안개가 사흘째 걷히지 않아… 상점가 문마다 젖은 발자국' },
       },
@@ -408,6 +414,7 @@ WS.data.events = [
   },
   {
     id: 'demonlord_march', trigger: 'scheduled', priority: 75,
+    when: { noFlag: 'closed_demonlord' }, // 마왕군 줄기가 닫혔으면 진군하지 않는다 (talks.js)
     outcomes: [
       {
         when: { all: [{ var: 'demonlord_power', gte: 30 }, { noFlag: 'demon_war' }] },
@@ -422,7 +429,7 @@ WS.data.events = [
   },
   {
     id: 'demon_war_outbreak', once: true, priority: 78,
-    when: { all: [{ noFlag: 'demon_war' }, { noFlag: 'demonlord_repelled' }, { var: 'demonlord_power', gte: 40 }, { var: 'invasion_risk', gte: 32 }] },
+    when: { all: [{ noFlag: 'demon_war' }, { noFlag: 'demonlord_repelled' }, { noFlag: 'closed_demonlord' }, { var: 'demonlord_power', gte: 40 }, { var: 'invasion_risk', gte: 32 }] },
     effects: { flags: ['demon_war'], vars: { iron_price: 20, economy: -8, kingdom_morale: -6 }, schedule: [{ event: 'demon_war_resolution', inDays: [3, 4] }] },
     news: { cat: '속보', text: '마왕군 총공세! 검은 군단, 북부 국경 넘다', big: true },
   },
@@ -437,7 +444,7 @@ WS.data.events = [
         news: { cat: '속보', text: '칼 든 성기사단, 마왕군 선봉 격파! 검은 군단 퇴각', big: true },
       },
       {
-        when: { cmp: ['demonlord_power', '>', 'kingdom_power'] },
+        when: { all: [{ cmp: ['demonlord_power', '>', 'kingdom_power'] }, { noFlag: 'closed_demonlord' }] },
         effects: { flags: ['demonlord_victory'], unflags: ['demon_war'], vars: { kingdom_power: -10, kingdom_morale: -15, economy: -10, demon_influence: 8 } },
         news: { cat: '속보', text: '북부 방어선 붕괴… 왕국, 마왕과 굴욕적 휴전', big: true },
       },
@@ -508,6 +515,7 @@ WS.data.events = [
     id: 'fairy_oath3_check', trigger: 'scheduled', priority: 55,
     effects: { unflags: ['fairy_oath3'] },
     outcomes: [
+      { when: { flag: 'closed_fairy' } }, // 요정 줄기가 닫혔다 (기사는 talks.js) — 숲은 답하지 않는다
       {
         when: { sold: { tag: 'weapon', trades: true, after: { tpl: 'fairy_envoy_final', action: 'promise' } } },
         effects: { vars: { rel_fairy: -4 }, flags: ['fairy_last_broken'] },
@@ -562,7 +570,7 @@ WS.data.events = [
   },
   {
     id: 'golem_army', once: true, priority: 55,
-    when: { var: 'golem_tech', gte: 12 },
+    when: { all: [{ var: 'golem_tech', gte: 12 }, { noFlag: 'closed_golem' }] },
     effects: { flags: ['golem_army'], vars: { merc_strength: -6, fairy_grace: -4 } },
     outcomes: [
       {
@@ -693,13 +701,18 @@ WS.data.events = [
   },
   {
     id: 'dead_march', once: true, priority: 60,
-    when: { var: 'undead_power', gte: 22 },
+    when: { all: [{ var: 'undead_power', gte: 22 }, { noFlag: 'closed_undead' }] },
     effects: { schedule: [{ event: 'dead_march_resolution', inDays: 2 }], vars: { kingdom_morale: -3 }, set: { undead_defense: 0 }, spawn: [{ customer: 'march_priest', inDays: 0 }, { customer: 'march_priest', inDays: 1 }] },
     news: { cat: '속보', text: '해골 행렬, 녹슨 칼과 새 방패 들고 동쪽으로 행진', big: true },
   },
   {
     id: 'dead_march_resolution', trigger: 'scheduled', priority: 70,
     outcomes: [
+      {
+        // 망자 줄기가 닫혔다 (기사는 talks.js) — 행렬은 흩어진다
+        when: { flag: 'closed_undead' },
+        effects: { vars: { undead_power: -12 } },
+      },
       {
         // 대성당 사제에게 이틀 동안 넘긴 물자가 시세로 600G 어치를 넘거나, 대성당 권위가 아주 높으면 막는다
         when: { any: [{ var: 'undead_defense', gte: 600 }, { var: 'church_authority', gte: 36 }] },
@@ -721,13 +734,18 @@ WS.data.events = [
   // ───────── 용: 금 냄새 (← 가게 금고 · 도시의 호황) ─────────
   {
     id: 'dragon_wakes', once: true, priority: 60, chance: 0.4,
-    when: { all: [{ day: { gte: 18 } }, { var: 'dragon_stir', gte: 10 }] },
+    when: { all: [{ day: { gte: 18 } }, { var: 'dragon_stir', gte: 10 }, { noFlag: 'closed_dragon' }] },
     effects: { flags: ['dragon_awake'], set: { dragon_defense: 0 }, spawn: [{ customer: 'dragon_herald', inDays: 0 }, { customer: 'wall_captain', inDays: 0 }, { customer: 'wall_captain', inDays: 1 }, { customer: 'wall_captain', inDays: 2 }], schedule: [{ event: 'dragon_descends', inDays: 3 }] },
     news: { cat: '속보', text: '재의 산 붉은 용 깨어나… "도시의 금 냄새 때문"', big: true },
   },
   {
     id: 'dragon_descends', trigger: 'scheduled', priority: 75,
     outcomes: [
+      {
+        // 용 줄기가 닫혔다 (정찰대가 산 입구를 봉함 등 — 기사는 talks.js) — 용은 다시 잠든다
+        when: { flag: 'closed_dragon' },
+        effects: { unflags: ['dragon_awake'], set: { dragon_stir: 0 } },
+      },
       {
         // 성벽 수비대장에게 사흘 동안 넘긴 물자가 시세로 900G 어치를 넘거나, 골렘 군단이 성벽을 지키면 용이 떨어진다
         when: { any: [{ var: 'dragon_defense', gte: 900 }, { all: [{ flag: 'golem_kingdom' }, { var: 'dragon_defense', gte: 450 }] }] },
@@ -790,7 +808,8 @@ WS.data.events = [
   },
   {
     id: 'cartel_eases', once: true, priority: 40,
-    when: { all: [{ flag: 'iron_cartel' }, { any: [{ var: 'guild_grip', lt: 18 }, { flag: 'king_aldric' }] }] },
+    // v0.9.5: 즉위는 30일째 밤이라 — 공위 기간에 섭정 회의를 쥔 알드릭 파(leaning_aldric)의 칙령으로
+    when: { all: [{ flag: 'iron_cartel' }, { any: [{ var: 'guild_grip', lt: 18 }, { flag: 'king_aldric' }, { flag: 'leaning_aldric' }] }] },
     effects: { unflags: ['iron_cartel'], vars: { iron_price: -15 } },
     news: { cat: '경제', text: '왕실 칙령, 철광석 유통 자유화… 길드 독점 끝' },
   },
@@ -802,7 +821,7 @@ WS.data.events = [
   },
   {
     id: 'guild_squeeze_ends', once: true, priority: 40,
-    when: { all: [{ flag: 'guild_squeeze' }, { any: [{ var: 'rel_guild', gte: 5 }, { flag: 'cartel_broken' }, { var: 'guild_grip', lt: 14 }, { flag: 'king_aldric' }] }] },
+    when: { all: [{ flag: 'guild_squeeze' }, { any: [{ var: 'rel_guild', gte: 5 }, { flag: 'cartel_broken' }, { var: 'guild_grip', lt: 14 }, { flag: 'king_aldric' }, { flag: 'leaning_aldric' }] }] },
     effects: { unflags: ['guild_squeeze'] },
     news: { cat: '경제', text: '임대료 인상 철회… 건물주 "착오였다"' },
   },
@@ -948,8 +967,10 @@ WS.data.events = [
   },
   {
     // 어전 회의 — 셋 중 가장 센 쪽이 이긴다 (왕이 이미 쓰러져 왕위 다툼 중이면 왕의 죽음이 결판이므로 열리지 않는다)
+    // v0.9.5 대관식은 마지막 날: 왕자·공주가 이기면 국왕이 양위만 정하고, 왕관은 30일째 밤 대관식(coronation)에서 — 그때까지 공위 기간(interregnum)
+    // court_decided 는 국왕이 버틸 때(crown_holds)만 — 양위(abdication)면 왕좌는 대관식까지 비어 있다 (궁정 줄기가 아직 열려 있다 — talks.js courtOpen)
     id: 'court_council', trigger: 'scheduled', priority: 82,
-    effects: { flags: ['court_decided'], unflags: ['court_struggle'] },
+    effects: { unflags: ['court_struggle'] },
     outcomes: [
       {
         when: { flag: 'succession_crisis' },
@@ -957,23 +978,23 @@ WS.data.events = [
       },
       {
         when: { all: [{ cmp: ['crown_power', '>', 'prince_power'] }, { cmp: ['crown_power', '>', 'princess_power'] }] },
-        effects: { flags: ['crown_holds', 'royal_certified'], vars: { kingdom_power: 3, rel_kingdom: 3, kingdom_morale: 3 } },
+        effects: { flags: ['crown_holds', 'court_decided'], vars: { kingdom_power: 3, rel_kingdom: 3, kingdom_morale: 3 }, if: { when: { noFlag: 'closed_kingdom' }, then: { flags: ['royal_certified'] } } },
         news: { cat: '속보', text: '어전 회의, 국왕 편에… 왕자·공주 변방으로', big: true },
       },
       {
         when: { all: [{ cmp: ['prince_power', '>', 'princess_power'] }, { cmp: ['prince_power', '>', 'crown_power'] }] },
-        effects: { flags: ['king_aldric', 'crowned'], vars: { kingdom_power: 6, border_tension: 5, merc_strength: 4 } },
-        news: { cat: '속보', text: '국왕 양위… 알드릭 왕 즉위, "서부 숲 정벌 준비"', big: true },
+        effects: { flags: ['abdication', 'interregnum'], vars: { succession: 5, kingdom_power: 2, merc_strength: 2 } },
+        news: { cat: '속보', text: `국왕 양위 결정… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤" — 알드릭 왕자 쪽으로 기울어`, big: true },
       },
       {
         when: { all: [{ cmp: ['princess_power', '>', 'prince_power'] }, { cmp: ['princess_power', '>', 'crown_power'] }] },
-        effects: { flags: ['queen_serena', 'crowned'], vars: { church_authority: 5, guild_grip: 4, economy: 4, border_tension: -3 } },
-        news: { cat: '속보', text: '국왕 양위… 세레나 여왕 즉위, "상업세 인하"', big: true },
+        effects: { flags: ['abdication', 'interregnum'], vars: { succession: -5, church_authority: 2, guild_grip: 2 } },
+        news: { cat: '속보', text: `국왕 양위 결정… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤" — 세레나 공주 쪽으로 기울어`, big: true },
       },
       {
-        // 엇비슷하면 내전
-        effects: { flags: ['civil_war'], vars: { kingdom_power: -8, merc_strength: 8, kingdom_morale: -6, economy: -4 }, schedule: [{ event: 'civil_war_end', inDays: [3, 4] }] },
-        news: { cat: '속보', text: '어전 회의 결렬… 왕자·공주 모두 군사 일으켜', big: true },
+        // 엇비슷하면 양위만 정하고 왕관은 대관식 날로 — 두 후계자 모두 사병을 모은다
+        effects: { flags: ['abdication', 'interregnum'], vars: { merc_strength: 4, kingdom_morale: -3 } },
+        news: { cat: '속보', text: `어전 회의 결렬… 양위만 정하고 왕관은 ${WS.data.config.campaignDays}일째 밤 대관식으로, 왕자·공주 모두 사병 모아`, big: true },
       },
     ],
   },
@@ -991,43 +1012,86 @@ WS.data.events = [
     news: { cat: '왕국', text: '경비대, 궁정 독살 음모 적발… "무기점 제보 덕"' },
   },
   {
+    // 국왕 서거 (계승 위기 6~7일 뒤) — v0.9.5: 왕관은 아직 아무에게도 가지 않는다 (docs/DESIGN_CONVERGENCE.md §4).
+    // 섭정 회의가 대관식을 마지막 날(30일째 밤 — coronation)로 못 박고, 그때까지 공위 기간(interregnum).
+    //   외적 위협이 크면 "전시 섭정"(regency_war) — 전쟁의 결과가 대관식 판정에 섞인다 (coronation)
+    //   밤의 궁정 편에 섰고 그들이 충분히 강하면 베른하르트 백작이 섭정 회의를 쥔다(night_regent) — 대관식 밤의 찬탈(vampire_regent)은 그때 다시 따진다
     id: 'king_dies', trigger: 'scheduled', priority: 80,
-    effects: { flags: ['crowned'] },
+    when: { noFlag: 'crowned' },
+    effects: {
+      flags: ['interregnum', 'king_dead'],
+      // 전시 섭정의 문턱: 전쟁 중(고블린 · 마왕군) · 용이 깨어 있음 · 국경 긴장 45+ · 침공 위기 40+ (30 이면 거의 모든 판이라 뜻이 없었다)
+      if: { when: { any: [{ flag: 'war' }, { flag: 'demon_war' }, { flag: 'dragon_awake' }, { var: 'border_tension', gte: 45 }, { var: 'invasion_risk', gte: 40 }] },
+        then: { flags: ['regency_war'], news: [{ cat: '왕국', text: '적이 국경에 있는 동안은 "전시 섭정" — 섭정 회의 "전쟁의 공과가 왕관을 가른다"' }] } },
+    },
+    news: { cat: '속보', text: `국왕 서거… 섭정 회의 "대관식은 ${WS.data.config.campaignDays}일째 밤, 그때까지 왕좌는 비워 둔다"`, big: true },
     outcomes: [
       {
-        // 밤의 궁정 편에 섰고 (사절에게 "편에 선다"), 그들이 충분히 강하면 — 왕정과 밤의 다툼에서 밤이 이긴다
         when: { all: [{ flag: 'vampire_backed' }, { var: 'vampire_power', gte: 22 }] },
-        effects: { flags: ['vampire_regent'], vars: { vampire_power: 8, church_authority: -6, kingdom_morale: -4 } },
-        news: { cat: '속보', text: '국왕 서거… 두 후계자 쓰러지고 베른하르트 백작 섭정', big: true },
-      },
-      {
-        when: { var: 'succession', gte: 3 },
-        effects: { flags: ['king_aldric'], vars: { kingdom_power: 6, border_tension: 5, merc_strength: 4, church_authority: -3 } },
-        news: { cat: '속보', text: '알드릭 왕 즉위… 첫 칙령은 "서부 숲 정벌 준비"', big: true },
-      },
-      {
-        when: { var: 'succession', lte: -3 },
-        effects: { flags: ['queen_serena'], vars: { church_authority: 5, guild_grip: 4, economy: 4, border_tension: -3, kingdom_morale: 4 } },
-        news: { cat: '속보', text: '세레나 여왕 즉위… 첫 칙령은 "상업세 인하"', big: true },
-      },
-      {
-        effects: { unflags: ['crowned'], flags: ['civil_war'], vars: { kingdom_power: -8, merc_strength: 8, kingdom_morale: -6, economy: -4 }, schedule: [{ event: 'civil_war_end', inDays: [3, 4] }] },
-        news: { cat: '속보', text: '국왕 서거… 두 후계자 모두 왕관 써 내전 발발', big: true },
+        effects: { flags: ['night_regent'], vars: { vampire_power: 4, church_authority: -3, kingdom_morale: -2 } },
+        news: { cat: '왕국', text: '베른하르트 백작, 섭정 회의 의장에… "회의는 해 진 뒤에만 연다"', big: true },
       },
     ],
   },
   {
+    // 대관식 — 30일째 밤, 결말 판정 바로 앞 (trigger 'final' — DayManager.nextDay → Events.runFinal). 왕이 살아 있으면(왕위 다툼이 없었으면) 열리지 않는다.
+    // 왕관: 밤의 궁정 찬탈 → succession ≥ 3 알드릭 / ≤ −3 세레나 → 엇비슷하면 대관식장의 칼부림이 그 밤 안에 끝난다 (civil_war 는 결말 글의 전쟁 변주용으로만)
+    // 궁정 줄기가 닫혀도(closed_court — js/data/talks.js 의 충돌 장면) 나라에는 왕이 선다 (세계의 글). 궁정 결말(두건을 벗은 왕 · 베일을 걷은 여왕 · 기회주의자 · 피의 대관식)은 endings.js 의 noFlag 가 막는다
+    id: 'coronation', trigger: 'final', priority: 90,
+    when: { all: [{ any: [{ flag: 'interregnum' }, { flag: 'succession_crisis' }] }, { noFlag: 'crowned' }] },
+    effects: {
+      if: [
+        { when: { all: [{ flag: 'regency_war' }, { any: [{ flag: 'kingdom_victory' }, { flag: 'demonlord_repelled' }, { flag: 'dragon_slain' }] }] },
+          then: { vars: { succession: 3 }, news: [{ cat: '왕국', text: '전시 섭정 회의 "전쟁을 이긴 칼이 왕관을 쓴다" — 알드릭 파에 표가 몰렸다' }] } },
+        { when: { all: [{ flag: 'regency_war' }, { any: [{ flag: 'goblin_victory' }, { flag: 'demonlord_victory' }, { flag: 'dragon_razed' }] }] },
+          then: { vars: { succession: -3 }, news: [{ cat: '왕국', text: '전시 섭정 회의, 진 전쟁의 책임을 칼 든 쪽에 물었다 — 세레나 파에 표가 몰렸다' }] } },
+        { when: { all: [{ noFlag: 'king_dead' }, { noFlag: 'abdication' }] },
+          then: { flags: ['king_dead'], news: [{ cat: '속보', text: '대관식 날 새벽, 국왕이 끝내 숨을 거뒀다 — 섭정 회의는 그날 밤 왕관을 정했다', big: true }] } },
+      ],
+      unflags: ['leaning_aldric', 'leaning_serena'],
+    },
+    outcomes: [
+      {
+        // 밤의 궁정 편에 섰고 (사절에게 "편에 선다"), 그들이 대관식 밤까지 강하면 — 왕정과 밤의 다툼에서 밤이 이긴다 (「피의 대관식」)
+        when: { all: [{ flag: 'vampire_backed' }, { var: 'vampire_power', gte: 22 }, { noFlag: 'vampire_court_fell' }] },
+        effects: { flags: ['vampire_regent', 'crowned'], unflags: ['interregnum'], vars: { vampire_power: 8, church_authority: -6, kingdom_morale: -4 } },
+        news: { cat: '속보', text: '대관식 밤… 두 후계자 쓰러지고 베른하르트 백작이 섭정 왕좌에', big: true },
+      },
+      {
+        when: { var: 'succession', gte: 3 },
+        effects: { flags: ['king_aldric', 'crowned'], unflags: ['interregnum'], vars: { kingdom_power: 6, border_tension: 5, merc_strength: 4, church_authority: -3 } },
+        news: { cat: '속보', text: '알드릭 왕 대관식… 첫 칙령은 "서부 숲 정벌 준비"', big: true },
+      },
+      {
+        when: { var: 'succession', lte: -3 },
+        effects: { flags: ['queen_serena', 'crowned'], unflags: ['interregnum'], vars: { church_authority: 5, guild_grip: 4, economy: 4, border_tension: -3, kingdom_morale: 4 } },
+        news: { cat: '속보', text: '세레나 여왕 대관식… 첫 칙령은 "상업세 인하"', big: true },
+      },
+      {
+        // 엇비슷하면 대관식장에서 두 후계자 모두 왕관을 요구 — 그 밤 안에 칼이 가른다: 용병이 왕자 편이거나 왕자 쪽 힘이 더 크면 알드릭
+        when: { any: [{ flag: 'merc_prince' }, { cmp: ['prince_power', '>', 'princess_power'] }, { all: [{ cmp: ['prince_power', '==', 'princess_power'] }, { var: 'succession', gt: 0 }] }] },
+        effects: { flags: ['king_aldric', 'crowned', 'civil_war', 'coronation_clash'], unflags: ['interregnum'], vars: { kingdom_power: -4, merc_strength: 6, kingdom_morale: -6, border_tension: 3 } },
+        news: { cat: '속보', text: '대관식장에서 두 후계자 모두 왕관 요구… 새벽녘 용병들 칼이 알드릭을 왕좌에 앉혔다', big: true },
+      },
+      {
+        effects: { flags: ['queen_serena', 'crowned', 'civil_war', 'coronation_clash'], unflags: ['interregnum'], vars: { kingdom_power: -4, church_authority: 3, kingdom_morale: -6 } },
+        news: { cat: '속보', text: '대관식장에서 두 후계자 모두 왕관 요구… 대성당 종이 울리자 근위대가 세레나 여왕 편에 섰다', big: true },
+      },
+    ],
+  },
+  {
+    // (옛 저장본에 예약된 내전 끝 — v0.9.5 부터는 아무것도 예약하지 않는다) 왕관은 대관식 날로
     id: 'civil_war_end', trigger: 'scheduled', priority: 80,
-    effects: { flags: ['crowned'], unflags: ['civil_war'] },
+    effects: { flags: ['interregnum'], unflags: ['civil_war'] },
     outcomes: [
       {
         when: { any: [{ flag: 'merc_prince' }, { var: 'succession', gt: 0 }] },
-        effects: { flags: ['king_aldric'], vars: { kingdom_power: 3, border_tension: 4 } },
-        news: { cat: '속보', text: '내전 끝, 용병들 칼이 알드릭 왕을 지켰다', big: true },
+        effects: { vars: { succession: 3, kingdom_power: 2, border_tension: 3 } },
+        news: { cat: '속보', text: `내전 멎어… 용병들 칼이 알드릭 쪽으로, 왕관은 ${WS.data.config.campaignDays}일째 밤 대관식에서`, big: true },
       },
       {
-        effects: { flags: ['queen_serena'], vars: { church_authority: 4, economy: 2 } },
-        news: { cat: '속보', text: '내전 끝, 세레나 여왕 승리… 왕자는 국경 너머로', big: true },
+        effects: { vars: { succession: -3, church_authority: 3, economy: 1 } },
+        news: { cat: '속보', text: `내전 멎어… 세레나 쪽이 도성을 쥐었다, 왕관은 ${WS.data.config.campaignDays}일째 밤 대관식에서`, big: true },
       },
     ],
   },
@@ -1384,7 +1448,7 @@ WS.data.events = [
     when: { all: [{ day: { gte: 30 } }, { flag: 'helped_lisa' }, { noFlag: 'reported_lisa' }] },
     outcomes: [
       {
-        when: { any: [{ var: 'vampire_power', gte: 30 }, { flag: 'vampire_regent' }] },
+        when: { any: [{ var: 'vampire_power', gte: 30 }, { flag: 'vampire_regent' }, { flag: 'night_regent' }] },
         effects: { gold: 200, vars: { rel_vampire: 6 }, flags: ['lisa_vampire_friend'] },
         news: { cat: '사건', text: '밤의 궁정 사자, 리사를 도운 가게에 금화 자루 두고 가', big: true },
       },

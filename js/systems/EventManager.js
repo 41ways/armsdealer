@@ -139,6 +139,7 @@ WS.sys.Events = (() => {
         fire(ev, fired);
         continue;
       }
+      if (ev.trigger === 'final') continue; // 마지막 밤 전용 (runFinal)
       if (count >= cfg.maxEventsPerNight && !due.has(ev.id)) continue;
       if (ev.trigger === 'scheduled') {
         if (!due.has(ev.id)) continue;
@@ -156,5 +157,21 @@ WS.sys.Events = (() => {
     return fired;
   }
 
-  return { runDawn };
+  // 마지막 밤 (캠페인 마지막 날 영업이 끝난 뒤, 결말 판정 바로 앞 — DayManager.nextDay): trigger 'final' 인 사건 (events.js coronation — 대관식).
+  // 새벽이 오지 않으니 기사는 신문 대신 state.finalNews 에 모아 둔다 (결말 화면이 쓸 수 있다). 효과가 남긴 기사(effects.news)도 함께
+  function runFinal() {
+    const st = S();
+    const fired = [];
+    const before = st.pendingNews.length;
+    const sorted = WS.data.events.filter(ev => ev.trigger === 'final').sort((a, b) => (b.priority || 0) - (a.priority || 0));
+    for (const ev of sorted) {
+      if (st.eventLog[ev.id] !== undefined || !C().check(ev.when)) continue;
+      fire(ev, fired);
+    }
+    const extra = st.pendingNews.splice(before);
+    st.finalNews = [...fired, ...extra].map(n => ({ cat: n.cat, text: n.text, ...(n.big ? { big: true } : {}) }));
+    return st.finalNews;
+  }
+
+  return { runDawn, runFinal };
 })();

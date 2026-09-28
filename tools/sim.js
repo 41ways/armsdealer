@@ -165,6 +165,9 @@ const MAX_DAYS = 60;
 const MARKS = ['kept_obel_gems', 'refused_obel_gems', 'gave_gems_to_thief', 'caught_gem_thief', 'sent_gem_thief_away',
   'obel_gems_returned', 'obel_paid_loss', 'obel_refused_fined', 'obel_repaid', 'obel_gems_lost'];
 const SAMPLE_DAYS = [5, 10, 15, 20, 25, 30]; // v0.9.3: 30일 캠페인
+// 궁정 흐름 (대관식은 30일째 밤 — events.js coronation)
+const COURT_FLAGS = ['succession_crisis', 'court_struggle', 'interregnum', 'regency_war', 'night_regent', 'crowned', 'king_aldric', 'queen_serena',
+  'civil_war', 'vampire_regent', 'crown_holds', 'closed_court', 'coronation_clash', 'armed_prince_secret', 'armed_aldric', 'armed_princess_secret', 'backed_serena'];
 
 function playRun(seed, opt) {
   const ctx = makeWorld(seed, opt.cfg, opt.set);
@@ -355,9 +358,13 @@ function playRun(seed, opt) {
     if (c.kind === 'buy') noteDemand(c);
     if (c.kind === 'talk') {
       // 인상서 대조(needs: 'poster')는 고수만 한다 — 인상서를 기억해 두는 꼼꼼한 사람 (쥐수염에게 보석을 내주지 않는다)
-      const list = T.availableChoices(c).filter(ch => ch.needs !== 'poster' || TIER === 'expert');
-      const ch = choosePolicy(list, c);
-      if (ch) T.choose(c, ch.id);
+      // 여러 번 주고받는 대화(선택지의 follow — TransactionManager.talkList)는 손님이 떠날 때까지 이어서 고른다
+      for (let step = 0; step < 5 && c.status !== 'done'; step++) {
+        const list = T.availableChoices(c).filter(ch => ch.needs !== 'poster' || TIER === 'expert');
+        const ch = choosePolicy(list, c);
+        if (!ch) break;
+        T.choose(c, ch.id);
+      }
     } else if (c.kind === 'buy') handleBuy(c);
     else if (c.kind === 'sell') {
       const r = c.request;
@@ -531,7 +538,7 @@ function playRun(seed, opt) {
       D.closeShop();
       noteLow();
       res.sink += (st.today.paper || 0) + (st.today.guard || 0);
-      if (SAMPLE_DAYS.includes(st.day)) res.gold[st.day] = st.gold;
+      if (SAMPLE_DAYS.includes(st.day)) { res.gold[st.day] = st.gold; (res.world = res.world || {})[st.day] = { ...st.world }; }
       if (opt.trace) (res.trace = res.trace || []).push({ day: st.day, gold: st.gold, ...st.today, inv: Object.values(st.inventory).reduce((a, b) => a + b, 0) });
       // 1일째 마감: 까마귀 안내 — 신문 구독 (UI tut-sub / tut-skip)
       if (st.day === 1 && L.crowReady()) {
@@ -547,6 +554,15 @@ function playRun(seed, opt) {
     const st = S();
     res.ending = st.ending || null;
     res.marks = MARKS.filter(f => st.flags[f] !== undefined);
+    // 궁정 · 얽힘 (대관식 재구성 — events.js coronation / config.js nightlyRules 의 weave 기사)
+    res.court = {
+      succession: Math.round(st.world.succession * 10) / 10, lastDay: st.day,
+      flags: Object.fromEntries(COURT_FLAGS.filter(f => st.flags[f] !== undefined).map(f => [f, st.flags[f]])),
+      coronation: st.eventLog.coronation, kingDies: st.eventLog.king_dies,
+    };
+    res.weave = Object.keys(st.weaveSeen || {});
+    res.weaveNet = st.weaveNet || {};
+    res.endFlags = Object.keys(st.flags);
     if (!res.ending && !res.over60) res.noEnding = true;
     if (st.flags.bankrupt !== undefined) {
       res.bankruptDay = st.flags.bankrupt;
@@ -621,6 +637,15 @@ function summarize(runs, opt) {
       };
     })(),
     endingMax: Object.entries(endings).filter(([k]) => k !== 'bankrupt').reduce((b, e) => (e[1] > b[1] ? e : b), ['-', 0]),
+    // 궁정: 왕위 다툼이 있던 판의 30일째 마감 때 succession (대관식 직전) · 대관식 결과 · 대관식 날짜
+    court: (() => {
+      const cr = runs.filter(r => r.court && ['succession_crisis', 'court_struggle', 'interregnum', 'crowned'].some(f => r.court.flags[f] !== undefined));
+      const s30 = cr.map(r => r.world && r.world[30] ? r.world[30].succession : null).filter(x => x !== null);
+      const f = k => cr.filter(r => r.court.flags[k] !== undefined).length;
+      return { n: cr.length, aldric: s30.filter(x => x >= 3).length, serena: s30.filter(x => x <= -3).length, tie: s30.filter(x => x > -3 && x < 3).length, median: median(s30.map(x => Math.round(x))),
+        king: f('king_aldric'), queen: f('queen_serena'), vampire: f('vampire_regent'), clash: f('coronation_clash'), closed: f('closed_court'), regencyWar: f('regency_war'),
+        offDay: runs.filter(r => r.court && r.court.coronation !== undefined && r.court.coronation !== 30).length };
+    })(),
   };
 }
 
@@ -638,6 +663,8 @@ function print(sum) {
     console.log(`창고(9일째~ 아침 도매 뒤): 평균 ${pct(x.fillMean)} 참 · 85% 넘는 날 ${pct(x.fill85)} · 자리 없어 못 산 날 ${pct(x.spaceBlockDays)}`); }
   console.log('플래그(판 수 / 그중 파산): ' + Object.entries(sum.marks).filter(([, v]) => v).map(([k, v]) => `${k} ${v}/${sum.markBankrupt[k]}`).join(', '));
   console.log('엔딩: ' + Object.entries(sum.endings).map(([k, v]) => `${k} ${v}`).join(', '));
+  { const c = sum.court;
+    console.log(`궁정(${c.n}판): 30일째 계승 알드릭(≥3) ${c.aldric} · 세레나(≤−3) ${c.serena} · 엇비슷 ${c.tie} · 중앙값 ${c.median ?? '-'} → 대관식 알드릭 ${c.king} · 세레나 ${c.queen} · 백작 ${c.vampire} (칼부림 ${c.clash}) · 궁정 줄기 닫힘 ${c.closed} · 전시 섭정 ${c.regencyWar} · 30일 아닌 대관식 ${c.offDay}`); }
   for (const [m, k] of Object.entries(sum.errors)) console.log(`  예외 ×${k}: ${m}`);
 }
 

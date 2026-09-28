@@ -8,7 +8,7 @@
 //    두건 쓴 청년에게 팔았다 → 이틀 뒤 그 "사냥 동무"가 활을 더 사러 온다 (rl_prince_friend)
 //    베일 쓴 수녀에게 팔았다 → 이틀 뒤 구호소 수녀가 물약을 더 청한다 (rl_almshouse_sister)
 //    신분 숨긴 자에게 판 지 사흘 → 궁정 서기가 "무엇을 팔았고 어디로 간다 했소?" (rl_court_clerk — 사실대로/모른다)
-//    결판 뒤: 알드릭 왕의 징발관(rl_aldric_levy) / 여왕의 구호소 수녀(rl_serena_almoner) / 양쪽에 팔았다면 입 싼 궁정 시종(rl_court_whisperer)
+//    공위 기간(대관식은 30일째 밤): 알드릭 우세면 왕자 친위대 징발관(rl_aldric_levy) / 세레나 우세면 공주의 구호소 구호관(rl_serena_almoner) / 양쪽에 팔았다면 입 싼 궁정 시종(rl_court_whisperer)
 // ② 레온 (knight_commander)
 //    8일의 칼을 받은 뒤 → 레온이 보낸 신병(rl_leon_recruit)
 //    분대 방패 무렵 → 척후(rl_west_scout)가 매복 자리를 보러 간다 → 전투 뒤 돌아오거나(rl_scout_back) 실종돼 경비대가 묻는다(rl_scout_missing)
@@ -34,7 +34,8 @@
     { all: [{ flag: 'armed_prince_secret' }, { since: { flag: 'armed_prince_secret', days: n } }] },
     { all: [{ flag: 'armed_princess_secret' }, { since: { flag: 'armed_princess_secret', days: n } }] },
   ] });
-  const courtOpen = [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }] }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }];
+  // v0.9.5: 대관식은 30일째 밤 (events.js coronation) — 왕이 죽거나 양위가 정해진 뒤의 공위 기간(interregnum)에도 궁정은 열려 있다
+  const courtOpen = [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }, { flag: 'interregnum' }] }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }, { noFlag: 'closed_court' }];
   const leonAlive = [{ noFlag: 'leon_fell' }];
   // 전쟁의 두 편에 꽤 판 가게 (박쥐의 길목 — 결말 조건보다 한참 낮은 문턱)
   const batGoblin = { all: [{ sold: { faction: 'goblin', tag: 'weapon', min: 10 } }, { sold: { faction: 'kingdom', tag: 'weapon', min: 10 } }, { any: [{ flag: 'war' }, { flag: 'goblin_won_skirmish' }, { eventFired: 'border_skirmish' }] }] };
@@ -82,30 +83,31 @@
       ],
     },
     {
-      // 알드릭 왕 즉위 뒤 — "서부 숲 정벌 준비" 칙령의 징발관
-      id: 'rl_aldric_levy', look: 'soldier2', name: '징발관 가스', race: '인간', job: '알드릭 왕 친위대 징발관', faction: 'kingdom', portrait: '🪖',
-      spawn: { when: { all: [{ flag: 'king_aldric' }, { since: { flag: 'king_aldric', days: 1 } }] }, chance: 0.6 },
-      greet: '폐하의 칙령이오. 서부 숲 정벌에 {item} {qty}자루. {offer}G, 값은 규정대로.',
-      greetWhen: [{ when: { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, text: '폐하께서 이 가게를 기억하시오. 두건 쓰시던 때 일 말이오. 서부 숲 정벌에 {item} {qty}자루, {offer}G.' }],
+      // 공위 기간에 알드릭 쪽이 우세할 때(leaning_aldric — config.js weaveRules) — 섭정 회의를 쥔 알드릭 파의 "서부 숲 정벌 준비" 징발관
+      // (v0.9.5: 대관식이 30일째 밤으로 옮겨 가 즉위 뒤 손님에서 우세한 쪽의 손님으로 바뀌었다)
+      id: 'rl_aldric_levy', look: 'soldier2', name: '징발관 가스', race: '인간', job: '알드릭 왕자 친위대 징발관', faction: 'kingdom', portrait: '🪖',
+      spawn: { when: { all: [{ flag: 'leaning_aldric' }, { since: { flag: 'leaning_aldric', days: 1 } }, { noFlag: 'crowned' }] }, chance: 0.6 },
+      greet: '왕자 전하의 명이오. 대관식 전에 서부 숲 정벌 준비를 마친다 하셨소. {item} {qty}자루, {offer}G. 값은 규정대로.',
+      greetWhen: [{ when: { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, text: '전하께서 이 가게를 기억하시오. 두건 쓰시던 때 일 말이오. 대관식 전에 서부 숲 정벌 준비요. {item} {qty}자루, {offer}G.' }],
       request: { item: 'iron_spear', qty: 4, offer: { mult: 1 }, partialOk: true },
-      lines: { sold: '친위대가 이 창을 들고 행군 연습을 하오.', partial: '모자란 건 징발 장부에 달아 두겠소.', refused: '칙령을 거절한 가게라… 적어 두겠소.' },
-      onSell: { vars: { kingdom_power: 1, border_tension: 1 }, flags: ['rl_aldric_levied'], news: [{ cat: '왕국', text: '알드릭 왕 친위대, 새 창 들고 서부 숲 길목서 행군 연습' }] },
+      lines: { sold: '친위대가 이 창을 들고 행군 연습을 하오. 대관식 날 행렬 맨 앞이오.', partial: '모자란 건 징발 장부에 달아 두겠소.', refused: '대관식 뒤에도 이 가게를 기억하겠소.' },
+      onSell: { vars: { kingdom_power: 1, border_tension: 1, succession: 1 }, flags: ['rl_aldric_levied'], news: [{ cat: '왕국', text: '알드릭 왕자 친위대, 새 창 들고 서부 숲 길목서 행군 연습… "대관식 전에 정벌 준비"' }] },
       onRefuse: { vars: { rel_kingdom: -1 } },
     },
     {
-      // 세레나 여왕 즉위 뒤 — 여왕의 구호소
-      id: 'rl_serena_almoner', look: 'noble_lady', name: '구호관 리안', race: '인간', job: '여왕의 구호소 구호관', faction: 'church', portrait: '🕯️',
-      spawn: { when: { all: [{ flag: 'queen_serena' }, { since: { flag: 'queen_serena', days: 1 } }] }, chance: 0.6 },
-      greet: '여왕 폐하의 구호소가 광장에 문을 열었어요. {item} {qty}병, {offer}G.',
-      greetWhen: [{ when: { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, text: '폐하께서 안부를 전하셨어요. 베일 쓰시던 때를 잊지 않으셨대요. 구호소에 {item} {qty}병, {offer}G.' }],
+      // 공위 기간에 세레나 쪽이 우세할 때(leaning_serena — config.js weaveRules) — 공주의 구호소 (v0.9.5: 즉위 뒤 손님에서 바뀜)
+      id: 'rl_serena_almoner', look: 'noble_lady', name: '구호관 리안', race: '인간', job: '공주의 구호소 구호관', faction: 'church', portrait: '🕯️',
+      spawn: { when: { all: [{ flag: 'leaning_serena' }, { since: { flag: 'leaning_serena', days: 1 } }, { noFlag: 'crowned' }] }, chance: 0.6 },
+      greet: '공주님의 구호소가 광장에 문을 열었어요. 대관식 전에 광장 줄을 줄이시겠대요. {item} {qty}병, {offer}G.',
+      greetWhen: [{ when: { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, text: '공주님께서 안부를 전하셨어요. 베일 쓰시던 때를 잊지 않으셨대요. 구호소에 {item} {qty}병, {offer}G.' }],
       request: { item: 'potion', qty: 4, offer: { mult: 1 }, partialOk: true },
       lines: { sold: '광장 줄이 오늘은 조금 짧아지겠네요.', partial: '이만큼이라도요. 고마워요.', refused: '…다른 가게에 가 볼게요.' },
-      onSell: { vars: { church_authority: 1, kingdom_morale: 1 }, flags: ['rl_serena_alms'], news: [{ cat: '왕국', text: '여왕의 구호소, 광장에 문 열어… 첫날 빵과 물약 동나' }] },
+      onSell: { vars: { church_authority: 1, kingdom_morale: 1, succession: -1 }, flags: ['rl_serena_alms'], news: [{ cat: '왕국', text: '세레나 공주의 구호소, 광장에 문 열어… 첫날 빵과 물약 동나' }] },
     },
     {
       // 두 후계자 모두에게 몰래 판 가게 — 궁정 시종 하나가 눈치챘다 (기회주의자의 길목)
       id: 'rl_court_whisperer', look: 'noble', name: '궁정 시종 펠릭스', race: '인간', job: '궁정 시종 (입이 가볍다)', faction: 'noble', portrait: '🎭', kind: 'talk',
-      spawn: { when: { all: [{ any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { any: [{ flag: 'court_decided' }, { flag: 'crowned' }, { flag: 'civil_war' }] }] }, chance: 0.6 },
+      spawn: { when: { all: [{ any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { any: [{ flag: 'court_decided' }, { flag: 'interregnum' }, { flag: 'crowned' }, { flag: 'civil_war' }] }, { noFlag: 'closed_court' }] }, chance: 0.6 },
       ask: { tag: '입막음', gold: -30, note: '양쪽에 판 일' },
       greet: '왕자 전하 활도, 공주 전하 물약도 이 가게 것이더군요. 궁정엔 입이 많지요.',
       choices: [

@@ -165,5 +165,17 @@
         { when: { flag: 'demonlord_repelled' }, text: '마왕군은 황무지로 물러갔다. 북부 마을들은 아직 다시 짓는 중이다.' },
       ],
     },
+    {
+      // 왕좌 — 30일째 밤 대관식(events.js coronation)의 결과. 궁정 줄기가 닫혔어도(closed_court) 나라에는 왕이 선다
+      id: 'world_throne', who: '왕좌', icon: '👑',
+      variants: [
+        { when: { flag: 'vampire_regent' }, text: '대관식 밤 왕관은 베른하르트 백작 손에 들어갔다. 섭정청 창마다 두꺼운 커튼이 쳐졌다.' },
+        { when: { all: [{ flag: 'king_aldric' }, { flag: 'coronation_clash' }] }, text: '대관식장의 칼부림 끝에 알드릭이 왕관을 썼다. 공주는 수녀원으로 떠났다.' },
+        { when: { all: [{ flag: 'queen_serena' }, { flag: 'coronation_clash' }] }, text: '대관식장의 칼부림 끝에 세레나가 왕관을 썼다. 왕자는 국경 너머로 떠났다.' },
+        { when: { flag: 'king_aldric' }, text: '알드릭 왕의 첫 칙령은 서부 숲 정벌 준비였다. 대장간마다 창 주문이 밀렸다.' },
+        { when: { flag: 'queen_serena' }, text: '세레나 여왕의 첫 칙령은 상업세 인하였다. 광장의 구호소는 겨울 내내 열려 있다.' },
+        { when: { flag: 'crown_holds' }, text: '늙은 왕은 끝내 왕좌를 지켰다. 왕자와 공주는 변방 영지에서 때를 기다린다.' },
+      ],
+    },
   ];
 })();

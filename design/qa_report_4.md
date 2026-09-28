@@ -297,3 +297,34 @@
 - 사람 플레이에서 수요 메모가 실제로 긴 꼬리 놓침을 얼마나 줄이는지는 시뮬로 못 잰다.
 - 안 사는 초보 파산 3% 언저리. 더 낮추려면 창고 안내를 "창고가 반 넘게 안 팔리는 물건"일 때도 띄우는 식의 넘침 경고가 다음 후보.
 - 증축 1일은 --buyall 결과에 거의 차이가 없었다(확장을 산 판이 하루 먼저 넓어질 뿐).
+
+---
+
+# 이야기 얽힘 · 대관식 30일째 밤 (v0.9.5 작업분, docs/DESIGN_CONVERGENCE.md §3 · §4)
+
+## 바뀐 것
+
+- **얽힘 규칙** `config.js WS.data.weaveRules` (nightlyRules 끝에 붙음). 밤마다 이야기일 한 걸음에 0.05~0.3. 흐름을 넘는 영향(★1~★8, 3.4b 의 흐름 간 연결)은 처음 뚜렷해지는 밤에 신문 한 줄로 까닭을 남긴다 — 한 밤에 하나, 나머지는 다음 밤. `World.js` 가 규칙의 `test`(여러 변수 비교) · 함수 값 · `once` · `flags/unflags` · `news` 를 읽는다.
+- **계승 쏠림 막기** `config.weave.damp.succession = [8, 18]`: 얽힘이 계승을 끝 쪽으로 미는 힘은 |값| 8 부터 줄어 18 에서 0. 플레이어 거래는 그대로. 판마다 얽힘이 계승을 움직인 합은 `state.weaveNet` (시뮬 `res.weaveNet`).
+- **대관식** `events.js`: `king_dies` 는 왕관을 정하지 않는다 — `interregnum` · `king_dead`, 그 순간 위협이 크면 `regency_war`(고블린 · 마왕군 전쟁 중, 용이 깨어 있음, 국경 긴장 45+, 침공 위기 40+), 밤의 궁정이 세면 `night_regent`. 새 사건 `coronation`(trigger `'final'`)은 30일째 영업이 끝난 뒤 `DayManager.nextDay` → `Events.runFinal` 에서 결말 판정 바로 앞에 한 번. 기사는 `state.finalNews`. 어전 회의(court_council)도 왕자 · 공주가 이기면 양위(`abdication` + `interregnum`)만 정한다. 엇비슷하면 대관식장 칼부림이 그 밤에 끝난다(`civil_war` + `coronation_clash`).
+- **공위 기간 형세** `leaning_aldric`(succession ≥ 5) · `leaning_serena`(≤ −5) 를 밤마다 켜고 끈다. 궁정 줄기가 닫히면(`closed_court`) 둘 다 끄고 계승도 멈춘다. 왕관은 그래도 선다(세계의 글) — 궁정 결말만 막힌다.
+- **줄기 닫힘** `closed_*` 를 결말 조건 `noFlag` 로, 닫힌 줄기의 세계 사건(용 각성 · 강림, 고블린 전쟁 · 승리 · 서부 장악 · 통합, 마왕군 진군 · 전쟁 · 승리, 망자 행렬, 골렘 군단, 요정 마지막 약속, 드워프 황금기, 레온 계약, 안개 두 번째 계약, 왕실 보급 · 인증)을 막았다.
+- **경제**: 즉위가 마지막 밤으로 옮겨 가 "알드릭 즉위 → 길드 매점 · 임대료 압박 끝" 이 사라져 30일 금고가 1할쯤 줄었다 → `leaning_aldric` 로 옮겼고, 여왕 임대료 −2할도 `leaning_serena` 에 붙였다. 알드릭 왕자(prince_agent) 판매의 계승 +7 → +5.
+
+## 측정 (각 20판, seed=1, talks.js 포함)
+
+| 숙련도 | 예외 · 엔딩 없음 · 막힌 손님 | 파산 | 30일 금고 | 30일째 계승 알드릭 / 세레나 / 엇비슷 (중앙값) | 대관식 알드릭 / 세레나 / 백작 (칼부림) | 궁정 줄기 닫힘 · 전시 섭정 | 30일 아닌 대관식 |
+|---|---|---|---|---|---|---|---|
+| beginner | 0 · 0 · 0 | 1 | 3161 | 17 / 0 / 2 (14) | 16 / 2 / 1 (1) | 8 · 8 | 0 |
+| intermediate | 0 · 0 · 0 | 0 | 3218 | 13 / 3 / 3 (12) | 13 / 5 / 1 (2) | 13 · 9 | 0 |
+| expert | 0 · 0 · 0 | 0 | 3565 | 17 / 1 / 1 (16) | 12 / 2 / 5 (1) | 16 · 7 | 0 |
+
+엔딩: 초보 double_dealer 4 · balance_keeper 3 · iron_king 3 · goblin_nation 3 · golem_age 2 · opportunist 2 · red_ford_again 1 · bankrupt 1 · dragonfall 1 / 중수 goblin_nation 4 · opportunist 3 · golem_age 3 · double_dealer 2 · balance_keeper 2 · red_ford_again 2 · dragonfall · forest_benefactor · iron_king · dragon_ash 1 / 고수 goblin_nation 8 · double_dealer 4 · golem_age 4 · dragon_nest 2 · dragonfall 1 · night_court 1.
+
+- 얽힘 자체는 한쪽으로 몰지 않는다: 판마다 얽힘이 계승을 움직인 합은 대개 −5~+6(드물게 −9). 알드릭 쏠림은 시뮬 정책(왕자에게 늘 팔고, 공주 기부는 돈이 나가 덜 고름)에서 온다.
+- talks.js 없이 60판 전후 비교(같은 시드): 초보 30일 금고 3076 → 3385, 중수 3656 → 3317, 파산 1 → 2 / 0 → 0. 경제 목표는 그대로다.
+
+## 남은 것
+
+- 궁정 줄기가 충돌로 닫히는 판이 많다(중수 13/19, 고수 16/19) — 두건을 벗은 왕 · 베일을 걷은 여왕이 시뮬에서 드물다. 충돌 쪽(talks.js) 확률을 볼 것.
+- factions.js 의 왕자파 · 공주파 랜덤 손님 외상(defaultWhen queen_serena / king_aldric)은 이제 마지막 밤에만 참이라 떼이는 일이 없다. remarks.js 의 즉위 뒤 한마디(crowned_aldric · crowned_serena)도 나올 날이 없다.

@@ -61,9 +61,9 @@ WS.data.endings = [
   {
     // 알드릭 왕자 = 두건 쓴 청년 (customers.js prince_hooded · prince_agent). 왕자 쪽에 활을 대 줬거나 붉은 늑대 용병단이 왕자 편에 섰을 때.
     // 결말 글 앞에 컷신: 두건 쓴 청년이 가게에 들어와 두건을 벗는다 (js/render/Cinematic.js 'prince_reveal')
-    id: 'iron_king', when: { all: [{ flag: 'king_aldric' }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { noFlag: 'armed_princess_secret' }, { noFlag: 'backed_serena' }] },
+    id: 'iron_king', when: { all: [{ flag: 'king_aldric' }, { noFlag: 'closed_court' }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { noFlag: 'armed_princess_secret' }, { noFlag: 'backed_serena' }] },
     title: '두건을 벗은 왕',
-    requires: ["궁정 다툼 때 알드릭 쪽에 활을 팔았음 (두건 쓴 청년에게 몰래, 또는 알드릭 왕자에게 외상으로)", "알드릭이 왕이 됨", "공주(세레나) 쪽에는 팔거나 기부하지 않았음", "(붉은 늑대 용병단이 그 편에 섰다면 결말 글이 달라짐)"],
+    requires: ["궁정 다툼 때 알드릭 쪽에 활을 팔았음 (두건 쓴 청년에게 몰래, 또는 알드릭 왕자에게 외상으로)", `알드릭이 ${WS.data.config.campaignDays}일째 밤 대관식에서 왕관을 씀`, "공주(세레나) 쪽에는 팔거나 기부하지 않았음", "(붉은 늑대 용병단이 그 편에 섰다면 결말 글이 달라짐)"],
     cinematic: 'prince_reveal',
     // 선택지(시범) — 게임 상태는 바꾸지 않는, 결말 뒤 짧은 회상 두 갈래
     choices: [
@@ -81,9 +81,9 @@ WS.data.endings = [
   {
     // 「두건을 벗은 왕」의 짝 — 세레나 공주 = 베일 쓴 수녀 (customers.js princess_veiled · serena_agent).
     // 수녀에게 물약을 팔았거나(backed_serena) 공주의 구호소에 기부했을 때만. 결말 글 앞에 컷신 'princess_reveal' (js/render/Cinematic.js)
-    id: 'candle_queen', when: { all: [{ flag: 'queen_serena' }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { noFlag: 'armed_prince_secret' }, { noFlag: 'armed_aldric' }] },
+    id: 'candle_queen', when: { all: [{ flag: 'queen_serena' }, { noFlag: 'closed_court' }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }, { noFlag: 'armed_prince_secret' }, { noFlag: 'armed_aldric' }] },
     title: '베일을 걷은 여왕',
-    requires: ["궁정 다툼 때 세레나 쪽을 도왔음 (베일 쓴 수녀에게 물약을 팔거나, 세레나 공주의 구호소에 기부)", "세레나가 여왕이 됨", "왕자(알드릭) 쪽에는 팔지 않았음"],
+    requires: ["궁정 다툼 때 세레나 쪽을 도왔음 (베일 쓴 수녀에게 물약을 팔거나, 세레나 공주의 구호소에 기부)", `세레나가 ${WS.data.config.campaignDays}일째 밤 대관식에서 왕관을 씀`, "왕자(알드릭) 쪽에는 팔지 않았음"],
     cinematic: 'princess_reveal',
     // 선택지(시범) — 게임 상태는 바꾸지 않는, 결말 뒤 짧은 회상 두 갈래
     choices: [
@@ -95,7 +95,7 @@ WS.data.endings = [
   {
     // 착한 쪽이라 흔하게 열리므로 뒤쪽 — 다른 큰 결말이 나면 뒷이야기(epilogues leon)로 남는다
     // 변형: 1일째 레온을 빈손으로 돌려보냈으면(refused_leon) 첫 문장이 바뀌고, 견습생 핀을 기사단에 보냈으면(pin_to_army) 핀이 종자로 선다
-    id: 'knight_commander', when: { all: [{ flag: 'leon_contract' }, { noFlag: 'leon_contract_broken' }] },
+    id: 'knight_commander', when: { all: [{ flag: 'leon_contract' }, { noFlag: 'leon_contract_broken' }, { noFlag: 'closed_knight' }] },
     title: '기사단장의 친구',
     requires: [`${WS.data.realDay(8) + 1}일 이후 고블린에게 칼을 팔지 않아 단장길이 닫히지 않음 (${WS.data.realDay(8)}일에 레온과 신문이 미리 알려 줌)`, "레온과 제7기사단 납품 계약을 맺음", "계약을 깨지 않음 (고블린과 어떤 거래도 하지 않음)", "(첫날 레온을 빈손으로 돌려보냈다면 뒤늦게 계약, 핀을 기사단에 보냈다면 핀이 종자로 섬)"],
     text: '첫날 칼 한 자루를 사 간 기사는 기사단장이 되었다. 제7기사단의 방패와 칼은 모두 이 가게에서 나간다. 계약서를 쓴 뒤로 서부 숲 쪽 장부는 비어 있다. 값은 시세 그대로, 깎지도 얹지도 않는다. 그래도 레온은 해마다 첫 칼을 직접 고르러 오고, 고르고 나면 늘 당신 가게 문턱에 한참 앉았다 간다.',
@@ -130,7 +130,7 @@ WS.data.endings = [
   {
     // 강철수염 씨족과 광석 납품 계약을 맺고 네 번 다 댔을 때 (customers.js dwarf_elder_offer · dwarf_porter → flag dwarf_golden_age)
     // 변형: 별조각을 강철수염 공방에 보냈으면(star_iron — events.js star_to_dwarf)
-    id: 'steel_age', when: { flag: 'dwarf_golden_age' },
+    id: 'steel_age', when: { all: [{ flag: 'dwarf_golden_age' }, { noFlag: 'closed_dwarf' }] },
     title: '강철의 시대',
     requires: [`${WS.data.config.fairyDwarf.pleaDay}일 강철수염 전령에게 철광석 ${WS.data.config.fairyDwarf.pleaOre}개를 팔아 산채를 구함 (창고 궤짝에 남은 것 + ${WS.data.realDay(14)}일 도매상이 동나기 전에 미리 사 둔 것)`, "장로와 납품 계약을 맺고 네 번 모두 지킴", "(별조각을 공방에 보냈다면 그 쇠가 첫 강철에 녹아듦)"],
     text: '쇠값이 치솟던 주에도 당신은 계약서에 적힌 값에 광석을 댔다. 강철수염 장로는 씨족 연대기에 한 줄을 남겼다. "손해를 보면서도 약속을 지킨 인간은 처음이오." 이제 대륙의 모든 군대가 드워프 강철을 든다. 전쟁은 줄지 않았다. 다만 더 빨리, 더 확실하게 끝난다. 해마다 용광로가 처음 토해 낸 강철 한 덩이는 장로의 이름으로 당신 가게 카운터에 놓인다.',
@@ -144,7 +144,7 @@ WS.data.endings = [
   {
     // 티타니엘과의 세 약속을 다 지켰을 때 — 광석 두 번, 마지막엔 사흘 동안 무기를 아무에게도 (events.js fairy_oath3_check → forest_remembers)
     // 두 번째 약속을 지키면 강철수염 왕국은 무너진다 (customers.js dwarf_herald) — 「강철의 시대」와는 함께 올 수 없다
-    id: 'fairy_friend', when: { flag: 'forest_remembers' },
+    id: 'fairy_friend', when: { all: [{ flag: 'forest_remembers' }, { noFlag: 'closed_fairy' }] },
     title: '요정의 가호',
     requires: ["요정 티타니엘과의 세 약속을 모두 지킴", "광석을 두 번 대 주고, 마지막엔 사흘간 무기를 팔지 않음"],
     text: '동쪽 숲은 그해 유난히 푸르렀다. 요정불은 밤마다 마을 어귀까지 내려왔고, 늑대들은 숲 깊이 물러났다. 강철수염 산채의 용광로는 식었고, 그해 칼값은 비쌌다. 당신은 팔 수 있는 것을 팔지 않은 사흘을 세 번 보냈다. 당신 가게의 문고리에는 가끔 반짝이는 가루가 묻어 있다. 세 번 약속을 지킨 가게를, 숲은 기억한다.',
@@ -162,7 +162,7 @@ WS.data.endings = [
     ],
   },
   {
-    id: 'goblin_nation', when: { all: [{ any: [{ flag: 'goblin_victory' }, { all: [{ flag: 'goblin_unified' }, { flag: 'west_goblin' }] }] }, { sold: { faction: 'goblin', tag: 'weapon', min: 45 } },
+    id: 'goblin_nation', when: { all: [{ noFlag: 'closed_goblin' }, { any: [{ flag: 'goblin_victory' }, { all: [{ flag: 'goblin_unified' }, { flag: 'west_goblin' }] }] }, { sold: { faction: 'goblin', tag: 'weapon', min: 45 } },
       // 왕국에도 비슷하게 팔았다면 그건 「박쥐」 (양쪽에 판 자)
       { not: { soldShare: { a: { faction: 'goblin', tag: 'weapon', min: 30 }, b: { faction: 'kingdom', tag: 'weapon', min: 30 }, share: 0.4 } } }] },
     title: '명예 고블린',
@@ -188,7 +188,7 @@ WS.data.endings = [
     // 골렘 군단(events.js golem_army)이 섰고, 내가 거기에 손을 보탰을 때만 — 공방장 헤파에게 철광석 40개(armed_golems)
     // 또는 골렘 공방 손님에게 재료 25개 이상. 손을 안 댔으면 골렘 군단은 신문 한 줄로 지나간다.
     // 군단을 누가 가졌는지(golem_army 의 outcomes 깃발)에 따라 글이 갈린다 — 기본 글은 드워프 광산으로 간 경우
-    id: 'golem_age', when: { all: [{ flag: 'golem_army' }, { any: [{ flag: 'armed_golems' }, { sold: { faction: 'golem', tag: 'material', min: 25, trades: true } }] }] },
+    id: 'golem_age', when: { all: [{ flag: 'golem_army' }, { noFlag: 'closed_golem' }, { any: [{ flag: 'armed_golems' }, { sold: { faction: 'golem', tag: 'material', min: 25, trades: true } }] }] },
     title: '톱니의 시대',
     requires: ["골렘 군단이 세워짐", "공방에 철광석을 대 주거나 재료를 25개 이상 댐", "(군단이 누구 손에 들어갔는지에 따라 결말 글이 갈림 — 왕국·길드·마왕군)"],
     text: '청동 골렘들이 드워프 광산의 갱도로 줄지어 내려갔다. 당신 가게에서 나간 광석은 칼이 아니라 톱니가 되었고, 그 톱니가 다시 광석을 캔다. 광산은 세 배로 파내고, 산은 조금씩 비어 간다. 용병들은 일자리를 잃었고 숲은 조금 줄었다. 골렘은 흥정하지 않고, 지치지 않고, 언제 멈춰야 하는지 묻지도 않는다.',
@@ -209,9 +209,9 @@ WS.data.endings = [
   },
   // ───────── 세계를 바꾼 사건 — 개인의 길이 끝까지 가지 못했을 때 남는 큰 결말. 내가 무엇을 했는지가 갈림길: 밤의 궁정 → 용에 대한 선택 → 양쪽에 판 자(「박쥐」) → 마왕에 손을 보탠 자 → 망자 → 안개 → 왕실. (고블린의 나라는 왕국에 비슷하게 팔지 않았을 때만이라 「박쥐」와 겹치지 않는다) ─────────
   {
-    id: 'night_court', when: { flag: 'vampire_regent' },
+    id: 'night_court', when: { all: [{ flag: 'vampire_regent' }, { noFlag: 'closed_court' }] },
     title: '피의 대관식',
-    requires: ["왕이 죽던 날, 왕좌가 비던 밤에 밤의 궁정 사절 편에 서 있었음", "그리고 그때까지 밤의 궁정 세력이 크게(22 이상) 자라 있었음 — 편들기만으로는 모자라고 그들에게 물건을 대 주거나 궁정의 부탁을 들어줘야 함", "(성수를 쌓아 두거나 섭정과 가까이 지냈다면 결말 글이 달라짐)"],
+    requires: [`왕좌가 빈 뒤 ${WS.data.config.campaignDays}일째 밤 대관식 때 밤의 궁정 사절 편에 서 있었음 (백작 저택이 그 전에 함락되지 않음)`, "그리고 그때까지 밤의 궁정 세력이 크게(22 이상) 자라 있었음 — 편들기만으로는 모자라고 그들에게 물건을 대 주거나 궁정의 부탁을 들어줘야 함", "(성수를 쌓아 두거나 섭정과 가까이 지냈다면 결말 글이 달라짐)"],
     text: '새 섭정은 낮에 나타나지 않는다. 궁정 연회는 해가 진 뒤에 열리고, 은 식기는 모두 녹여 종으로 만들었다. 수도는 이상하게 평화롭다. 도둑도 전쟁도 줄었다. 매달 한 번, 누군가 조용히 사라질 뿐이다. 사냥꾼들이 무너진 뒤로, 이 도시에서 성수를 찾는 사람은 없다.',
     // 결말 글은 위에서부터 처음 맞는 것 — 구체적인 것(성수·친분)을 앞에, 일반(편에 섬)을 뒤에 (옛 순서에서는 vampire_backed 가 항상 맞아 나머지 둘이 죽은 문구였다)
     variants: [
@@ -230,7 +230,7 @@ WS.data.endings = [
     ],
   },
   {
-    id: 'dragon_ash', when: { flag: 'dragon_razed' },
+    id: 'dragon_ash', when: { all: [{ flag: 'dragon_razed' }, { noFlag: 'closed_dragon' }] },
     title: '재의 도시',
     requires: ["용이 내려와 도시를 불태움", "(방어 물자를 크게 댔다면 성벽이 더 오래 버팀)"],
     text: '용은 금 냄새를 따라 내려왔다. 성벽의 용병들은 사람은 충분했지만, 화살은 몇 통뿐이었고 방패는 모자랐고 물약은 바닥났다. 그들은 사흘 내내 당신 가게 문을 두드렸다. 당신 금고는 끝까지 두둑했고, 용은 금이 가장 많은 곳을 가장 오래 태웠다. 새 간판 아래에는 녹아내린 금화 한 닢이 박혀 있다.',
@@ -242,13 +242,13 @@ WS.data.endings = [
     ],
   },
   {
-    id: 'dragon_nest', when: { flag: 'dragon_pact' },
+    id: 'dragon_nest', when: { all: [{ flag: 'dragon_pact' }, { noFlag: 'closed_dragon' }] },
     title: '용의 금고지기',
     requires: ["재의 산 용과 계약을 맺음", "도시의 금을 용에게 바치는 대가로 안전을 지킴"],
     text: '재의 산의 용은 다시 잠들었다. 도시의 금은 모두 당신 가게를 거쳐 산으로 올라간다. 당신은 대륙에서 가장 부유한 상인이면서, 가장 가난한 상인이다 — 금고의 금화는 한 닢도 당신 것이 아니니까. 대신 이 도시는 아무도 건드리지 않는다. 건드리면 용이 내려오니까.',
   },
   {
-    id: 'dragonfall', when: { flag: 'dragon_slain' },
+    id: 'dragonfall', when: { all: [{ flag: 'dragon_slain' }, { noFlag: 'closed_dragon' }] },
     title: '드래곤 슬레이어',
     requires: ["용이 깨어난 사흘 동안 성벽 수비대장에게 방어 물자(무기·방어구·물약)를 시세로 900G어치 이상 넘김", "(골렘 군단이 왕국을 지키고 있다면 450G어치로도 충분)"],
     text: '석궁과 천둥 가루가 하늘의 주인을 떨어뜨렸다. 용비늘 갑옷이 유행하고, 아이들은 용 사냥 놀이를 한다. 재의 산은 조용하다. 너무 조용해서, 이제 산 너머에서 무엇이 오는지 아무도 경고해 주지 않는다. 당신 가게 창고엔 아직 따뜻한 비늘 한 장이 남아 있다.',
@@ -256,10 +256,21 @@ WS.data.endings = [
   {
     id: 'opportunist',
     // 궁정 다툼: 두건 쓴 청년(왕자)과 베일 쓴 수녀(공주) 모두에게 몰래 팔았고 결판이 났을 때 — 전쟁 양쪽에 판 「박쥐」와는 다른 결말
-    when: { all: [{ any: [{ flag: 'court_decided' }, { flag: 'crowned' }] }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }] },
+    when: { all: [{ noFlag: 'closed_court' }, { any: [{ flag: 'court_decided' }, { flag: 'crowned' }] }, { any: [{ flag: 'armed_prince_secret' }, { flag: 'armed_aldric' }] }, { any: [{ flag: 'armed_princess_secret' }, { flag: 'backed_serena' }] }] },
     title: '기회주의자',
-    requires: ["궁정 다툼 때 두건 쓴 청년과 베일 쓴 수녀 양쪽에 몰래 무기와 물약을 팖", "왕좌의 주인이 가려짐"],
+    requires: ["궁정 다툼 때 두건 쓴 청년과 베일 쓴 수녀 양쪽에 몰래 무기와 물약을 팖", `왕좌의 주인이 가려짐 (${WS.data.config.campaignDays}일째 밤 대관식 — 누가 왕관을 썼느냐에 따라 결말 글이 갈림)`],
     text: '왕좌의 주인은 가려졌다. 대관식 날, 새 군주는 두건 쓴 청년과 베일 쓴 수녀가 같은 무기점에서 장을 봤다는 보고서를 받았다. 당신은 처벌받지 않았다. 다만 궁정의 어느 문도 당신에게 다시 열리지 않았고, 두 사람 중 누구도 당신 이름을 입에 올리지 않는다.',
+    // 대관식(events.js coronation)에서 누가 왕관을 썼나 — 알드릭판 / 세레나판
+    variants: [
+      {
+        when: { flag: 'king_aldric' },
+        text: '대관식 밤, 알드릭 왕은 두건을 벗고 왕관을 썼다. 이튿날 그의 책상에는 보고서 한 장이 올라왔다 — 왕이 두건을 쓰고 활을 사던 그 가게에서, 베일 쓴 수녀도 물약을 사 갔다고. 왕은 외상을 갚았다. 한 푼도 빼지 않고, 한 푼도 더하지 않고. 서부 원정대의 보급 명부에 당신 가게 이름은 없다. 왕은 빚을 잊지 않는다. 배신도 잊지 않는다.',
+      },
+      {
+        when: { flag: 'queen_serena' },
+        text: '대관식 밤, 세레나 여왕은 베일을 걷고 왕관을 썼다. 여왕의 구호소는 광장에 문을 열었고, 물약 납품은 다른 약방이 맡았다. 수녀 시절 물약을 사던 그 가게에서 두건 쓴 청년도 활을 사 갔다는 것을, 여왕은 알고 있다. 여왕은 당신을 벌하지 않았다. 다만 상업세 인하 명단을 읽을 때 당신 가게 이름에서만 잠깐 멈췄다고 한다.',
+      },
+    ],
   },
   {
     // 박쥐 — 전쟁의 두 편 모두에 "꽤 많이" 판 뒤 한쪽이 이겼을 때. 가끔 몇 자루 판 정도로는 걸리지 않는다. (고블린의 나라는 "왕국에도 비슷하게 팔지 않았을 때"라는 조건으로 이와 겹치지 않게 했다)
@@ -302,20 +313,20 @@ WS.data.endings = [
   },
   {
     // 마왕군이 이겨도, 내가 마왕군을 도왔을 때만 이 엔딩 (마왕군에 무기를 25자루 이상, 또는 동맹·사절과 손잡고 12자루 이상). 아니면 뒷이야기 한 줄로 (epilogues.js world_north)
-    id: 'demonlord_dominion', when: { any: [
+    id: 'demonlord_dominion', when: { all: [{ noFlag: 'closed_demonlord' }, { any: [
       { all: [{ flag: 'demonlord_victory' }, { any: [
         { sold: { faction: 'demonlord', tag: 'weapon', min: 25 } },
         { all: [{ flag: 'demonlord_pact' }, { sold: { faction: 'demonlord', tag: 'weapon', min: 12 } }] },
         { all: [{ flag: 'armed_demonlord' }, { sold: { faction: 'demonlord', tag: 'weapon', min: 12 } }] },
       ] }] },
       { all: [{ flag: 'demonlord_pact' }, { var: 'demonlord_power', gte: 45 }] },
-    ] },
+    ] }] },
     title: '검은 깃발 아래',
     requires: ["마왕군에 무기를 25자루 이상 대 줌 (동맹을 맺었거나 사절과 손잡았다면 12자루 이상)", "마왕군이 전쟁에서 승리함 (동맹을 맺은 채 마왕군 세력이 45 이상으로 커졌다면 승리 없이도)"],
     text: '북쪽에서 내려온 검은 군단은 수도 성문 앞에서 멈췄다. 휴전 조약에는 "기존 상권은 보장한다"는 조항이 있었다. 당신 가게는 그 조항 덕분에 살아남았다. 누가 그 조항을 넣자고 했는지는, 당신과 마왕만 안다.',
   },
   {
-    id: 'grey_march', when: { flag: 'undead_tide' },
+    id: 'grey_march', when: { all: [{ flag: 'undead_tide' }, { noFlag: 'closed_undead' }] },
     title: '잿빛 행진',
     requires: ["망자의 행렬이 서쪽으로 걸음", "(교단에 무기·방패를 댔다면 그 물건이 방패에 남음)"],
     text: '동쪽 마을에는 여전히 불이 켜진다. 다만 아무도 먹지 않고, 아무도 자지 않는다. 행렬이 오던 이틀 동안 사제들은 성수와 방패를 구하러 이 거리를 돌았다. 당신 가게 앞에서도 멈췄었다. 행렬은 멈추지 않고 천천히 서쪽으로 걷는다.',
@@ -329,7 +340,7 @@ WS.data.endings = [
   },
   {
     // 안개 상단의 두 번째 계약(customers.js mist_contract2)에 서명했을 때 — 간판 문양 / 기억으로 치름
-    id: 'moonlit_market', when: { all: [{ flag: 'mist_second_contract' }, { noFlag: 'mist_contract_broken' }] },
+    id: 'moonlit_market', when: { all: [{ flag: 'mist_second_contract' }, { noFlag: 'mist_contract_broken' }, { noFlag: 'closed_mist' }] },
     title: '안개가 드리운 마을',
     requires: ["안개 상단과 두 번째 계약에 서명함", "계약을 깨지 않음", "(무엇으로 값을 치렀는지에 따라 결말 글이 달라짐 — 기억 또는 간판 문양)"],
     text: '이제 수도의 밤은 안개의 것이다. 안개 낀 밤이면 얼굴 흐린 손님들이 골목마다 장을 펴고, 금화와 진주와 기억이 한 저울에 오른다. 누구도 칼에 찔리지 않았다. 다만 모두가 무언가를 내주었다. 아침마다 이름을 하나씩 잊은 사람들이 거리를 걷는다. 당신 가게는 그 시장 한가운데에 있다 — 계약서 맨 아래, 안개처럼 번진 글씨로.',
@@ -339,7 +350,7 @@ WS.data.endings = [
     ],
   },
   {
-    id: 'kingdom_armory', when: { any: [{ flag: 'kingdom_victory' }, { all: [{ flag: 'crown_holds' }, { flag: 'crown_supplier' }] }, { all: [{ flag: 'royal_certified' }, { var: 'rel_kingdom', gte: 12 }] }] },
+    id: 'kingdom_armory', when: { all: [{ noFlag: 'closed_kingdom' }, { any: [{ flag: 'kingdom_victory' }, { all: [{ flag: 'crown_holds' }, { flag: 'crown_supplier' }] }, { all: [{ flag: 'royal_certified' }, { var: 'rel_kingdom', gte: 12 }] }] }] },
     variants: [
       {
         when: { flag: 'crown_holds' },

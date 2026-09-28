@@ -96,10 +96,40 @@ WS.sys.World = (() => {
       if (d.drift) add(k, d.drift);
       if (d.toward) toward(k, d.toward[0], d.toward[1]);
     }
-    // 세력 사이의 얽힘 (config.js nightlyRules). 값이 [변수, 배율] 이면 그 변수 × 배율만큼
+    // 세력 사이의 얽힘 (config.js nightlyRules). 값이 [변수, 배율] 이면 그 변수 × 배율만큼, 함수면 fn(get) 만큼
+    //   test: get => bool   조건 DSL(when)로 못 적는 비교 (여러 변수의 합 등)
+    //   once: true          처음 맞는 밤에 한 번만 (id 필요)
+    //   flags / unflags     플래그 (이미 켜진 플래그는 켜진 날을 바꾸지 않는다)
+    //   news                처음 맞는 밤에 한 번 신문에 — 흐름을 넘는 영향(★)은 원인을 말로 남긴다 (docs/DESIGN_CONVERGENCE.md §3.0).
+    //                       한 밤에 얽힘 기사는 하나까지 (나머지는 조건이 계속 맞으면 다음 밤에). once 규칙의 기사는 늘 싣는다
+    //   config.weave.damp   { 변수: [soft, edge] } — 얽힘 규칙이 그 변수를 끝 쪽으로 미는 힘은 |값| soft 부터 줄어 edge 에서 0 (플레이어의 거래는 그대로)
+    const seen = st.weaveSeen || (st.weaveSeen = {});
+    const damp = (WS.data.config.weave || {}).damp || {};
+    const pend = {};
     for (const r of WS.data.nightlyRules || []) {
+      if (r.once && seen[r.id] !== undefined) continue;
       if (!WS.sys.Conditions.check(r.when)) continue;
-      for (const [k, v] of Object.entries(r.vars)) add(k, Array.isArray(v) ? get(v[0]) * v[1] : v);
+      if (r.test && !r.test(get)) continue;
+      for (const [k, v] of Object.entries(r.vars || {})) {
+        const dv = Array.isArray(v) ? get(v[0]) * v[1] : typeof v === 'function' ? v(get) : v;
+        if (!dv) continue;
+        if (damp[k]) pend[k] = (pend[k] || 0) + dv;
+        else add(k, dv);
+      }
+      (r.flags || []).forEach(f => { if (st.flags[f] === undefined) st.flags[f] = st.day; });
+      (r.unflags || []).forEach(f => { delete st.flags[f]; });
+      if (r.news && r.id && seen[r.id] === undefined && (r.once || st.weaveNewsDay !== st.day)) {
+        [].concat(r.news).forEach(n => st.pendingNews.push({ arc: true, ...WS.sys.Effects.fillNews(n) }));
+        st.weaveNewsDay = st.day;
+        seen[r.id] = st.day;
+      } else if (r.once) seen[r.id] = st.day;
+    }
+    for (const [k, dv] of Object.entries(pend)) {
+      const [soft, edge] = damp[k], x = get(k);
+      const f = Math.sign(dv) === Math.sign(x) ? WS.util.clamp((edge - Math.abs(x)) / (edge - soft), 0, 1) : 1;
+      const x0 = get(k);
+      add(k, dv * f);
+      (st.weaveNet || (st.weaveNet = {}))[k] = (st.weaveNet[k] || 0) + get(k) - x0; // 얽힘이 그 변수를 모두 얼마나 움직였나 (시뮬 · 개발 패널용)
     }
   }
 

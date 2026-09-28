@@ -24,6 +24,8 @@ WS.data.config = {
   closeTime: 18 * 60,
   customersPerDay: [5, 7], // v0.9.3: [4, 6] → [5, 7]. 1~8일은 progress.js early.customersPerDay 가 정한다 (그 뒤 9일째부터 이 값)
   maxEventsPerNight: 5,
+  // 이야기 얽힘 (nightlyRules 아래 weaveRules — World.js): 얽힘 규칙이 계승을 끝 쪽으로 미는 힘은 |succession| 8 부터 줄어 18 에서 0 (플레이어의 거래는 그대로)
+  weave: { damp: { succession: [8, 18] } },
   wholesaleSellRate: 0.5, // 도매상 처분 시 매입가 대비 비율
   // 창고 자리(items.js shelf)별 처분 비율 — 보석·잠긴 궤짝 물건은 되팔 때 덜 깎인다 (그래도 100% 미만이라 사서 곧장 되파는 차익은 없다)
   wholesaleSellRateByShelf: { gem: 0.75, special: 0.75 },
@@ -35,6 +37,7 @@ WS.data.config = {
     { when: { flag: 'royal_certified' }, mult: 0.5 },
     { when: { flag: 'guild_squeeze' }, mult: 1.5 },        // 상인 길드가 건물주를 움직였다 (2배 → 1.5배: 기본 임대료가 오른 만큼 완화)
     { when: { flag: 'queen_serena' }, mult: 0.8 },         // 새 여왕의 상업 장려책
+    { when: { all: [{ flag: 'leaning_serena' }, { noFlag: 'crowned' }] }, mult: 0.8 }, // 공위 기간에 섭정 회의를 쥔 세레나 파의 상업 장려책 (v0.9.5: 즉위가 30일째 밤이라)
     { when: { all: [{ flag: 'pin_hired' }, { noFlag: 'pin_gone' }] }, mult: 1.2 }, // 견습생 핀의 하루 삯 = 기본 임대료의 2할 (원래 4G — 임대료가 오른 만큼 6~20G, js/data/stories.js)
   ],
   // 은화 저울 상회 — 가게를 살 때 진 빚 (js/data/stories.js ③). days: 할부 수금일(실제 날짜) · amounts: 할부 금액 · finalDay: 밀린 빚 잔금 청산일 · late: 미룰 때 붙는 이자.
@@ -149,7 +152,7 @@ WS.data.config = {
   // 다툼이 이어지는 동안(when): 그 세력의 랜덤 손님 몇이 인사말 끝에 한마디 (CustomerManager.gossip, chance),
   // 그 세력 랜덤 손님에게 팔면 편드는 쪽 힘이 조금 오른다 (TransactionManager.applyWorld, sellVars). 신문 복선은 news.js amb_court_ladies 등
   courtGossip: {
-    when: { all: [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }] }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }] },
+    when: { all: [{ any: [{ flag: 'court_struggle' }, { flag: 'succession_crisis' }] }, { noFlag: 'crowned' }, { noFlag: 'king_aldric' }, { noFlag: 'queen_serena' }, { noFlag: 'closed_court' }] },
     chance: 0.2,
     lines: {
       noble: [
@@ -328,13 +331,128 @@ WS.data.worldVars = {
   cfg.costMods.push({ when: { all: [{ flag: 'dwarf_fallen' }, { not: { since: { flag: 'dwarf_fallen', days: s.days + 1 } } }] }, mult: s.mult, category: 'weapon' });
 })(WS.data.config);
 
+// ───────── 이야기 얽힘 — 네 흐름 (docs/DESIGN_CONVERGENCE.md §3.0 ~ §3.5) ─────────
+// 흐름: 왕좌(궁정·왕국·길드·대성당) / 서부 전선(고블린·용병·전투단·사냥꾼·마을) / 북부의 그림자(마왕군·안개·흡혈귀·사령술·도적·해적) / 산과 숲(드워프·요정·골렘·마법·연금술·용)
+// 흐름을 넘는 영향(★1~★8, 3.4b 의 흐름 간 연결)은 처음 뚜렷해지는 밤에 신문 한 줄로 원인을 남긴다 (World.js — 한 밤에 하나).
+// 크기는 작게: 한 규칙은 하룻밤 이야기일 한 걸음에 0.05~0.3. 혼자서 결말을 가르지 않는다. 계승(succession)은 config.weave.damp 로 ±8 부터 미는 힘이 줄어 ±18 에서 멈춘다.
+// 변수가 없는 연결은 가장 가까운 변수에 건다 — "사냥꾼 조합 세력"은 rel_hunter(가게와의 관계)로 대신한다.
+// 대관식(30일째 밤)과 공위 기간 플래그는 events.js king_dies · coronation.
+(() => {
+  // 궁정 다툼이 살아 있는 동안만 계승이 움직인다 (대관식 뒤 · 궁정 줄기가 닫힌 뒤엔 멈춤)
+  const court = { any: [{ flag: 'succession_crisis' }, { flag: 'court_struggle' }, { flag: 'interregnum' }] };
+  const courtLive = [court, { noFlag: 'crowned' }, { noFlag: 'closed_court' }];
+  const live = (...more) => ({ all: courtLive.concat(more) });
+  // ★1 두 후계자의 지지 기반: 산업·기술(세레나 −) 대 무력·뒷골목(알드릭 +) — 처음 값에서 얼마나 자랐나
+  const industry = g => (g('dwarf_tech') - 10) + g('golem_tech') + 0.5 * (g('arcane_power') - 12) + 0.5 * (g('alchemy_progress') - 4)
+    + (g('guild_grip') - 12) + 0.5 * (g('economy') - 50) + (g('church_authority') - 25);
+  const force = g => (g('merc_strength') - 8) + (g('bandit_power') - 8) + (g('pirate_power') - 8) + (g('warband_power') - 8);
+  const base = g => force(g) - industry(g); // + 면 알드릭 쪽
+  const BASE_K = 0.008, BASE_MAX = 0.25, BASE_MIN = 8;
+  const threat = { any: [{ flag: 'war' }, { flag: 'demon_war' }, { var: 'border_tension', gte: 30 }, { var: 'invasion_risk', gte: 30 }] };
+
+  WS.data.weaveRules = [
+    // ── 왕좌 (공위 기간의 형세 표시 — 대화 손님이 쓴다: leaning_aldric / leaning_serena) ──
+    { when: { any: [{ noFlag: 'interregnum' }, { flag: 'crowned' }, { flag: 'closed_court' }] }, unflags: ['leaning_aldric', 'leaning_serena'] },
+    { when: { all: [{ flag: 'interregnum' }, { var: 'succession', gte: 5 }] }, flags: ['leaning_aldric'], unflags: ['leaning_serena'] },
+    { when: { all: [{ flag: 'interregnum' }, { var: 'succession', lte: -5 }] }, flags: ['leaning_serena'], unflags: ['leaning_aldric'] },
+    { when: { all: [{ flag: 'interregnum' }, { var: 'succession', gt: -5 }, { var: 'succession', lt: 5 }] }, unflags: ['leaning_aldric', 'leaning_serena'] },
+
+    // ★1 칼로 먹고사는 자들이 늘면 알드릭, 공방과 상점가가 살찌면 세레나
+    { id: 'w1_force_aldric', when: live(), test: g => base(g) >= BASE_MIN, vars: { succession: g => Math.min(BASE_MAX, base(g) * BASE_K) },
+      news: { cat: '왕국', text: '용병 천막과 뒷골목마다 알드릭 왕자의 깃발… "왕자님은 서부 정벌을 약속했다"' } },
+    { id: 'w1_industry_serena', when: live(), test: g => base(g) <= -BASE_MIN, vars: { succession: g => Math.max(-BASE_MAX, base(g) * BASE_K) },
+      news: { cat: '왕국', text: '공방과 상점가가 살찌자, 상인들이 세레나 공주의 "상업세 인하" 공약에 줄을 섰다' } },
+    // ★2 적이 문 앞에 있으면 칼 든 지도자 — 계승 다툼은 식고 왕국은 동원된다
+    { id: 'w2_threat_aldric', when: live(threat), vars: { succession: 0.15, kingdom_power: 0.1 },
+      news: { cat: '왕국', text: '서부에서 고블린이 밀고 들어오자, 궁정은 왕좌 다툼을 잠시 접었다 — 칼 든 왕자 쪽으로 사람이 모인다' } },
+    // ★3 우세한 쪽이 정사를 쥔다 — 알드릭: 서부 정벌 준비 / 세레나: 교역과 구호
+    { id: 'w3_aldric_rule', when: { all: [{ flag: 'leaning_aldric' }, { noFlag: 'crowned' }] },
+      vars: { border_tension: 0.25, goblin_unity: 0.15, kingdom_power: 0.1, merc_strength: 0.1, church_authority: -0.05, vampire_power: -0.05, dwarf_tech: 0.05 },
+      news: { cat: '고블린', text: '섭정 회의의 알드릭 파가 "서부 숲 정벌"을 공약하자, 숲의 부족들이 서로 창을 맞댔다' } },
+    { id: 'w3_serena_rule', when: { all: [{ flag: 'leaning_serena' }, { noFlag: 'crowned' }] },
+      vars: { border_tension: -0.25, economy: 0.1, guild_grip: 0.1, church_authority: 0.1, arcane_power: -0.05 },
+      news: { cat: '고블린', text: '섭정 회의의 세레나 파가 서부 교역 재개를 약속하자, 국경 초소에 고블린 행상이 다시 줄을 섰다' } },
+    // ★4 세레나 우세 → 사령술 ↓ (사용자 확정) — 구호소와 성당이 무덤을 지킨다
+    { id: 'w4_serena_graves', when: { all: [{ flag: 'leaning_serena' }, { noFlag: 'crowned' }] }, vars: { undead_power: -0.3 },
+      news: { cat: '사건', text: '공주의 구호소와 성당이 무덤을 지키자, 잿빛 수의 교단이 도성 밖으로 밀려났다' } },
+    // 3.4b 한쪽이 크게 우세하면 열세한 쪽이 밤과 손잡는다
+    { id: 'w_aldric_desperate', when: live({ var: 'succession', lte: -10 }), vars: { vampire_power: 0.15, pirate_power: 0.1 },
+      news: { cat: '소문', text: '궁지에 몰린 알드릭 파가 밤의 궁정과 남쪽 항구에 손을 내밀었다는 뒷말' } },
+    { id: 'w_serena_desperate', when: live({ var: 'succession', gte: 10 }), vars: { demon_influence: 0.15 },
+      news: { cat: '소문', text: '밀리는 세레나 파가 안개 상단과 밤 계약을 맺었다는 뒷말… 구호소 뒷문에 안개' } },
+    // ★7 공위 기간 — 빈 왕좌를 노리는 밤, 주인 없는 도시
+    { id: 'w7_interregnum_night', when: { all: [{ flag: 'interregnum' }, { noFlag: 'crowned' }] }, vars: { vampire_power: 0.15, merc_strength: 0.1, bandit_power: 0.1 },
+      news: { cat: '왕국', text: '왕좌가 빈 도성에 밤 연회와 칼잡이가 늘었다 — 백작가 마차가 궁 뒷문을 드나든다' } },
+    // 왕국군이 줄면 순찰이 빈다
+    { id: 'w_kingdom_thin', when: { var: 'kingdom_power', lt: 20 }, vars: { bandit_power: 0.1, pirate_power: 0.05, vampire_power: 0.05, guild_grip: 0.1 },
+      news: { cat: '사건', text: '왕국군이 줄어 밤 순찰과 해안 경비가 비자, 가도의 도적과 밤손님이 늘었다' } },
+    // 신앙은 군대를 모은다 · 마법사는 봉화보다 결계를 믿는다
+    { id: 'w_church_levy', when: { var: 'church_authority', gte: 30 }, vars: { invasion_risk: -0.1 },
+      news: { cat: '왕국', text: '대성당 성전 설교에 북부 요새로 자원병이 몰린다' } },
+    { id: 'w_mage_ward', when: { var: 'arcane_power', gte: 25 }, vars: { invasion_risk: -0.1 },
+      news: { cat: '생활', text: '은빛 탑 마법사들, 북부 국경에 결계를 치러 떠났다' } },
+
+    // ── 서부 전선 ──
+    // (흐름 안) 북쪽에서 오크가 내려오면 고블린은 뭉쳐 동쪽으로 밀린다
+    { when: { var: 'warband_power', gte: 20 }, vars: { goblin_unity: 0.1, border_tension: 0.1 } },
+    // 싸움은 시체를 남긴다 — 전투단의 약탈 (★4) / 도적의 습격 (흐름 안)
+    { id: 'w4_warband_graves', when: { var: 'warband_power', gte: 25 }, vars: { undead_power: 0.15 },
+      news: { cat: '사건', text: '잿빛 엄니 전투단이 휩쓴 골짜기마다 묻히지 못한 시체가 남았다' } },
+    { when: { var: 'bandit_power', gte: 25 }, vars: { undead_power: 0.1 } },
+
+    // ── 북부의 그림자 ──
+    // ★5 마왕군 진군 → 서부 방어가 빈다 · 고블린은 갈린다 (국경이 조용하면 휴전, 달아올랐으면 검은 깃발 아래로)
+    { id: 'w5_north_drain', when: { all: [{ flag: 'demon_war' }, { flag: 'war' }] }, vars: { war_progress: 0.3 },
+      news: { cat: '전쟁', text: '왕국군이 북부 요새로 빠져나가자, 서부 숲 고블린이 빈 초소를 넘었다' } },
+    { id: 'w5_goblin_truce', when: { all: [{ flag: 'demon_war' }, { noFlag: 'war' }, { var: 'border_tension', lt: 25 }] }, vars: { border_tension: -0.4 },
+      news: { cat: '고블린', text: '검은 깃발이 내려오자 서부 부족장들이 왕국과 휴전 사절을 주고받았다' } },
+    { id: 'w5_goblin_black', when: { all: [{ flag: 'demon_war' }, { var: 'border_tension', gte: 25 }] }, vars: { demonlord_power: 0.2, goblin_power: 0.1 },
+      news: { cat: '속보', text: '국경이 달아오른 서부 부족 일부가 마왕군 깃발 아래 섰다' } },
+    // 검은 깃발은 오크와 계약 중개인을 먼저 부른다 (북부 → 서부)
+    { id: 'w_black_recruit', when: { var: 'demonlord_power', gte: 35 }, vars: { warband_power: 0.1, demon_influence: 0.05 },
+      news: { cat: '소문', text: '검은 깃발 모병관이 북쪽 산맥 오크 부족을 돌고 있다' } },
+    // (흐름 안) 피난민 행렬 뒤로 도적이 · 도시가 불타면 밤의 궁정도 먹잇감을 잃는다
+    { when: { flag: 'demon_war' }, vars: { bandit_power: 0.1 } },
+    { when: { all: [{ flag: 'demon_war' }, { var: 'vampire_power', gte: 15 }] }, vars: { demonlord_power: -0.1 } },
+
+    // ── 산과 숲 ──
+    // ★6 용 각성 → 모두가 성벽으로: 서부 방어가 비고, 두 후계자는 휴전한다
+    { id: 'w6_dragon_walls', when: { all: [{ flag: 'dragon_awake' }, { noFlag: 'closed_dragon' }] }, vars: { kingdom_power: -0.3, goblin_power: 0.2, church_authority: 0.2, warband_power: -0.3 },
+      news: { cat: '속보', text: '재의 산이 불을 뿜자 서부 초소 병력까지 성벽으로 불려 갔다 — 숲의 부족들이 고개를 든다' } },
+    { id: 'w6_dragon_truce', when: live({ flag: 'dragon_awake' }, { noFlag: 'closed_dragon' }), vars: { succession: ['succession', -0.05] },
+      news: { cat: '왕국', text: '하늘에서 불이 떨어질지 모르는 밤, 두 후계자가 왕좌 다툼 휴전을 선언했다' } },
+    // 용을 막은 공은 그때 우세한 후계자가 가져간다 (한 번)
+    { id: 'w_dragon_credit_aldric', once: true, when: live({ flag: 'dragon_slain' }, { noFlag: 'dragon_credit' }, { var: 'succession', gte: 0 }), vars: { succession: 3, kingdom_morale: 2 }, flags: ['dragon_credit'],
+      news: { cat: '왕국', text: '용을 떨어뜨린 공은 알드릭 파가 가져갔다 — 성벽 위에 걸린 깃발은 왕자의 것' } },
+    { id: 'w_dragon_credit_serena', once: true, when: live({ flag: 'dragon_slain' }, { noFlag: 'dragon_credit' }, { var: 'succession', lt: 0 }), vars: { succession: -3, kingdom_morale: 2 }, flags: ['dragon_credit'],
+      news: { cat: '왕국', text: '용을 떨어뜨린 공은 세레나 파가 가져갔다 — 부상병을 받은 건 공주의 구호소였다' } },
+    // 용과 계약 → 금을 바치느라 상점가 금고가 빈다 (세레나 기반 약화, 한 번)
+    { id: 'w_dragon_tithe', once: true, when: { flag: 'dragon_pact' }, vars: { economy: -3, guild_grip: -3 },
+      news: { cat: '경제', text: '용에게 바칠 금을 거두느라 상점가 금고가 비었다 — 상인들이 공주 편 모임에서 발을 뺀다' } },
+    // (흐름 안) 드워프가 옛 광산을 깊이 팔수록 용이 뒤척인다
+    { when: { var: 'dwarf_tech', gte: 20 }, vars: { dragon_stir: 0.08 } },
+    // 도시에 금이 쌓이면 (왕좌 → 산) · 잠든 용을 건드리는 건 늘 사냥꾼이다 (서부 → 산)
+    { id: 'w_guild_gold', when: { var: 'guild_grip', gte: 35 }, vars: { dragon_stir: 0.1 },
+      news: { cat: '소문', text: '상인 길드 금고가 차오르자 재의 산 연기가 짙어졌다는 말이 돈다' } },
+    { id: 'w_hunter_ash', when: { var: 'rel_hunter', gte: 8 }, vars: { dragon_stir: 0.08, border_tension: 0.05 },
+      news: { cat: '소문', text: '은화살 사냥꾼들이 재의 산 비탈과 서부 숲 깊숙이 사냥감을 쫓아 들어갔다' } },
+    // ★8 골렘 군단 → 용병 수요 ↓ (쇠 병사는 삯을 받지 않는다)
+    { id: 'w8_golem_merc', when: { flag: 'golem_army' }, vars: { merc_strength: -0.3 },
+      news: { cat: '생활', text: '골렘 군단이 성문을 지키자, 삯을 받는 칼은 설 자리를 잃었다 — 용병 천막이 하나둘 걷힌다' } },
+    // 공방을 잃은 대장장이는 용병이 된다 (산 → 서부)
+    { id: 'w_dwarf_refugees', when: { flag: 'dwarf_fallen' }, vars: { merc_strength: 0.2 },
+      news: { cat: '생활', text: '공방을 잃은 강철수염 대장장이들이 용병 천막으로 모여든다' } },
+  ];
+})();
+
 // 세력 사이의 얽힘 — 매일 밤 조건이 맞으면 적용된다. 값이 [변수, 배율] 이면 (그 변수 × 배율)
 WS.data.nightlyRules = [
   // 흡혈귀 궁정은 "먹잇감을 망치는" 사령술사를 눌러 왔다. 궁정이 무너지면 무덤이 열린다
   { when: { var: 'vampire_power', gte: 12 }, vars: { undead_power: -0.35 } },
   { when: { var: 'vampire_power', lt: 8 }, vars: { undead_power: 0.3 } }, // 저절로는 천천히 — 크게 키우는 건 교단에 판 무기다
-  // 전쟁과 괴멸은 시체를 남긴다
-  { when: { any: [{ flag: 'war' }, { flag: 'demon_war' }, { flag: 'village_fell' }, { flag: 'dragon_razed' }, { flag: 'civil_war' }] }, vars: { undead_power: 0.7 } },
+  // 전쟁과 괴멸은 시체를 남긴다 (★4 — 서부 전선 · 북부의 전쟁이 사령술을 키운다. 사용자 확정)
+  { id: 'w4_war_graves', when: { any: [{ flag: 'war' }, { flag: 'demon_war' }, { flag: 'village_fell' }, { flag: 'dragon_razed' }, { flag: 'civil_war' }] }, vars: { undead_power: 0.7 },
+    news: { cat: '사건', text: '전장에서 실려 오는 관이 늘자, 잿빛 수의 교단이 밤마다 공동묘지를 드나든다' } },
   // 도적과 해적은 교역로를 갉아먹고, 끊긴 길은 경제를 말린다
   { vars: { trade_routes: ['bandit_power', -0.03] } },
   { vars: { trade_routes: ['pirate_power', -0.025] } },
@@ -359,6 +477,7 @@ WS.data.nightlyRules = [
   { vars: { alchemy_progress: ['arcane_power', 0.012] } },
   { when: { flag: 'golem_workshop' }, vars: { golem_tech: 0.3 } },
   { when: { day: { gte: 5 } }, vars: { star_signal: 0.35 } },
+  ...WS.data.weaveRules, // 이야기 얽힘 (바로 위)
 ];
 
 // 관계 탭에 보이는 "소문" — 정확한 수치 대신 흐릿한 체감 정보만 준다.

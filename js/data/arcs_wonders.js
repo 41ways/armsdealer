@@ -130,10 +130,11 @@
 
     // ═════════ 밤의 궁정 (night_court) ═════════
     // 하녀 실종(vampire_known) → 야경꾼이 성수를 산다 → 밤의 궁정 편에 서면(vampire_backed) 창백한 시동이 사냥꾼 소식을 묻고,
-    // 집사가 붉은 보석을 사 간다 → 섭정이 서면(vampire_regent) 사냥꾼 조합원이 도시를 떠난다
+    // 집사가 붉은 보석을 사 간다 → 왕이 죽어 백작이 섭정 회의를 쥐면(night_regent — events.js king_dies) 사냥꾼 조합원이 도시를 떠난다
+    // (v0.9.5: 대관식이 30일째 밤으로 옮겨 가 찬탈 vampire_regent 은 마지막 밤에만 켜진다 — 공위 기간의 손님은 night_regent 를 본다)
     {
       id: 'wd_night_watchman', look: 'soldier', name: '야경꾼 한네스', race: '인간', job: '경비대 야경꾼', faction: 'kingdom', portrait: '🏮',
-      spawn: { when: slot(1, { all: [after('vampire_known', 1), { noFlag: 'vampire_regent' }, { noFlag: 'vampire_court_fell' }] }), chance: 0.64 },
+      spawn: { when: slot(1, { all: [after('vampire_known', 1), { noFlag: 'night_regent' }, { noFlag: 'vampire_regent' }, { noFlag: 'vampire_court_fell' }] }), chance: 0.64 },
       greet: '하녀들이 사라진 골목을 밤마다 도오. 목에 이빨 자국이라니… {item} {qty}병, {offer}골드.',
       request: { item: 'holy_water', qty: 3, offer: { mult: 1.05 }, partialOk: true },
       lines: { sold: '이걸 허리에 차면 좀 덜 떨리겠소.', partial: '한 병이라도 차고 나가겠소.', refused: '…맨정신으로 밤을 도는 수밖에.' },
@@ -165,14 +166,14 @@
       spawn: { when: slot(0, { all: [{ any: [after('vampire_backed', 2), after('vampire_friend', 2)] }, { noFlag: 'vampire_court_fell' }] }), chance: 0.64 },
       greet: '(해 진 뒤) 주인께서 대관식… 아니, 연회에 쓸 붉은 돌을 찾으시오. {item} {qty}개, {offer}골드.',
       greetWhen: [
-        { when: { flag: 'vampire_regent' }, text: '(해 진 뒤) 섭정 전하의 연회에 쓸 붉은 돌이오. {item} {qty}개, {offer}골드.' },
+        { when: { flag: 'night_regent' }, text: '(해 진 뒤) 섭정 전하의 연회에 쓸 붉은 돌이오. {item} {qty}개, {offer}골드.' },
       ],
       request: { item: 'ruby', qty: 1, offer: { mult: 1.15 } },
       lines: { sold: '피처럼 붉구려. 주인께서 흡족해하실 거요.', refused: '유감이오. 밤은 길고, 보석상은 많으니.' },
     },
     {
       id: 'wd_night_last_hunter', look: 'hunter', name: '사냥꾼 베른', race: '인간', job: '해산된 은화살 조합 조합원', faction: 'hunter', portrait: '🎒',
-      spawn: { when: slot(1, after('vampire_regent', 1)), chance: 0.8 },
+      spawn: { when: slot(1, { all: [after('night_regent', 1), { noFlag: 'vampire_court_fell' }] }), chance: 0.8 },
       greet: '섭정청이 조합을 해산시켰소. 남쪽으로 가오. 가는 길에 쓸 {item} {qty}자루, {offer}골드.',
       request: { item: 'bow', qty: 2, offer: { mult: 1.0 }, partialOk: true },
       lines: { sold: '해 지기 전에 성문을 나가야 하오. 잘 있으시오.', partial: '한 자루면 충분하오. 쏠 일이 없길 바라오.', refused: '…그렇구려. 이 도시엔 이제 밤 손님이 더 반갑겠지.' },
@@ -432,7 +433,7 @@
     { id: 'wd_amb_ash_missing', cat: '마을', text: '재의 산 옛 광산 간 모험가들 소식 끊겨… 기슭 마을 "연기만 짙어"', when: { all: [{ customerSeen: 'wd_ash_delvers' }, { noFlag: 'dragon_awake' }, { noFlag: 'dragon_slain' }, { noFlag: 'dragon_razed' }] }, weight: 3, cooldown: 5 },
     { id: 'wd_amb_ash_refugees', cat: '마을', text: '재의 산 기슭 마을들 통째로 피난… 성문 앞 수레 행렬', when: { all: [{ flag: 'dragon_awake' }, { noFlag: 'dragon_slain' }, { not: { eventFired: 'dragon_descends' } }] }, weight: 4, cooldown: 2 },
     { id: 'wd_amb_night_carriage', cat: '왕국', text: '궁 뒷문에 밤마다 검은 마차… 창마다 두꺼운 커튼', when: { all: [{ flag: 'succession_crisis' }, { flag: 'vampire_backed' }, { noFlag: 'crowned' }] }, weight: 3, cooldown: 3 },
-    { id: 'wd_amb_night_curfew', cat: '왕국', text: '섭정청 포고 "해 진 뒤 통행은 초대장 지닌 자만"', when: { flag: 'vampire_regent' }, weight: 4, cooldown: 4 },
+    { id: 'wd_amb_night_curfew', cat: '왕국', text: '섭정청 포고 "해 진 뒤 통행은 초대장 지닌 자만"', when: { all: [{ flag: 'night_regent' }, { noFlag: 'vampire_court_fell' }] }, weight: 4, cooldown: 4 },
     { id: 'wd_amb_grey_shields', cat: '사건', text: '묘지기 "무덤 속 해골이 새 방패를 안고 있더라"', when: { all: [{ flag: 'wd_grey_shields' }, { not: { eventFired: 'dead_march' } }] }, weight: 3, cooldown: 4 },
     { id: 'wd_amb_grey_west', cat: '먼 곳', text: '잿빛 행렬, 서쪽 가도로… 지나간 마을마다 불은 켜져 있다', when: { flag: 'undead_tide' }, weight: 3, cooldown: 4 },
     { id: 'wd_amb_mist_forget', cat: '생활', text: '상점가 주인들 "어제 장부가 기억 안 나"… 안개 낀 밤 뒤 잇따라', when: { all: [{ flag: 'demon_contract' }, { noFlag: 'mist_second_contract' }, { noFlag: 'mist_contract_broken' }] }, weight: 2, cooldown: 5 },
@@ -449,8 +450,8 @@
     const ashOpen = [{ noFlag: 'dragon_awake' }, { noFlag: 'dragon_slain' }, { noFlag: 'dragon_razed' }];
     r('wd_ash_missing.village', { all: [{ customerSeen: 'wd_ash_watch' }, ...ashOpen] }, 'village', 'hae', '재의 산에 간 모험가들, 아직 소식이 없대요.');
     r('wd_ash_scouts.kingdom', { all: [{ flag: 'wd_ash_scouts_armed' }, ...ashOpen] }, 'kingdom', 'hao', '정찰대가 재의 산에 올랐다 하오. 무얼 보고 올지.');
-    r('wd_night_curfew.kingdom', { flag: 'vampire_regent' }, 'kingdom', 'hao', '해가 지면 곧장 들어가시오. 요즘 법이 그렇소.');
-    r('wd_night_curfew.village', { flag: 'vampire_regent' }, 'village', 'hae', '요즘은 해 지기 전에 장을 다 봐야 해요.');
+    r('wd_night_curfew.kingdom', { all: [{ flag: 'night_regent' }, { noFlag: 'vampire_court_fell' }] }, 'kingdom', 'hao', '해가 지면 곧장 들어가시오. 요즘 법이 그렇소.');
+    r('wd_night_curfew.village', { all: [{ flag: 'night_regent' }, { noFlag: 'vampire_court_fell' }] }, 'village', 'hae', '요즘은 해 지기 전에 장을 다 봐야 해요.');
     r('wd_grey_reported.village', { flag: 'wd_grey_reported' }, 'village', 'hae', '묘지에 새 방패를 묻은 사람들이 있었대요. 소름 끼쳐요.');
     r('wd_mist_ledger.guild', { all: [{ flag: 'demon_contract' }, { noFlag: 'mist_contract_broken' }] }, 'guild', 'hao', '요즘 장부를 펴면 모르는 글씨가 있소. 나만 그런 거요?', 8);
     r('wd_star_vigil.church', { all: [{ flag: 'star_to_church' }, { noFlag: 'star_answered' }] }, 'church', 'hao', '대성당이 사흘째 밤새 기도하오. 무얼 기다리는지는 주교님만 아시오.', 3);

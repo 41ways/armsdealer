@@ -332,6 +332,8 @@ WS.sys.Day = (() => {
     st.night = null;
     st.nightWhisper = null;
     if (endingDue() || st.day >= cfg().campaignDays) {
+      // 캠페인 마지막 밤: 대관식(events.js coronation, trigger 'final') 이 결말 판정보다 먼저 — 그 플래그(king_aldric 등)가 결말 조건에 들어간다
+      if (!endingDue() && WS.sys.Events.runFinal) WS.sys.Events.runFinal();
       st.ending = WS.data.endings.find(e => WS.sys.Conditions.check(e.when)).id;
       st.phase = 'ending';
       if (WS.Cinematic && WS.Cinematic.preload) WS.Cinematic.preload(st.ending); // 결말 컷신 그림을 미리 받기 시작
