@@ -1783,7 +1783,7 @@ WS.UI = (() => {
     const want = r.item ? item(r.item).name : '물건';
     const total = dealLines(c).total;
     const body = [
-      `맨 위 줄은 손님이 누구인지다. ${f ? `${U.esc(f.icon)} <b>${U.esc(f.name)}</b> 문장` : '문장'} · <b>${U.esc(c.race)}</b> · <b>${U.esc(c.job)}</b> — ${U.esc(f ? f.name : '')} 기사단 소속 ${U.esc(c.race)} <b>${U.esc(c.name)}</b>이라는 뜻이다.`,
+      `맨 위 줄은 손님이 누구인지다. ${f ? `${WS.ui.emblem(a.claim)}<b>${U.esc(f.name)}</b> 문장` : '문장'} · <b>${U.esc(c.race)}</b> · <b>${U.esc(c.job)}</b> — ${U.esc(f ? f.name : '')} 기사단 소속 ${U.esc(c.race)} <b>${U.esc(c.name)}</b>이라는 뜻이다.`,
       `그런데 소속은 <b>손님이 한 말일 뿐</b>이다. 정말인지 보려면 ${side === 'counter' ? '아래' : '왼쪽 아래'} <b>돋보기</b>를 눌러 손님의 인장을 규정집 원본과 대조해 본다.`,
       `<b>팔아 달라 · ${U.esc(want)} ×${r.qty || 1}</b> — 손님이 원하는 것이다. ${U.esc(want)} ${r.qty || 1}개를 팔면 된다.`,
       `오른쪽 초록 숫자는 <b>예상 마진</b>이다. 이대로 팔면 <b>${total > 0 ? '+' : ''}${total}G</b>가 남는다.`,
