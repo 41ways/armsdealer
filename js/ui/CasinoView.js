@@ -41,7 +41,17 @@ WS.CasinoView = (() => {
     raid: 'assets/ending/hires/canary_album_1.jpg',   // 걷어차인 문
     bell: 'assets/ending/hires/canary_album_3.jpg',   // 울리지 않은 종 · 묶인 경비
     big: 'assets/casino/bigtable.jpg', // 홀 한가운데 판을 둘러싼 손님들
+    guarded: 'assets/casino/entry_guarded.jpg', // 큰 판 날 — 마담이 말한 경비 둘과 새 종이 계단에 (제미나이)
+    arrest: 'assets/casino/arrest.jpg',   // 큰 판 앞의 감찰관 마크, 허공의 동전 (제미나이, inspector_theo 외형)
   };
+  // 말하는 사람 얼굴 — 손님 표정 시트(js/data/sheets.js)의 한 칸
+  function face(look, frame = 'talk') {
+    const sh = WS.data.sheets && WS.data.sheets[look];
+    if (!sh) return '';
+    const n = sh.frames.length, i = Math.max(0, sh.frames.indexOf(frame));
+    return `<i class="cs-face" aria-hidden="true" style="background-image:url('${sh.src}');background-size:${n * 100}% 100%;background-position:${(i / (n - 1) * 100).toFixed(3)}% 0;aspect-ratio:${sh.fw} / ${sh.fh}"></i>`;
+  }
+  const say = (look, frame, who, line) => `<p class="cs-say has-face">${face(look, frame)}<span><b>${U.esc(who)}</b>${U.esc(line)}</span></p>`;
   const scene = (src, cls, inner = '') => `<div class="cs-scene ${cls || ''}"><img src="${src}" alt="" draggable="false" onerror="this.remove()">${inner}</div>`;
   // ───── 입장 — 돌계단을 내려가 문지기를 만난다 (그림: assets/casino/entry_*.jpg, 제미나이) · 문지기 문답은 첫 입장에만 ─────
   const ENTER_LINE = {
@@ -53,6 +63,13 @@ WS.CasinoView = (() => {
   };
   function enterView() {
     const e = enter, first = e.first;
+    if (e.stage === 'guarded') {
+      return `<div class="casino cs-cine cs-enter">
+        ${scene(ART.guarded, 'cs-dolly cs-guardshot')}
+        <p class="cs-narr">계단 위쪽 벽에 새 놋쇠 종이 걸려 있다. 창을 세운 경비 둘이 고개를 끄덕인다. 마담 로자의 말대로다 — 오늘 밤은 걱정할 것 없다.</p>
+        <div class="cs-foot"><button class="pbtn wide" data-act="cs-enter-next">→ 내려간다</button></div>
+      </div>${host.hud()}`;
+    }
     if (e.stage === 'door') {
       return `<div class="casino cs-cine cs-enter cs-enter-door">
         ${scene('assets/casino/entry_door.jpg', 'cs-dolly')}
@@ -70,7 +87,7 @@ WS.CasinoView = (() => {
   function enterAdvance() {
     if (!enter) return;
     if (enter.stage === 'descend') { if (enter.first) enter = { stage: 'door', first: true }; else enter = null; }
-    else enter = null;
+    else enter = null; // 'door' · 'guarded' 다음은 홀
   }
   // 이후 입장(문지기 문답 없음)은 계단 장면을 클릭 없이도 짧게 지나간다 — 급한 손님은 눌러서 건너뛸 수 있다
   function enterAutoRun() {
@@ -88,10 +105,10 @@ WS.CasinoView = (() => {
   };
   function raidView() {
     const r = RAID[raidN];
-    return `<div class="casino cs-cine cs-raidscene">
+    return `<div class="casino cs-cine cs-raidscene cs-stagger">
       ${scene(ART.raid, 'shake', '<b class="cs-scene-title">단속!</b>')}
       <p class="cs-narr">${U.esc(r.narr)}</p>
-      <p class="cs-say"><b>${U.esc(r.who)}</b>${U.esc(r.line)}</p>
+      ${say('inspector_theo', 'angry', r.who, r.line)}
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">잠자리로 돌아간다 →</button></div>
     </div>${host.hud()}`;
   }
@@ -103,7 +120,8 @@ WS.CasinoView = (() => {
     if (b.stage === 'intro') {
       return `<div class="casino cs-cine cs-big">
         ${scene(ART.big, 'dim', `<b class="cs-scene-title">큰 판</b>${coin('idle on-scene')}`)}
-        <p class="cs-narr">홀 한가운데 금화가 산처럼 쌓인 탁자. 손님들이 숨을 죽이고 둘러서 있고, 딜러의 손이 떨린다. 마담 로자가 낮게 말한다. 「판돈은 당신의 전부예요. 한 번 던져서, 끝내요.」</p>
+        <p class="cs-narr">홀 한가운데 금화가 산처럼 쌓인 탁자. 손님들이 숨을 죽이고 둘러서 있고, 딜러의 손이 떨린다.</p>
+        ${say('madam', 'happy', '마담 로자', '“판돈은 당신의 전부예요. 한 번 던져서, 끝내요.”')}
         <p class="cs-sys">승리하면 승리 엔딩, 패배하면 패배 엔딩으로 이어집니다.</p>
         <div class="cs-row">${btn('앞면', 'heads', 'gold')}${btn('뒷면', 'tails', 'gold')}</div>
         <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-back">…아직 이르다</button></div>
@@ -120,10 +138,17 @@ WS.CasinoView = (() => {
         ${scene(ART.raid, 'flash shake')}
       </div>${host.hud()}`;
     }
-    return `<div class="casino cs-cine cs-big arrest">
-      ${scene(ART.raid, '', '<b class="cs-scene-title">현행범</b>')}
-      <p class="cs-narr">문이 부서지듯 열리고 감찰청 병사들이 홀을 채운다. 골목 끝의 종은 끝내 울리지 않았다. 동전은 허공에 뜬 채, 아무도 그것을 보지 않는다.</p>
-      <p class="cs-say"><b>감찰관 마크</b>“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “당신이 운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도 다른 이들은 아니었소.”</p>
+    // 계단의 종 — 마담이 세웠다던 경비와 종. 경비는 이미 묶여 있고, 종은 울리지 않았다 (엔딩 앨범 그림)
+    if (b.stage === 'bell') {
+      return `<div class="casino cs-cine cs-big bell" data-act="cs-big-next">
+        ${scene(ART.bell, 'cs-bellshot')}
+        <p class="cs-narr">골목 끝의 종은 끝내 울리지 않았다. 마담이 세웠다던 경비들은 벌써 묶인 채 벽에 기대앉아 있었다.</p>
+      </div>${host.hud()}`;
+    }
+    return `<div class="casino cs-cine cs-big arrest cs-stagger">
+      ${scene(ART.arrest, '', '<b class="cs-scene-title">현행범</b>')}
+      <p class="cs-narr">감찰청 병사들이 홀을 채운다. 손님들은 벽에 바짝 붙었다. 동전은 허공에 뜬 채, 아무도 그것을 보지 않는다.</p>
+      ${say('inspector_theo', 'angry', '감찰관 마크', '“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “당신이 운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도 다른 이들은 아니었소.”')}
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-end">끌려간다</button></div>
     </div>${host.hud()}`;
   }
@@ -131,7 +156,8 @@ WS.CasinoView = (() => {
     const b = big = { stage: 'toss', face };
     sfx('latch', 0.5);
     setTimeout(() => { if (big !== b) return; b.stage = 'burst'; sfx('door_open', 0.9); sfx('blade', 0.6); host.render(); }, 2300);
-    setTimeout(() => { if (big !== b) return; b.stage = 'arrest'; host.render(); }, 3700);
+    setTimeout(() => { if (big !== b) return; b.stage = 'bell'; host.render(); }, 3700);
+    setTimeout(() => { if (big !== b || b.stage !== 'bell') return; b.stage = 'arrest'; host.render(); }, 7200);
   }
 
   function html() {
@@ -193,7 +219,7 @@ WS.CasinoView = (() => {
       <div class="cs-head"><h2>검은 주사위 <small>지하 도박장</small></h2>
         <div class="cs-purse"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div></div>
       <div class="cs-hallwrap"><div class="cs-hall"><img class="cs-hall-art" src="assets/casino/lobby.jpg" alt="" draggable="false">${spots}${bigSpot}</div></div>
-      ${call ? '<p class="cs-door">홀 한가운데서 마담 로자가 손짓한다. “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”</p>' : ''}
+      ${call ? say('madam', 'happy', '마담 로자', '(홀 한가운데서 손짓한다) “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”') : ''}
       <p class="cs-swipe">← 옆으로 밀어 홀을 둘러본다 →</p>
       <p class="cs-ask">앉을 테이블을 누른다</p>
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다 (다음 날로) →</button></div>
@@ -404,13 +430,14 @@ WS.CasinoView = (() => {
         if (raidN) { sfx('door_open', 0.7); sfx('blade', 0.4); }
         else {
           const first = c.markVisit();
-          enter = { stage: 'descend', first };
+          enter = c.bigCallDue() ? { stage: 'guarded', first } : { stage: 'descend', first }; // 큰 판 날은 경비와 종이 선 계단
           if (!first) { host.render(); enterAutoRun(); return; } // 다음 입장부터는 문지기 문답 없이 계단만 짧게
         }
         break;
       case 'cs-enter-next': enterAdvance(); break;
       case 'cs-big': if (!c.bigCallDue()) return; big = { stage: 'intro' }; break;
       case 'cs-big-back': big = null; break;
+      case 'cs-big-next': if (big && big.stage === 'bell') big.stage = 'arrest'; else return; break;
       case 'cs-big-end': big = null; isOn = false; return 'next-day';
       case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; enter = null; last = null; shell = null; return 'next-day'; // 도박장을 나서면 곧장 잠자리로 — 다음 날
       case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; break;

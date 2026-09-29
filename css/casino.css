@@ -285,3 +285,21 @@
   .casino.fx-jackpot, .casino.fx-lose .cs-table, .casino.fx-win .cs-table, .casino.fx-jackpot .cs-table { animation: none; }
   .cs-result.pop { opacity: 1; animation: none; }
 }
+
+/* ── 「도박의 끝」 흐름 — 말하는 사람 얼굴 · 차례로 떠오르는 대사 · 종 장면 ── */
+.cs-say.has-face { display: flex; gap: 12px; align-items: flex-start; }
+.cs-say.has-face > span { flex: 1; min-width: 0; }
+.cs-face { flex: none; width: 64px; border-radius: 4px; background-repeat: no-repeat; image-rendering: pixelated; background-color: #1a0a10;
+  box-shadow: 0 0 0 2px #7a5a2a, 0 3px 8px rgba(0, 0, 0, .6); }
+.cs-stagger .cs-narr { animation: cs-rise .5s ease-out .9s both; }
+.cs-stagger .cs-say { animation: cs-rise .5s ease-out 1.7s both; }
+.cs-stagger .cs-foot { animation: cs-rise .4s ease-out 2.3s both; }
+@keyframes cs-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.cs-scene.cs-bellshot img { object-position: 50% 24%; animation: cs-bell-pan 3.4s ease-out both; }
+@keyframes cs-bell-pan { from { object-position: 50% 12%; filter: brightness(.35); } to { object-position: 50% 24%; filter: none; } }
+.casino.cs-big.bell { cursor: pointer; }
+.casino.cs-big.bell .cs-narr { animation: cs-rise .6s ease-out 1s both; }
+@media (prefers-reduced-motion: reduce) {
+  .cs-stagger .cs-narr, .cs-stagger .cs-say, .cs-stagger .cs-foot, .casino.cs-big.bell .cs-narr, .cs-scene.cs-bellshot img { animation: none; }
+}
+.cs-scene.cs-guardshot img { object-position: 66% 50%; } /* 좁은 화면에서도 오른쪽 위의 종이 잘리지 않게 */

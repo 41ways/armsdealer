@@ -6,7 +6,7 @@
 1. ~~**도박장 입장 연출**~~ ✅ (v0.9.13) — 첫 입장: 돌계단(`entry_stairs.jpg`) → 「→ 내려간다」 → 문지기(`entry_door.jpg`, 문답) → 「→ 들어선다」 → 홀. 그다음부터: 계단 장면만 0.9초 보이고 저절로 홀로(눌러서 건너뛰기). 단속 날은 계단 없이 곧장 단속 장면. `CasinoView.js` `enter`/`enterView`/`enterAdvance`/`enterAutoRun`.
 2. ~~**도박장 안 게임의 승리·패배 연출**~~ ✅ (v0.9.14) — 결과가 드러나는 순간(`FX_DELAY`: 동전 .85s · 주사위 .75s · 룰렛 .95s · 야바위 .35s · 카드 .45s)에 맞춰: 이김 = 금화 14닢이 튀고 테이블 금빛, **큰 승리**(×5 이상 또는 +300G) = 금화 34닢 · 화면 금빛 섬광 · 흔들림 · 소리 세 번 · 딜러 반응 대사(`SAY.jackpot`), 짐 = 테이블 붉게 흔들리고 동전이 쓸려 나감. 결과 줄은 그 순간에 튀어나온다(미리 보이지 않음). `CasinoView.js` `fx`/`fxHtml`/`record`, `casino.css` 맨 끝.
 3. **버튼·이미지 다듬기** — 칩 버튼, 판돈 입력, 게임별 버튼, 홀 그림 속 테이블 이름표, 테이블 그림 등.
-4. **「도박의 끝」으로 이어지는 흐름 다듬기** — 감찰관 탐문 → 첫 단속(봐줌) → 마담의 부름 → 큰 판 → 체포 → 엔딩.
+4. ~~**「도박의 끝」으로 이어지는 흐름 다듬기**~~ ✅ (v0.9.15) — 단속·체포 대사에 감찰관 얼굴(`inspector_theo` 시트), 마담의 부름·큰 판 대사에 마담 얼굴(`face()`/`say()`). 단속·체포 장면은 흔들림 뒤 서술→대사→버튼이 차례로 떠오름(`.cs-stagger`). 큰 판 날 입장은 경비 둘과 새 종이 선 계단(`entry_guarded.jpg`, 마담 말의 복선). 동전이 튕기고 급습 섬광 뒤 **종 장면**(엔딩 그림 `canary_album_3`, "종은 울리지 않았다", 3.5초 또는 누르면 넘어감) → 체포는 새 그림(`arrest.jpg`, 감찰관 마크가 수갑을 들고 큰 판 앞에, 허공의 동전). 시뮬 `--gamble=bet --casino=0.05:1 --inspector=deny` 40판 모두 17일 「도박의 끝」 확인.
 
 사용자는 시안이면 그림(스크린샷)을 같이 보여 주기를 원한다. 이미지는 Gemini(크롬 탭)로 뽑는다 (아래 참고).
 
@@ -36,7 +36,7 @@
 | `css/casino.css` | 도박장 스타일 전부 (뒤로 갈수록 나중에 덮은 규칙) |
 | `js/data/endings.js` | `gambling_end`(quote 필드), `gambler_ruin` |
 | `js/ui/UIManager.js` | 마감 화면 버튼, `cs-` 동작을 CasinoView 로 넘김(`next-day` 반환 시 다음 날), 엔딩 인용구(`e.quote`) |
-| `assets/casino/` | 입장(`entry_stairs.jpg`·`entry_door.jpg`, `tools/casino_scene.py` 로 워터마크 지움)·홀·테이블 6종·소품(컵·구슬·동전 앞뒤·카드 뒷면)·큰 판 그림(`bigtable.jpg`) |
+| `assets/casino/` | 입장(`entry_stairs.jpg`·`entry_door.jpg`·큰 판 날 `entry_guarded.jpg`)·체포(`arrest.jpg`)( `tools/casino_scene.py` 로 워터마크 지움)·홀·테이블 6종·소품(컵·구슬·동전 앞뒤·카드 뒷면)·큰 판 그림(`bigtable.jpg`) |
 | `assets/ending/hires/canary_album_*.jpg` | 「도박의 끝」 앨범 4장 (급습·제보서·종·카나리아) |
 | `assets/sprites/gambler.png`, `madam.png` | 카이·마담 로자 표정 시트 (`tools/make_sprite_sheet.py`) |
 
