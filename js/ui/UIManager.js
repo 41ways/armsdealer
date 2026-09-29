@@ -2080,7 +2080,7 @@ WS.UI = (() => {
       ${paperNote ? `<p class="closing-note">${U.esc(paperNote)}</p>` : ''}
       <p class="night-line">${U.esc(endLine ? endLine.text : '가게 불을 끈다. 오늘 팔려 나간 물건들은 지금쯤 어디에 있을까.')}</p>
     </div>
-    <div class="bottom-bar"><button class="pbtn primary wide" data-act="next-day">${last ? '결말 보기 →' : '다음 날 →'}</button></div>
+    <div class="bottom-bar">${WS.sys.Casino.open() ? '<button class="pbtn" data-act="cs-open">🎲 지하 도박장</button>' : ''}<button class="pbtn primary wide" data-act="next-day">${last ? '결말 보기 →' : '다음 날 →'}</button></div>
     ${crowTutorialOn() ? crowTutorial() : ''}`;
   }
 
@@ -2694,7 +2694,7 @@ WS.UI = (() => {
     // 아침에 넘길 쪽이 도매상뿐이면(신문이 오기 전) 바로 도매상으로
     if (!booting && S().phase === 'morning' && morningPages()[0] === 'prep') WS.sys.Day.toPrep();
     const phase = booting ? 'loading' : S().phase;
-    const views = { loading: loadingView, title: () => (collOpen ? collection() : aboutOpen ? about() : title()), morning, prep, shop, closing, night, ending };
+    const views = { loading: loadingView, title: () => (collOpen ? collection() : aboutOpen ? about() : title()), morning, prep, shop, closing: () => (WS.CasinoView.on() ? WS.CasinoView.html() : closing()), night, ending };
     if (collOpen && phase !== 'loading') views[phase] = collection; // 개발 패널에서 게임 중에도 수집품 화면을 연다
     // 다시 그려도 스크롤 자리를 지킨다 (도매상에서 수량을 올릴 때 맨 위로 튀지 않게)
     const KEEP = ['.gz-sheet.p1', '.gz-sheet.p2', '.loose-wrap', '.shop-list', '.sheet', '.shelf-body', '.mail-list', '.mail-pane', '.np', '.drawer-body', '.mm-list', '.magnify-overlay', '.bk-sheets', '.bk-page.l .bk-in', '.bk-page.r .bk-in', '.coll-grid'];
@@ -3151,6 +3151,7 @@ WS.UI = (() => {
     if (!b || b.disabled) return;
     const D = WS.sys.Day;
     let act = b.dataset.act;
+    if (act.startsWith('cs-')) { WS.CasinoView.act(b); return; } // 지하 도박장 (js/ui/CasinoView.js)
     if (act.startsWith('menu-')) { menuAct(b); return; }
     // 손님 버튼은 나타난 뒤 0.3초 동안 눌림 무시 / 거절은 꾹 눌러야만 실행 (holdRefuse)
     if (b.closest('.act-grid:not(.say-grid)') && barLocked()) return;
@@ -3417,6 +3418,7 @@ WS.UI = (() => {
   }
 
   function init() {
+    WS.CasinoView.init({ render, hud });
     if (!document.getElementById('ver-tag')) { const v = document.createElement('div'); v.id = 'ver-tag'; v.textContent = WS.data.config.version; v.setAttribute('aria-hidden', 'true'); document.body.appendChild(v); }
     WS.Scene.mount(document.getElementById('scene'));
     // 장면이 먼저 크기를 다시 잡은 뒤 확대경 누름 자리를 따라 옮긴다

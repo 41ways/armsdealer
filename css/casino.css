@@ -1,0 +1,87 @@
+/* 지하 도박장 (js/ui/CasinoView.js) — 초록 펠트는 쓰지 않는다. 포도주빛 바닥 + 황동 */
+.casino { position: absolute; inset: 0; overflow-y: auto; padding: 58px 14px 16px; display: flex; flex-direction: column; gap: 10px; color: #f0e3cc;
+  background: radial-gradient(ellipse at 50% 30%, #3a1420 0%, #1e0a10 60%, #0c0508 100%); font-family: var(--btn-font, 'Noto Sans KR', sans-serif); }
+.cs-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; border-bottom: 2px double rgba(227, 176, 78, .55); padding-bottom: 8px; }
+.cs-head h2 { margin: 0; font-size: 24px; letter-spacing: .08em; color: #f0c766; text-shadow: 0 2px 0 #000; }
+.cs-head h2 small { font-size: 13px; color: #cdb48a; letter-spacing: .04em; }
+.cs-purse { display: flex; align-items: baseline; gap: 8px; }
+.cs-purse span { color: #cdb48a; font-size: 13px; }
+.cs-purse b { font-size: 22px; color: #ffe08a; }
+.cs-purse em { font-style: normal; font-size: 12px; color: #cdb48a; }
+.cs-purse em.bad { color: #ff9a86; }
+.cs-door { margin: 0; font-size: 13.5px; line-height: 1.6; color: #e9d6b0; font-style: italic; }
+.cs-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.cs-tab { flex: 1 1 auto; min-width: 84px; padding: 9px 8px; border: 2px solid #5a2a34; border-radius: 4px; background: #2c1018; color: #e6d3ae; font: inherit; font-weight: 700; cursor: pointer; }
+.cs-tab i { font-style: normal; margin-right: 5px; }
+.cs-tab.on { background: #6a2434; border-color: #e3b04e; color: #fff0c8; }
+.cs-tab:disabled:not(.on) { opacity: .45; cursor: default; }
+.cs-hint { margin: 0; font-size: 13px; color: #cdb48a; }
+.cs-table { min-height: 210px; border: 2px solid #7a5a2a; border-radius: 8px; padding: 14px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+  background: radial-gradient(ellipse at 50% 40%, #5a1a2c 0%, #3a0f1c 75%); box-shadow: inset 0 0 30px rgba(0, 0, 0, .55); }
+.cs-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center; }
+.cs-row .pbtn, .cs-foot .pbtn { min-height: 44px; }
+.cs-play small { display: block; font-size: 11px; opacity: .8; font-weight: 400; }
+.cs-play.red { background: #8a2a2a; color: #fff; }
+.cs-play.black { background: #1c1a1e; color: #fff; }
+.cs-play.gold { background: #e3b04e; color: #23140a; }
+.cs-note { margin: 0; font-size: 12.5px; color: #cdb48a; text-align: center; }
+.cs-num label { font-size: 13px; color: #e6d3ae; }
+.cs-num input { width: 64px; padding: 8px; font: inherit; text-align: center; border-radius: 3px; border: 2px solid #7a5a2a; background: #200c12; color: #fff0c8; }
+.cs-stake { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 8px 10px; border-radius: 6px; background: rgba(0, 0, 0, .28); }
+.cs-stake label { font-weight: 700; color: #f0c766; }
+.cs-stake input { width: 110px; padding: 8px; font: inherit; font-size: 18px; text-align: right; border-radius: 3px; border: 2px solid #e3b04e; background: #200c12; color: #ffe9a8; }
+.cs-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+.cs-broke { margin: 0; color: #ff9a86; font-size: 13px; }
+.cs-result { margin: 0; text-align: center; font-size: 15px; padding: 6px 10px; border-radius: 4px; background: rgba(0, 0, 0, .3); }
+.cs-result b { font-size: 20px; margin-right: 6px; }
+.cs-result.w b { color: #ffe08a; }
+.cs-result.l b { color: #ff9a86; }
+.cs-log { list-style: none; margin: 0; padding: 0; font-size: 12.5px; color: #b89e78; display: flex; flex-direction: column; gap: 2px; }
+.cs-log li.w { color: #e8cf8a; }
+.cs-log li.l { color: #b57a70; }
+.cs-foot { margin-top: auto; padding-top: 6px; }
+.cs-foot .pbtn { max-width: 560px; margin-inline: auto; display: block; }
+
+/* 동전 */
+.cs-coin { width: 96px; height: 96px; border-radius: 50%; display: grid; place-items: center; font-size: 38px; font-weight: 900; color: #5a3a08;
+  background: radial-gradient(circle at 35% 30%, #fff0a8, #e3b04e 55%, #a5731c); border: 4px solid #7a5310; box-shadow: 0 6px 0 #4a3008, 0 10px 18px rgba(0, 0, 0, .5); }
+.cs-coin.tails { background: radial-gradient(circle at 35% 30%, #f0f0f0, #b8bcc4 55%, #7a7f88); border-color: #4c5058; color: #2c2f36; box-shadow: 0 6px 0 #2c2f36, 0 10px 18px rgba(0, 0, 0, .5); }
+.cs-coin.idle { opacity: .6; }
+.cs-coin.flip { animation: cs-flip .9s ease-out; }
+@keyframes cs-flip { 0% { transform: translateY(0) rotateX(0); } 40% { transform: translateY(-70px) rotateX(720deg); } 100% { transform: translateY(0) rotateX(1440deg); } }
+/* 주사위 */
+.cs-dice { display: flex; align-items: center; gap: 12px; }
+.cs-die { font-size: 84px; line-height: 1; color: #fff5dc; text-shadow: 0 4px 0 #000, 0 0 12px rgba(255, 224, 138, .35); }
+.cs-die.roll { animation: cs-roll .8s ease-out; }
+.cs-dice b { font-size: 34px; color: #ffe08a; margin-left: 6px; }
+@keyframes cs-roll { 0% { transform: rotate(0) translateY(-40px); opacity: 0; } 60% { transform: rotate(540deg) translateY(4px); opacity: 1; } 100% { transform: rotate(720deg) translateY(0); } }
+/* 룰렛 */
+.cs-ball-num { width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center; font-size: 38px; font-weight: 900; color: #fff; border: 5px solid #e3b04e; box-shadow: 0 6px 16px rgba(0, 0, 0, .5); }
+.cs-ball-num.red { background: #a22a2a; } .cs-ball-num.black { background: #1c1a1e; } .cs-ball-num.green { background: #2a5a5a; } .cs-ball-num.idle { background: #3a1a22; opacity: .6; }
+.cs-ball-num.spin { animation: cs-spin 1s ease-out; }
+@keyframes cs-spin { 0% { transform: rotate(-720deg) scale(.4); opacity: 0; } 100% { transform: none; opacity: 1; } }
+/* 카드 */
+.cs-cards { display: flex; align-items: center; gap: 10px; }
+.cs-arrow { font-size: 26px; color: #cdb48a; }
+.cs-card { width: 84px; height: 120px; border-radius: 8px; background: #fbf3e0; color: #1c1a1e; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; border: 3px solid #7a5a2a; box-shadow: 0 5px 12px rgba(0, 0, 0, .5); }
+.cs-card b { font-size: 40px; line-height: 1; } .cs-card i { font-style: normal; font-size: 30px; line-height: 1.1; }
+.cs-card.red { color: #b02a2a; }
+.cs-card.small { width: 48px; height: 68px; opacity: .7; } .cs-card.small b { font-size: 22px; } .cs-card.small i { font-size: 17px; }
+.cs-card.idle { background: #4a1a26; color: #cdb48a; }
+.cs-card.flip { animation: cs-cardflip .5s ease-out; }
+@keyframes cs-cardflip { from { transform: rotateY(90deg); } to { transform: none; } }
+.cs-mult { margin: 0; font-size: 14px; color: #e6d3ae; text-align: center; }
+.cs-mult b { color: #ffe08a; font-size: 18px; }
+/* 야바위 */
+.cs-shell { position: relative; width: min(320px, 92%); height: 130px; }
+.cs-slot { position: absolute; bottom: 0; left: calc(var(--slot) * 33.333% + 3%); width: 27%; height: 100%; transition: left .3s ease-in-out; }
+.cs-cup { position: absolute; left: 0; right: 0; bottom: 0; height: 100px; border-radius: 12px 12px 4px 4px; transition: transform .35s ease;
+  clip-path: polygon(14% 0, 86% 0, 100% 100%, 0 100%); background: linear-gradient(90deg, #7a3a1c, #c9722c 45%, #8a4520); border-bottom: 6px solid #4a2410; }
+.cs-slot.lift .cs-cup { transform: translateY(-58px); }
+.cs-slot.pickable { cursor: pointer; }
+.cs-slot.pickable:hover .cs-cup { filter: brightness(1.2); transform: translateY(-8px); }
+.cs-slot.mine .cs-cup { outline: 0; filter: drop-shadow(0 0 8px #ffe08a); }
+.cs-ball { position: absolute; left: 50%; bottom: 4px; width: 30px; height: 30px; margin-left: -15px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, #e8433a 45%, #8a1810); box-shadow: 0 4px 6px rgba(0, 0, 0, .5); }
+.cs-shell-msg { min-height: 1.4em; }
+@media (prefers-reduced-motion: reduce) { .cs-coin.flip, .cs-die.roll, .cs-ball-num.spin, .cs-card.flip { animation: none; } .cs-slot { transition: none; } }
+.bottom-bar .pbtn[data-act="cs-open"] { white-space: nowrap; flex: 0 0 auto; }

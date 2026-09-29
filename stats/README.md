@@ -33,6 +33,12 @@
 | `stain_deal` · `stain_refuse` | 가짜 인장·수배된 손님과 거래 · 거절 | 규칙 준수 (거절률) |
 | `offbooks` · `stash_sell` | 뒷거래 · 장물 판 개수 | 위험·불법 감수 |
 | `l_report` `l_notify` `l_rumor` `l_star` `l_loan` … | 까마귀 편지를 보낸 횟수(종류별). `l_report`=경비대 신고 | 권위 순응 |
+| `cs_visits` `cs_rounds` `cs_wager` `cs_won` `cs_lost` | 지하 도박장(카이의 내기를 세 번 받아들여야 열림): 찾은 밤 수 · 판 수 · 건 돈 합 · 딴 돈 · 잃은 돈 | 위험 선호 (평균 판돈=`cs_wager`÷`cs_rounds`) |
+| `cs_allin` · `cs_stop` · `cs_ladder_max` | 금고를 통째로 건 판 수 · 카드 사다리에서 멈추고 가져간 수 · 가장 길게 이은 연속 | 절제·탐욕 |
+| `cs_g_coin` `cs_g_shell` `cs_g_dice` `cs_g_roul` `cs_g_ladder` | 게임별 판 수 | 선호 게임 (동전·주사위=운, 야바위=관찰) |
+| `cs_shell_hit` · `cs_cheated` | 야바위에서 공 든 컵을 맞힌 수 · 그중 딜러가 속인 수 | 집중력 |
+
+월드 변수 `gamble_bets` · `gamble_wins`(`data.world`): 노름꾼 카이의 내기(여섯 번 중)를 고른 수 · 딴 수. `choices` 의 `gambler_1..6` 은 `safe`/`bet`/`pass`.
 
 ## 선택 성향 태그 (`choice_tags.json`)
 갈림길 72곳·선택지 178개에 성향 태그(배려·외면·정직·은폐·권위 순응·권위 거부·편들기·중립·이익·위험·배신)를 붙인 표.

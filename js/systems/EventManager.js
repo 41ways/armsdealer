@@ -92,6 +92,9 @@ WS.sys.Effects = (() => {
       const hit = Math.random() < ch.p, r = (hit ? ch.win : ch.lose) || {};
       apply(r.effects, who);
       if (who && r.say) who.rollSay = r.say;
+      // 결과 문장 뒤에 조건이 맞을 때만 덧붙는 말 (tails: [{ when, text }] — 먼저 맞는 것)
+      const tail = who && (ch.tails || []).find(x => WS.sys.Conditions.check(x.when));
+      if (tail) who.rollSay = `${who.rollSay || ''} ${tail.text}`.trim();
     });
     if (eff.if) [].concat(eff.if).forEach(b => apply(WS.sys.Conditions.check(b.when) ? b.then : b.else, who));
   }

@@ -1,5 +1,6 @@
 // 노름꾼 카이 — 여섯 번 찾아와 같은 내기를 건다. "확실한 돈을 받을래, 동전을 던질래."
 // 위험 선호를 재는 손님이다 (기댓값이 같거나 손해인 판도 섞여 있다). 내기는 카이가 자기 돈으로 하므로 플레이어의 금고는 줄지 않는다.
+// 세 번 받아들이면 영업 뒤 밤마다 지하 도박장에 갈 수 있다 (flags.casino_open — js/systems/Casino.js).
 // 내기를 config.gamblerBets 번 이상 고르면 엔딩 gambler (js/data/endings.js). 고른 것은 state.choices[gambler_N] = safe | bet | pass 로 남는다 (stats/choice_tags.json).
 (() => {
   const C = WS.data.customers;
@@ -28,7 +29,9 @@
           reply: '(동전이 돈다)',
           effects: {
             vars: { gamble_bets: 1 },
+            if: { when: { var: 'gamble_bets', gte: 3 }, then: { flags: ['casino_open'] } }, // 세 번째부터 밤의 지하 도박장 (js/systems/Casino.js)
             chance: { p,
+              tails: [{ when: { var: 'gamble_bets', eq: 3 }, text: '…그나저나, 당신 같은 사람이 갈 데가 있소. 가게 문 닫고 나면 뒷골목 지하로 내려와 보시오. 판돈은 마음대로요.' }],
               win: { effects: { gold: prize, vars: { gamble_wins: 1 } }, say: `앞이다! ${prize}G, 가져가시오. …운이 좋군.` },
               lose: { say: '뒤요. 아깝게 됐군. 그래도 이 맛에 하는 거지.' } },
           },
