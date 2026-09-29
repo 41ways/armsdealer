@@ -2080,7 +2080,7 @@ WS.UI = (() => {
       ${paperNote ? `<p class="closing-note">${U.esc(paperNote)}</p>` : ''}
       <p class="night-line">${U.esc(endLine ? endLine.text : '가게 불을 끈다. 오늘 팔려 나간 물건들은 지금쯤 어디에 있을까.')}</p>
     </div>
-    <div class="bottom-bar">${WS.sys.Casino.open() && !WS.sys.Casino.shut() ? '<button class="pbtn" data-act="cs-open">🎲 지하 도박장</button>' : ''}<button class="pbtn primary wide" data-act="next-day">${last ? '결말 보기 →' : '다음 날 →'}</button></div>
+    <div class="bottom-bar">${WS.sys.Casino.available() ? '<button class="pbtn" data-act="cs-open">🎲 지하 도박장</button>' : ''}<button class="pbtn primary wide" data-act="next-day">${last ? '결말 보기 →' : '다음 날 →'}</button></div>
     ${crowTutorialOn() ? crowTutorial() : ''}`;
   }
 

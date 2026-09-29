@@ -15,7 +15,7 @@
   const ARC = id => /^(rl|wd|tr)_/.test(id);
   const GROUP = id => (/^rl_/.test(id) ? '왕권·전쟁' : /^wd_/.test(id) ? '괴물·신비' : /^tr_/.test(id) ? '산업·뒷골목' : '기존');
   const SCREENS = [['street', '아침 거리'], ['letters', '편지'], ['news', '신문'], ['ledger', '장부'], ['prep', '도매상'], ['shop', '영업'], ['night', '밤'], ['ending', '결말']];
-  const TABS = [['scr', '화면'], ['cust', '손님'], ['state', '상태'], ['ev', '사건'], ['end', '결말']];
+  const TABS = [['scr', '화면'], ['cust', '손님'], ['state', '상태'], ['ev', '사건'], ['end', '결말'], ['cs', '도박·갈래']];
   const last = { spawn: [], flags: [], vars: {} }; // 「이 상태 링크」에 담을 것
 
   const css = `
@@ -74,6 +74,51 @@
   }
   // 튜토리얼 손님을 건너뛰고 날짜를 옮기면 창고 자리가 잠겨 있다 — 한꺼번에 연다 (Effects 의 unlock)
   function unlockAll() { WS.sys.Effects.apply({ unlock: WS.data.progress.places.slice() }); say('창고 자리를 모두 열었다'); redraw(); }
+  // ── 도박장 · 갈래 시나리오 — 새 판을 그 장면 직전 상태로 만든다 (플래그는 오늘-2일에 켜진 것으로 — since 조건이 지나 있게) ──
+  // flags: 켜 둘 플래그 · vars: 세계 변수 · spawn: 영업 화면에서 부를 손님 · closing: 영업을 마치고 마감 화면에서 시작 · gold: 금고
+  const OPEN = ['casino_open', 'casino_notified'], REG = [...OPEN, 'casino_regular', 'casino_hooked', 'casino_days3'];
+  const SCEN = [
+    ['도박장', [
+      { t: '카이 세 번째 내기 (해금 연출)', d: '내기를 세 번째로 고르면 알림창 + 카이의 초대 대사', day: 12, gold: 800, vars: { gamble_bets: 2 }, spawn: ['gambler_3'] },
+      { t: '도박장 열림 (마감 화면)', d: '「🎲 지하 도박장」 → 로비 → 테이블 6종 (VIP 는 잠김)', day: 13, gold: 1500, flags: OPEN, closing: true },
+      { t: '도박장 · VIP 열림 (마감 화면)', d: '황금 동전 테이블(최소 200G)이 열려 있다', day: 16, gold: 2500, flags: [...REG, 'vip_open'], closing: true },
+    ]],
+    ['도박사의 길 (VIP 초대 → 마지막 제안)', [
+      { t: '① 마담 로자의 VIP 초대', d: '받는다 / 나는 장사꾼이오', day: 14, gold: 1500, flags: REG, spawn: ['gm_madam'] },
+      { t: '② 카이의 부탁 (100G)', d: '빌려준다 / 거절', day: 16, gold: 1500, flags: [...REG, 'vip_open'], spawn: ['gm_kai_broke'] },
+      { t: '③ 서기 에릭의 차용증', d: '찢는다 / 받아낸다 / 감찰관에게 알린다', day: 18, gold: 1500, flags: [...REG, 'vip_open', 'pro_v2'], spawn: ['gm_clerk'] },
+      { t: '④ 마담의 마지막 제안 → 도박사 엔딩', d: '받아들이면 그날 밤 「도박사」', day: 20, gold: 1500, flags: [...REG, 'vip_open', 'pro_v3', 'kai_lent'], spawn: ['gm_madam_final'] },
+      { t: '패가망신 (금고 0 → 영업 종료)', d: '단골(3판) 이후 망함 → 「패가망신」', day: 18, gold: 0, flags: [...OPEN, 'casino_regular'], closing: true, goldBeforeClose: true },
+    ]],
+    ['감찰관 갈래 (모른다 → 큰 판 → 도박의 끝)', [
+      { t: '감찰관 마크의 탐문', d: '신고한다 / 모른다 / 소문만 들었다 (모른다 → 아래 갈래)', day: 15, gold: 1500, flags: REG, spawn: ['gm_inspector'] },
+      { t: '모른다 뒤 첫 도박장 → 단속(봐줌)', d: '마감 화면 → 도박장 → 「단속!」 화면', day: 15, gold: 1500, flags: [...REG, 'casino_denied'], closing: true },
+      { t: '마담의 부름 (낮, 경비와 종)', d: '가 보겠소 / 발을 끊겠소', day: 16, gold: 1500, flags: [...REG, 'casino_denied', 'casino_caught1'], spawn: ['gm_madam_guard'] },
+      { t: '큰 판 → 체포 → 「도박의 끝」', d: '마감 화면 → 도박장 → 로비의 「큰 판」 카드 → 앞/뒷면', day: 16, gold: 1500, flags: [...REG, 'casino_denied', 'casino_caught1', 'casino_guarded'], closing: true },
+    ]],
+  ];
+  function runScen(i) {
+    const flat = SCEN.flatMap(([, list]) => list), sc = flat[i];
+    if (!sc) return;
+    WS.Game.newGame();
+    const st = S();
+    st.day = sc.day; unlockAll();
+    st.progress.tutorialsSeen = Object.assign(st.progress.tutorialsSeen || {}, { crow_paper: true });
+    (sc.flags || []).forEach(f => { st.flags[f] = Math.max(1, sc.day - 2); });
+    Object.entries(sc.vars || {}).forEach(([k, v]) => WS.sys.World.set(k, v));
+    if (sc.goldBeforeClose) st.gold = sc.gold;
+    go('shop');
+    (sc.spawn || []).forEach(spawn);
+    if (sc.closing) {
+      st.queue.forEach(q => { if (q.status === 'waiting') q.status = 'done'; });
+      try { WS.sys.Day.closeShop(); } catch (e) { console.error(e); }
+      if (!sc.goldBeforeClose) st.gold = sc.gold;
+    } else st.gold = sc.gold;
+    redraw();
+    say(`${sc.t} — ${sc.d}`);
+  }
+  const scenHtml = () => { let n = 0; return SCEN.map(([g, list]) => `<h6>${esc(g)}</h6>${list.map(x => `<div class="item"><span><b>${esc(x.t)}</b><br><small>${esc(x.d)}</small></span><button data-dev="scen" data-id="${n++}">가기</button></div>`).join('')}`).join(''); };
+
   function go(to, opt) {
     const st = S();
     // 신문은 구독한 날만 쪽이 생긴다 — 테스트에서는 오늘 신문을 받은 것으로 친다
@@ -141,6 +186,7 @@
       </div>
       <div class="pane" data-pane="ev"><input id="dev-eq" placeholder="사건 id 로 찾기"><div class="list" id="dev-elist"></div></div>
       <div class="pane" data-pane="end"><div style="color:#9a8a6a;margin-bottom:4px">초록 = 지금 끝나면 조건 충족 (위에서부터 먼저 맞는 것이 뽑힌다)</div><div class="list" id="dev-endlist"></div></div>
+      <div class="pane" data-pane="cs"><div style="color:#9a8a6a;margin-bottom:4px">새 판을 그 장면 직전 상태로 만든다. 마감 화면 시나리오는 「🎲 지하 도박장」을 눌러 이어 본다</div>${scenHtml()}</div>
       <div id="dev-log">탭을 고른다</div>`;
     document.body.appendChild(el);
     custList('', '전체'); evList('');
@@ -168,6 +214,7 @@
     if (act === 'new') { WS.Game.newGame(); last.spawn = []; last.flags = []; last.vars = {}; say('새 게임'); stateLine(); return; }
     if (ensureGame()) say('새 게임을 먼저 시작했다');
     const st = S();
+    if (act === 'scen') { runScen(+id); stateLine(); return; }
     if (act === 'go') go(id);
     if (act === 'spawn') spawn(id);
     if (act === 'event') fireEvent(id);
