@@ -245,3 +245,43 @@
 @keyframes cs-arc-back { 50% { transform: translateY(-18px) scale(.86); filter: brightness(.7) drop-shadow(0 6px 5px rgba(0, 0, 0, .5)); } }
 .cs-slot.arc-front .cs-ball, .cs-slot.arc-back .cs-ball { opacity: 0; }
 .cs-table { background: radial-gradient(ellipse at 50% 40%, rgba(110, 30, 50, .92) 0%, rgba(58, 15, 28, .95) 70%), repeating-linear-gradient(45deg, rgba(0, 0, 0, .05) 0 2px, transparent 2px 5px); border-radius: 60px / 40px; border: 6px solid #5a3418; box-shadow: inset 0 0 0 2px #c8a86a, inset 0 0 40px rgba(0, 0, 0, .6), 0 10px 24px rgba(0, 0, 0, .6); }
+
+/* ── 승패 연출 (CasinoView fxHtml) — 결과가 드러나는 순간(--fxd, 게임마다 다름)에 터진다 ── */
+.cs-table { position: relative; }
+.cs-fx { position: absolute; left: 50%; top: 45%; width: 0; height: 0; pointer-events: none; z-index: 5; }
+.cs-fx i { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; opacity: 0; image-rendering: pixelated;
+  background: url(../assets/casino/coin_heads.png) center / contain no-repeat; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .6));
+  animation: cs-fx-burst 1.15s cubic-bezier(.2, .7, .4, 1) calc(var(--fxd, 0s) + var(--t, 0s)) forwards; }
+@keyframes cs-fx-burst {
+  0% { opacity: 0; transform: translate(0, 0) scale(.3) rotate(0); }
+  12% { opacity: 1; }
+  60% { opacity: 1; transform: translate(var(--x), var(--y)) scale(var(--s, 1)) rotate(var(--r)); }
+  100% { opacity: 0; transform: translate(var(--x), calc(var(--y) + 90px)) scale(var(--s, 1)) rotate(var(--r)); } }
+.cs-fx.jackpot i { width: 34px; height: 34px; left: -17px; top: -17px; animation-duration: 1.6s; }
+.cs-fx.lose i { filter: brightness(.55) saturate(.6); animation: cs-fx-sweep .8s ease-in calc(var(--fxd, 0s) + var(--t, 0s)) forwards; }
+@keyframes cs-fx-sweep { 0% { opacity: 0; transform: translate(0, 0); } 15% { opacity: .9; } 100% { opacity: 0; transform: translate(calc(var(--x) + 120px), 110px) rotate(var(--r)) scale(.7); } }
+.casino.fx-win .cs-table { animation: cs-fx-glow 1s ease-out var(--fxd) both; }
+.casino.fx-jackpot .cs-table { animation: cs-fx-glow 1.6s ease-out var(--fxd) both; }
+@keyframes cs-fx-glow {
+  0% { box-shadow: inset 0 0 30px rgba(0, 0, 0, .55); }
+  25% { box-shadow: inset 0 0 30px rgba(0, 0, 0, .55), 0 0 0 3px #ffe08a, 0 0 46px rgba(255, 210, 110, .8); }
+  100% { box-shadow: inset 0 0 30px rgba(0, 0, 0, .55); } }
+.casino.fx-jackpot { animation: cs-shake .32s var(--fxd) 3; }
+.casino.fx-jackpot::before { content: ''; position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0;
+  background: radial-gradient(ellipse at 50% 45%, rgba(255, 224, 138, .55), rgba(255, 180, 60, .15) 45%, transparent 70%);
+  animation: cs-fx-flash 1.4s ease-out var(--fxd) forwards; }
+@keyframes cs-fx-flash { 0% { opacity: 0; } 15% { opacity: 1; } 100% { opacity: 0; } }
+.casino.fx-lose .cs-table { animation: cs-fx-lose .7s ease-out var(--fxd) both; }
+@keyframes cs-fx-lose {
+  0% { box-shadow: inset 0 0 30px rgba(0, 0, 0, .55); transform: none; }
+  20% { box-shadow: inset 0 0 60px rgba(160, 20, 30, .85); transform: translateX(-5px); }
+  40% { transform: translateX(5px); } 60% { transform: translateX(-3px); }
+  100% { box-shadow: inset 0 0 30px rgba(0, 0, 0, .55); transform: none; } }
+.cs-result.pop { opacity: 0; animation: cs-pop .45s cubic-bezier(.2, 1.4, .4, 1) var(--fxd) forwards; }
+.casino.fx-jackpot .cs-result.pop b { font-size: 26px; text-shadow: 0 0 14px rgba(255, 210, 110, .8); }
+@keyframes cs-pop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .cs-fx { display: none; }
+  .casino.fx-jackpot, .casino.fx-lose .cs-table, .casino.fx-win .cs-table, .casino.fx-jackpot .cs-table { animation: none; }
+  .cs-result.pop { opacity: 1; animation: none; }
+}

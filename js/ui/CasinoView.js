@@ -6,6 +6,7 @@ WS.CasinoView = (() => {
   const S = () => WS.Game.state;
   let host = { render() {}, hud: () => '' };
   let isOn = false, ctx = null, raidN = 0, big = null, game = null, bet = 50, last = null, shell = null;
+  let fx = null; // 승패 연출 — record() 가 켜고 다음 한 번의 그리기에서 쓴다 {kind:'win'|'jackpot'|'lose'|'push', delay}
   let enter = null; // 입장 연출 — {stage:'descend'|'door', first} · 문지기 문답은 첫 입장에만
   let log = [];
 
@@ -146,15 +147,16 @@ WS.CasinoView = (() => {
     const g = GAMES.find(x => x.id === game);
     const seat = `<div class="cs-seat"><button class="mini" data-act="cs-lobby" ${p ? 'disabled' : ''}>← 홀로</button><img src="assets/casino/table_${g.id}.png" alt="" draggable="false" onerror="this.remove()"><b>${g.icon} ${U.esc(g.name)}</b></div>`;
     const body = panel(p);
-    const res = last ? resultLine(last) : '';
-    return `<div class="casino">
+    const f = fx; fx = null;
+    const res = last ? resultLine(last, !!f) : '';
+    return `<div class="casino ${f ? `fx-${f.kind}` : ''}" style="--fxd:${f ? f.delay : 0}s">
       <div class="cs-head">
         <h2>검은 주사위 <small>지하 도박장</small></h2>
         <div class="cs-purse"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div>
       </div>
       ${seat}
       <p class="cs-hint">${U.esc(g.hint)}</p>
-      <div class="cs-table t-${game}">${body}</div>
+      <div class="cs-table t-${game}">${body}${f ? fxHtml(f) : ''}</div>
       ${res}
       ${stakeBox(p)}
       ${log.length ? `<ul class="cs-log">${log.slice(-6).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>` : ''}
@@ -340,10 +342,12 @@ WS.CasinoView = (() => {
   // ───── 결과 한 줄 ─────
   const SAY = {
     win: ['오늘은 당신 날이군.', '…운이 좋소.', '한 판 더 하시겠소?', '딜러가 이를 간다.'],
+    jackpot: ['홀이 술렁인다. 옆 테이블 손님들이 고개를 돌린다.', '딜러가 입을 다물지 못한다.', '딜러가 금화를 세는 손이 떨린다.'],
     lose: ['아깝게 됐소.', '판은 원래 그런 거요.', '다음엔 되겠지.', '딜러가 슬쩍 웃는다.'],
   };
   const pickSay = w => SAY[w][Math.floor(Math.random() * SAY[w].length)];
-  function resultLine(r) {
+  const isJackpot = r => r.net > 0 && (r.payout >= r.bet * 5 || r.net >= 300);
+  function resultLine(r, pop) {
     if (r.game !== game) return '';
     if (r.game === 'ladder' && !r.over && !r.payout) return ''; // 진행 중
     const win = r.net > 0;
@@ -353,12 +357,35 @@ WS.CasinoView = (() => {
     if (r.game === 'roul') extra = ` 구슬은 ${r.n}번 (${r.color === 'red' ? '빨강' : r.color === 'black' ? '검정' : '초록'}).`;
     if (r.game === 'ladder' && r.over) extra = ` ${RANK(r.from)} 다음은 ${RANK(r.next)}.`;
     if (r.game === 'ladder' && r.cashed) extra = ` 연속 ${r.steps}번 맞히고 손을 뗐다 (×${r.mult}).`;
-    return `<p class="cs-result ${win ? 'w' : r.net < 0 ? 'l' : ''}"><b>${money(r.net)}</b>${U.esc(extra)} ${U.esc(pickSay(win ? 'win' : 'lose'))}</p>`;
+    return `<p class="cs-result ${win ? 'w' : r.net < 0 ? 'l' : ''} ${pop ? 'pop' : ''}"><b>${money(r.net)}</b>${U.esc(extra)} ${U.esc(pickSay(isJackpot(r) ? 'jackpot' : win ? 'win' : 'lose'))}</p>`;
   }
   function record(r) {
     last = r;
     log.push({ net: r.net, text: `${NAME[r.game]} ${r.bet}G → ${r.net > 0 ? `+${r.net}G` : r.net < 0 ? `−${-r.net}G` : '본전'}` });
-    sfx(r.net > 0 ? (Math.random() < 0.5 ? 'coins' : 'coins2') : 'door_close', r.net > 0 ? 0.8 : 0.3);
+    const kind = isJackpot(r) ? 'jackpot' : r.net > 0 ? 'win' : r.net < 0 ? 'lose' : 'push';
+    const delay = FX_DELAY[r.game === 'ladder' && r.cashed ? 'cash' : r.game] || 0.3;
+    fx = { kind, delay };
+    const t = delay * 1000;
+    if (kind === 'jackpot') { setTimeout(() => sfx('coins', 1), t); setTimeout(() => sfx('coins2', 0.9), t + 260); setTimeout(() => sfx('coins', 0.7), t + 560); }
+    else if (kind === 'win') setTimeout(() => sfx(Math.random() < 0.5 ? 'coins' : 'coins2', 0.8), t);
+    else if (kind === 'lose') setTimeout(() => sfx('door_close', 0.3), t);
+  }
+  // 승패 연출 — 게임마다 결과가 드러나는 순간(동전이 떨어지고 · 주사위가 멈추고 · 구슬이 서는 때)에 맞춰 터진다
+  const FX_DELAY = { coin: 0.85, vip: 0.85, dice: 0.75, roul: 0.95, shell: 0.35, ladder: 0.45, cash: 0.1 };
+  const rnd = (a, b) => (a + Math.random() * (b - a)).toFixed(2);
+  function fxHtml(f) {
+    if (f.kind === 'push') return '';
+    if (f.kind === 'lose') {
+      // 딜러의 갈퀴가 판돈을 쓸어 간다 — 동전 몇 닢이 테이블 아래로 미끄러져 사라진다
+      const coins = Array.from({ length: 6 }, (_, i) => `<i style="--x:${rnd(-40, 40)}px;--r:${rnd(-160, 160)}deg;--t:${(i * 0.06).toFixed(2)}s"></i>`).join('');
+      return `<div class="cs-fx lose" aria-hidden="true">${coins}</div>`;
+    }
+    const n = f.kind === 'jackpot' ? 34 : 14;
+    const coins = Array.from({ length: n }, () => {
+      const a = Math.random() * Math.PI * 2, d = f.kind === 'jackpot' ? 120 + Math.random() * 180 : 70 + Math.random() * 110;
+      return `<i style="--x:${(Math.cos(a) * d).toFixed(0)}px;--y:${(Math.sin(a) * d * 0.6 - 60).toFixed(0)}px;--r:${rnd(-540, 540)}deg;--t:${rnd(0, 0.18)}s;--s:${rnd(0.7, 1.25)}"></i>`;
+    }).join('');
+    return `<div class="cs-fx ${f.kind}" aria-hidden="true">${coins}</div>`;
   }
 
   // ───────── 눌림 ─────────
