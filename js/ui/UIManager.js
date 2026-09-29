@@ -2532,6 +2532,7 @@ WS.UI = (() => {
   }
 
   const ADMIN_CODE = 'always';
+  const ADMIN_KEYCODES = [...ADMIN_CODE].map(c => 'Key' + c.toUpperCase()).join(',');
   document.addEventListener('click', e => {
     const cl = e.target.closest && e.target.closest('#debug [data-close]');
     if (cl) { document.getElementById('debug').hidden = true; return; }
@@ -2541,7 +2542,7 @@ WS.UI = (() => {
     if (id === '*all') EL.unlockAll(); else if (id === '*none') EL.clear(); else EL.set(id, !EL.has(id));
     renderDebug();
   });
-  let adminBuf = '', adminAt = 0;
+  let adminBuf = [], adminAt = 0;
   function renderDebug() {
     const el = document.getElementById('debug');
     if (!el || el.hidden || !S()) return;
@@ -3433,13 +3434,14 @@ WS.UI = (() => {
         return;
       }
       // 관리자 패널: Esc 메뉴의 음량 조절 바를 연 채 음량을 5%로 맞추고 비밀 문자열을 이어서 치면 열린다 (글자 사이 2초 안에). 닫기는 패널의 닫기 버튼
-      if (menu && menu.page === 'volume' && e.key.length === 1) {
+      //   e.code(물리 키 위치)로 비교한다 — e.key 는 한글 입력기가 켜져 있으면 자모로 바뀌어 버려서 못 맞힌다
+      if (menu && menu.page === 'volume' && e.code && e.code.startsWith('Key')) {
         const now = performance.now();
-        if (now - adminAt > 2000) adminBuf = '';
+        if (now - adminAt > 2000) adminBuf = [];
         adminAt = now;
-        adminBuf = (adminBuf + e.key.toLowerCase()).slice(-ADMIN_CODE.length);
-        if (adminBuf === ADMIN_CODE && Math.round(WS.Sfx.volume * 100) === 5) {
-          adminBuf = '';
+        adminBuf = adminBuf.concat(e.code).slice(-ADMIN_CODE.length);
+        if (adminBuf.join(',') === ADMIN_KEYCODES && Math.round(WS.Sfx.volume * 100) === 5) {
+          adminBuf = [];
           const el = document.getElementById('debug');
           el.hidden = false;
           renderDebug();
