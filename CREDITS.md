@@ -2,10 +2,10 @@
 
 | 에셋 | 사용처 | 출처 | 라이선스 |
 |---|---|---|---|
-| Shikashi's Fantasy Icons Pack v2 | `assets/ui/*.png` (HUD·서랍 아이콘) | Matt Firth (shikashipx), https://shikashipx.itch.io/shikashis-fantasy-icons-pack — 일부 디자인은 game-icons.net 기반 | 상업적 이용 가능, 크레딧 "Matt Firth (shikashipx)" 및 "game-icons.net" (CC BY 4.0) |
 | Kenney RPG Audio | `assets/sfx/` 문·동전·칼·책·천·걸쇠·삐걱 소리 | https://kenney.nl/assets/rpg-audio | CC0 |
 | Kenney Interface Sounds | `assets/sfx/click.ogg` | https://kenney.nl/assets/interface-sounds | CC0 |
 | 손님 스프라이트 시트 | `assets/sprites/*.png` | ChatGPT(이미지 생성), Google Gemini 로 생성 후 `tools/process_sheet.py` 로 가공 | AI 생성 이미지 — 각 서비스 약관을 따름 |
+| HUD·서랍·인장 아이콘 | `assets/ui/kit/hud_*.png`, `keyhole.png`, `wax_seal_*.png` | Google Gemini(Nano Banana)로 생성 | AI 생성 이미지 — 별도 저작권 표시 불필요 |
 | 폰트 | Gowun Batang, Noto Sans KR | Google Fonts | SIL OFL 1.1 |
 
 원본 압축 파일은 `assets/vendor/` 에 있다 (배포 시 제외 가능).

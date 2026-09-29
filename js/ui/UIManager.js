@@ -118,9 +118,8 @@ WS.UI = (() => {
         <h2><i class="orn"></i>크레딧<i class="orn"></i></h2>
       </div><div class="about-body">
         <ul class="about-list">
-          <li><b>Shikashi's Fantasy Icons Pack v2</b> — Matt Firth (shikashipx), 일부 디자인은 game-icons.net 기반 · <span>CC BY 4.0</span></li>
           <li><b>Kenney RPG Audio / Interface Sounds</b> — kenney.nl · <span>CC0</span></li>
-          <li><b>손님 그림</b> — ChatGPT · Google Gemini 로 생성</li>
+          <li><b>손님 그림 · 아이콘</b> — ChatGPT · Google Gemini 로 생성</li>
           <li><b>폰트</b> — Gowun Batang, Noto Sans KR (Google Fonts) · <span>SIL OFL 1.1</span></li>
         </ul>
         <p class="about-more">자세한 출처는 <a href="https://github.com/41ways/armsdealer/blob/main/CREDITS.md" target="_blank" rel="noopener noreferrer">CREDITS.md</a> 에.</p>
