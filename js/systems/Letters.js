@@ -636,6 +636,7 @@ WS.sys.Letters = (() => {
     c.dialog.push({ who: 'c', text: txt(react.conf.accept || P.replies, {}) });
     c.status = 'done';
     c.result = 'promised';
+    if (WS.sys.Tele) WS.sys.Tele.bump('promise');
     return ok(`${c.name}이(가) 내일 아침 다시 오기로 했다. ${requestLabel(c.request)} ${c.request.qty}개를 구해 두자.`);
   }
 
@@ -729,6 +730,7 @@ WS.sys.Letters = (() => {
     const id = ids.sort((a, b) => WS.sys.Market.price(a) - WS.sys.Market.price(b))[0];
     WS.sys.Inventory.remove(id, 1);
     c.angry = false; c.calmed = true;
+    if (WS.sys.Tele) WS.sys.Tele.bump('anger_gift');
     const rv = relVarOf(c.faction);
     if (rv) WS.sys.Effects.apply({ vars: { [rv]: Math.ceil((c.angerPen || 2) / 2) } });
     c.dialog.push({ who: 'p', text: `(사과하며 ${item(id).name} 하나를 덤으로 건넨다)` });
@@ -1060,7 +1062,13 @@ WS.sys.Letters = (() => {
     return { ok: false, cost: 0, msg: '이제는 쓰지 않는 편지요.' };
   }
 
+  // 어떤 편지를 몇 번 보냈나 (계측) — 성공한 것만 센다
   function send(type, params) {
+    const r = sendRaw(type, params);
+    if (r && r.ok && WS.sys.Tele) WS.sys.Tele.bump('l_' + type);
+    return r;
+  }
+  function sendRaw(type, params) {
     const p = params || {};
     if (type === 'report') return sendReport(p);
     if (type === 'notify') return sendNotify(p);
@@ -1181,6 +1189,7 @@ WS.sys.Letters = (() => {
       const w = (D().wanted || []).find(x => x.id === id);
       if (!w || l.postersSent[w.id] !== undefined) continue;
       l.postersSent[w.id] = S().day;
+      if (WS.sys.Tele) WS.sys.Tele.bump('poster_sent');
       l.drawer.push({ id: w.id, day: S().day, poster: { id: w.id, ...w.poster } });
     }
   }

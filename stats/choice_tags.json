@@ -1,0 +1,744 @@
+{
+ "about": "선택 → 성향 태그표. 분석할 때 runs.choices (손님 틀 id → 고른 선택 id) 와 맞춰 성향 점수를 계산한다. 태그는 사람이 붙인 코딩이라 한계가 있다 — 쓸 때 태그 기준(dimensions)을 보고서에 적을 것.",
+ "rules": [
+  "한 선택지에 태그 1~3개. 가장 뚜렷한 동기 하나를 앞에 둔다.",
+  "돈이 오가면 profit(받음)은 붙이되, 돈을 낸 쪽은 그 동기(care·honest 등)로 코딩한다 — 손해를 감수한 선택이 도덕 성향을 더 잘 보여 주기 때문.",
+  "물러서는 선택(거절·못 본 척·기억 안 남)은 neutral. 거짓말이 분명하면 deceit.",
+  "대화 뒤 이어지는 질문(follow)이 있는 손님은 마지막에 고른 선택 기준.",
+  "여기 없는 선택은 태그 없음(분석에서 제외). 새 갈림길을 만들면 이 표에도 더한다."
+ ],
+ "dimensions": {
+  "care": "배려 — 자기 손해(돈·위험)를 감수하고 약한 사람을 돕는다",
+  "cold": "외면 — 도울 수 있는데 내친다",
+  "honest": "정직 — 사실대로 말하고 잘못은 인정한다",
+  "deceit": "은폐·거짓 — 숨기거나 잡아뗀다, 증거를 없앤다",
+  "authority": "권위 순응 — 경비대·대성당·감찰관에게 알리고 협조한다",
+  "defy": "권위 거부 — 수금원·심문관·조달청에 맞선다",
+  "partisan": "편들기 — 특정 세력·인물의 편에 선다(동업·가입·납품 약속 포함)",
+  "neutral": "중립·불개입 — 어느 쪽에도 서지 않고 물러선다",
+  "profit": "이익 — 돈이 되는 쪽을 고른다",
+  "risk": "위험·불법 감수 — 밀수·장물·수상한 계약에 발을 담근다",
+  "betray": "배신 — 대가를 받고 사람이나 손님의 사정을 넘긴다"
+ },
+ "tags": {
+  "obel_deposit": {
+   "keep": [
+    "care",
+    "risk"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  },
+  "pin_hire": {
+   "hire": [
+    "care"
+   ],
+   "feed": [
+    "care"
+   ],
+   "shoo": [
+    "cold"
+   ]
+  },
+  "pin_street": {
+   "hire": [
+    "care"
+   ],
+   "refuse": [
+    "cold"
+   ]
+  },
+  "pin_advance": {
+   "advance": [
+    "care"
+   ],
+   "refuse": [
+    "profit"
+   ]
+  },
+  "pin_future": {
+   "smith": [
+    "care"
+   ],
+   "army": [
+    "neutral"
+   ],
+   "free": [
+    "care"
+   ]
+  },
+  "pin_caught": {
+   "trust": [
+    "care"
+   ],
+   "catch": [
+    "authority"
+   ],
+   "cover": [
+    "care"
+   ]
+  },
+  "tr_pin_ledger": {
+   "teach": [
+    "care"
+   ],
+   "later": [
+    "neutral"
+   ]
+  },
+  "pin_proud": {
+   "bonus": [
+    "care"
+   ],
+   "praise": [
+    "neutral"
+   ]
+  },
+  "fairy_envoy": {
+   "promise": [
+    "partisan"
+   ],
+   "decline": [
+    "profit"
+   ]
+  },
+  "fairy_envoy_return": {
+   "promise": [
+    "partisan"
+   ],
+   "decline": [
+    "profit"
+   ]
+  },
+  "fairy_envoy_final": {
+   "promise": [
+    "partisan"
+   ],
+   "decline": [
+    "profit"
+   ]
+  },
+  "debt_collector_1": {
+   "pay": [
+    "honest"
+   ],
+   "ledger": [
+    "betray",
+    "authority"
+   ],
+   "delay": [
+    "risk"
+   ],
+   "threaten": [
+    "defy"
+   ]
+  },
+  "debt_collector_2": {
+   "pay": [
+    "honest"
+   ],
+   "ledger": [
+    "betray",
+    "authority"
+   ],
+   "delay": [
+    "risk"
+   ],
+   "threaten": [
+    "defy"
+   ]
+  },
+  "debt_collector_3": {
+   "ledger": [
+    "betray",
+    "authority"
+   ],
+   "delay": [
+    "risk"
+   ],
+   "threaten": [
+    "defy"
+   ]
+  },
+  "debt_collector_4": {
+   "pay": [
+    "honest"
+   ],
+   "ledger": [
+    "betray",
+    "authority"
+   ],
+   "delay": [
+    "risk"
+   ],
+   "threaten": [
+    "defy"
+   ]
+  },
+  "carpenter_ledger": {
+   "keep": [
+    "neutral"
+   ],
+   "burn": [
+    "deceit"
+   ],
+   "report": [
+    "authority"
+   ]
+  },
+  "guild_master": {
+   "join": [
+    "partisan"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  },
+  "wish_star": {
+   "notify": [
+    "care"
+   ]
+  },
+  "lisa_thrall": {
+   "report": [
+    "authority",
+    "profit"
+   ],
+   "ignore": [
+    "neutral"
+   ]
+  },
+  "widow_eda": {
+   "show": [
+    "honest"
+   ],
+   "pay": [
+    "care"
+   ],
+   "deny": [
+    "deceit"
+   ]
+  },
+  "serena_agent": {
+   "supply": [
+    "partisan",
+    "profit"
+   ],
+   "donate": [
+    "partisan",
+    "care"
+   ],
+   "tip_prince": [
+    "betray",
+    "profit"
+   ],
+   "neutral": [
+    "neutral"
+   ]
+  },
+  "night_envoy": {
+   "back_night": [
+    "partisan",
+    "profit",
+    "risk"
+   ],
+   "refuse_night": [
+    "neutral"
+   ]
+  },
+  "alchemist_kessel": {
+   "exclusive": [
+    "risk",
+    "profit"
+   ],
+   "exclusive_15": [
+    "risk",
+    "profit"
+   ],
+   "exclusive_30": [
+    "risk",
+    "profit"
+   ],
+   "report": [
+    "authority"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "rl_church_join": {
+   "yes": [
+    "partisan",
+    "authority"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "rl_merc_join": {
+   "yes": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "vampire_count": {
+   "invite": [
+    "risk",
+    "profit"
+   ],
+   "refuse": [
+    "neutral"
+   ]
+  },
+  "garret_return": {
+   "partner_debt": [
+    "care",
+    "risk"
+   ],
+   "expose": [
+    "authority"
+   ],
+   "refuse": [
+    "neutral"
+   ]
+  },
+  "tk_rt_court_ald": {
+   "yes2": [
+    "partisan"
+   ],
+   "yes": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "tk_rt_court_ser": {
+   "yes2": [
+    "partisan"
+   ],
+   "yes": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "tk_rt_fairy": {
+   "yes": [
+    "partisan"
+   ],
+   "yes2": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "tk_rt_mist": {
+   "yes2": [
+    "partisan"
+   ],
+   "yes": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ],
+   "report": [
+    "authority"
+   ]
+  },
+  "tk_rt_night": {
+   "yes": [
+    "partisan"
+   ],
+   "yes2": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ],
+   "report": [
+    "authority"
+   ]
+  },
+  "tk_rt_powder": {
+   "yes": [
+    "partisan"
+   ],
+   "yes2": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ],
+   "report": [
+    "authority"
+   ]
+  },
+  "tk_rt_dragon": {
+   "yes": [
+    "partisan"
+   ],
+   "yes2": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "liga_merchant": {
+   "side": [
+    "partisan"
+   ],
+   "neutral": [
+    "neutral"
+   ]
+  },
+  "liga_envoy": {
+   "accept": [
+    "partisan"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  },
+  "liga_hooded": {
+   "sell_ledger": [
+    "betray",
+    "profit"
+   ],
+   "refuse": [
+    "neutral"
+   ]
+  },
+  "tk_rg_chancellor": {
+   "promise": [
+    "partisan",
+    "authority"
+   ],
+   "war": [
+    "neutral"
+   ]
+  },
+  "rl_scout_missing": {
+   "tell": [
+    "honest",
+    "authority"
+   ],
+   "forget": [
+    "deceit"
+   ]
+  },
+  "ben_fence": {
+   "deal": [
+    "betray",
+    "profit"
+   ],
+   "warn": [
+    "care"
+   ],
+   "report": [
+    "authority"
+   ]
+  },
+  "bandit_king": {
+   "partner": [
+    "risk",
+    "profit"
+   ],
+   "pay": [
+    "neutral"
+   ],
+   "inform": [
+    "authority",
+    "betray"
+   ]
+  },
+  "tk_weak_ald": {
+   "join": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "tk_weak_ser": {
+   "join": [
+    "partisan"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "powder_inspector": {
+   "report_late": [
+    "authority",
+    "honest"
+   ],
+   "deny": [
+    "deceit"
+   ]
+  },
+  "wd_night_page": {
+   "tell": [
+    "betray",
+    "authority"
+   ],
+   "silent": [
+    "neutral"
+   ]
+  },
+  "tk_ser_woo1": {
+   "join": [
+    "partisan"
+   ],
+   "wait": [
+    "neutral"
+   ]
+  },
+  "tk_ser_woo2": {
+   "join": [
+    "partisan"
+   ],
+   "wait": [
+    "neutral"
+   ]
+  },
+  "tk_ser_woo3": {
+   "join": [
+    "partisan"
+   ],
+   "snub": [
+    "neutral"
+   ]
+  },
+  "tk_ald_plea1": {
+   "yes": [
+    "partisan",
+    "risk"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "tk_ald_plea2": {
+   "yes": [
+    "partisan",
+    "risk"
+   ],
+   "no": [
+    "neutral"
+   ]
+  },
+  "gem_thief": {
+   "call_guard": [
+    "authority",
+    "profit"
+   ],
+   "send_away": [
+    "neutral"
+   ]
+  },
+  "demon_contract": {
+   "sign": [
+    "risk",
+    "profit"
+   ],
+   "amend": [
+    "risk",
+    "profit"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  },
+  "tk_levy1": {
+   "tomorrow": [
+    "authority"
+   ],
+   "refuse": [
+    "defy"
+   ]
+  },
+  "inquisitor": {
+   "deny": [
+    "deceit"
+   ],
+   "defy": [
+    "defy"
+   ]
+  },
+  "tr_overpay_squire": {
+   "fair": [
+    "honest"
+   ],
+   "keep": [
+    "profit",
+    "deceit"
+   ],
+   "none": [
+    "neutral"
+   ]
+  },
+  "wd_mist_neighbor": {
+   "admit": [
+    "honest"
+   ],
+   "deny": [
+    "deceit"
+   ]
+  },
+  "eda_curse": {
+   "confess": [
+    "honest",
+    "authority"
+   ],
+   "deny": [
+    "deceit"
+   ]
+  },
+  "obel_return": {
+   "pay_loss": [
+    "honest",
+    "care"
+   ],
+   "refuse_loss": [
+    "profit"
+   ]
+  },
+  "mist_contract2": {
+   "sign_mark": [
+    "risk",
+    "profit"
+   ],
+   "pay_memory": [
+    "risk",
+    "profit"
+   ],
+   "tear": [
+    "defy"
+   ]
+  },
+  "leon_chipped": {
+   "gift": [
+    "care"
+   ],
+   "sell": [
+    "profit"
+   ],
+   "none": [
+    "neutral"
+   ]
+  },
+  "wd_mist_daughter": {
+   "tell": [
+    "care"
+   ],
+   "hush": [
+    "neutral"
+   ]
+  },
+  "rl_mist_serena": {
+   "none": [
+    "neutral"
+   ],
+   "prince": [
+    "partisan"
+   ]
+  },
+  "rl_court_whisperer": {
+   "hush": [
+    "deceit"
+   ],
+   "shrug": [
+    "honest"
+   ]
+  },
+  "rl_court_clerk": {
+   "truth": [
+    "honest"
+   ],
+   "cover": [
+    "deceit"
+   ]
+  },
+  "rl_marga_trail": {
+   "mislead": [
+    "deceit"
+   ],
+   "truth": [
+    "honest",
+    "authority"
+   ],
+   "unseen": [
+    "neutral"
+   ]
+  },
+  "marga_inspector": {
+   "confess": [
+    "honest"
+   ],
+   "deny": [
+    "deceit"
+   ]
+  },
+  "tr_tax_clerk": {
+   "take": [
+    "risk",
+    "profit",
+    "deceit"
+   ],
+   "refuse": [
+    "honest"
+   ]
+  },
+  "rl_serena_courter": {
+   "accept": [
+    "partisan"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  },
+  "dwarf_elder_offer": {
+   "sign": [
+    "partisan",
+    "profit"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  },
+  "wd_ash_watch": {
+   "tell": [
+    "honest",
+    "authority"
+   ],
+   "hush": [
+    "deceit"
+   ]
+  },
+  "hunter_inquiry_lisa": {
+   "confess": [
+    "honest"
+   ],
+   "deny": [
+    "deceit"
+   ]
+  },
+  "smuggle_fence": {
+   "accept": [
+    "risk",
+    "profit"
+   ],
+   "decline": [
+    "neutral"
+   ]
+  }
+ }
+}

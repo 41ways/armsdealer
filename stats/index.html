@@ -35,6 +35,7 @@ summary{cursor:pointer;color:var(--ink)}
 .report h3{margin:0 0 2px;font-size:15px;color:var(--gold)}
 .report .meta{font-size:12px;color:var(--mute);margin-bottom:8px}
 .report p{margin:0 0 8px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 12px;font-size:13.5px}.kv span:nth-child(odd){color:var(--ink)}.kv span:nth-child(even){text-align:right;color:var(--gold);font-variant-numeric:tabular-nums}.kv .sep{grid-column:1/3;height:1px;background:var(--line);margin:4px 0}
 .tpl{margin:10px 0 4px;font-size:13.5px}.tpl .job{color:var(--mute)}
 #status{color:var(--mute);font-size:13px}
 a{color:var(--gold)}
@@ -54,6 +55,8 @@ a{color:var(--gold)}
   <div class="cols" id="byrun"></div>
   <h2>굵직한 결정</h2><p class="sub">전체 판 중 그 플래그가 켜진 비율.</p>
   <div class="cols" id="decisions"></div>
+  <h2>행동 지표</h2><p class="sub">판당 평균. 배려·꼼꼼함·규칙 준수 같은 성향을 볼 재료 (해석은 보고서에).</p>
+  <div class="cols" id="behavior"></div>
   <h2>손님별 선택</h2><p class="sub">많이 만난 손님부터. 같은 손님에게 어떤 선택이 몇 %였는지.</p>
   <div id="choices"></div>
 </div>
@@ -117,6 +120,47 @@ a{color:var(--gold)}
       Object.keys(g.flags).forEach(function (k) { c.appendChild(bar(g.flags[k], fl[k] || 0, total, !fl[k])); });
       $('decisions').appendChild(c);
     });
+
+    // 행동 지표 — 없는 이름은 0 (계측은 일어났을 때만 쓴다)
+    var tl = {}; (d.tele || []).forEach(function (x) { tl[x.k] = x.s; });
+    var g = function (k) { return tl[k] || 0; };
+    var per = function (k) { return total ? fmt(g(k) / total) : 0; };
+    var ratio = function (a, b) { return b > 0 ? fmt(a / b * 100) + '%' : '—'; };
+    var secAvg = function (r) { return g('dec_n_' + r) ? fmt(g('dec_s_' + r) / g('dec_n_' + r)) + '초' : '—'; };
+    var card = function (title, rows) {
+      var c = el('div', 'card'); c.appendChild(el('h3', null, title));
+      var kv = el('div', 'kv'); rows.forEach(function (r) { kv.appendChild(el('span', null, r[0])); kv.appendChild(el('span', null, String(r[1]))); });
+      c.appendChild(kv); $('behavior').appendChild(c);
+    };
+    card('시간과 신중함', [
+      ['총 플레이 시간', total ? fmt(g('sec') / total / 60) + '분' : '—'],
+      ['손님 수', per('customers')],
+      ['판매 결정까지', secAvg('sold')], ['거절 결정까지', secAvg('refused')], ['매입 결정까지', secAvg('bought')],
+    ]);
+    card('꼼꼼함', [
+      ['소속 물어보기', per('affil_ask') + '회'],
+      ['인장 살피기', fmt((g('inspect_seal') + g('inspect_doc')) / (total || 1)) + '회'],
+      ['위조 판정 정답률', ratio(g('dc_correct'), g('dc_correct') + g('dc_wrong'))],
+      ['신문 열어 보기', per('open_news') + '회'], ['장부 열어 보기', per('open_ledger') + '회'], ['소문 열어 보기', per('open_world') + '회'],
+      ['수배서 본 것', per('poster_view') + '장'],
+    ]);
+    card('배려', [
+      ['궁핍한 손님 만남', per('poor_seen') + '명'],
+      ['덤 준 횟수', per('gift') + '회'], ['값 면제', per('forgive') + '회'],
+      ['배려율 (덤·면제 ÷ 궁핍한 손님)', ratio(g('gift') + g('forgive'), g('poor_seen'))],
+      ['사과 덤', per('anger_gift') + '회'],
+      ['내일 다시 오라고 약속', per('promise') + '회'],
+    ]);
+    card('규칙과 권위', [
+      ['수상한 손님 거절률', ratio(g('stain_refuse'), g('stain_refuse') + g('stain_deal'))],
+      ['수상한 손님과 거래', per('stain_deal') + '회'],
+      ['뒷거래', per('offbooks') + '회'], ['장물 판매', per('stash_sell') + '개'],
+      ['까마귀로 경비대에 신고', per('l_report') + '회'],
+      ['기별(손님에게 알림)', per('l_notify') + '회'], ['소문 확인 의뢰', per('l_rumor') + '회'],
+      ['수배서 받아 둔 것', per('poster_sent') + '장'],
+    ]);
+    var lat = (d.lat || []).filter(function (x) { return x.n >= 3; }).sort(function (a, b) { return b.avg - a.avg; }).slice(0, 10);
+    if (lat.length) card('오래 고민한 갈림길 (평균 초, 3회 이상)', lat.map(function (x) { var i = L.customers[x.tpl]; return [(i && i.name) || x.tpl, fmt(x.avg) + '초 · ' + x.n + '명']; }));
 
     // 손님별 선택
     var by = {}; d.choices.forEach(function (c) { (by[c.tpl] = by[c.tpl] || { n: 0, a: {} }); by[c.tpl].n += c.n; by[c.tpl].a[c.action] = c.n; });

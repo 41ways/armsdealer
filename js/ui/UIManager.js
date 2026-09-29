@@ -122,7 +122,7 @@ WS.UI = (() => {
           <li><b>손님 그림 · 아이콘</b> — ChatGPT · Google Gemini 로 생성</li>
           <li><b>폰트</b> — Gowun Batang, Noto Sans KR (Google Fonts) · <span>SIL OFL 1.1</span></li>
         </ul>
-        <p class="about-more">엔딩까지 간 판마다 엔딩·고른 선택 같은 요약이 이름·기기 정보 없이 익명으로 한 번 전송됩니다 (밸런스 조정용).</p>
+        <p class="about-more">엔딩까지 간 판마다 엔딩·고른 선택·플레이 시간·행동 횟수 같은 요약이 이름·기기 정보 없이 익명으로 한 번 전송됩니다 (밸런스 조정과 분석용).</p>
         <p class="about-more">자세한 출처는 <a href="https://github.com/41ways/armsdealer/blob/main/CREDITS.md" target="_blank" rel="noopener noreferrer">CREDITS.md</a> 에.</p>
       </div></div>`;
   }
@@ -1036,6 +1036,7 @@ WS.UI = (() => {
     // 이미 물어서 인장을 받아 둔 손님 — 다시 누르면 곧바로 인장을 펼친다
     if (c.affilAsked && showsSeal(c)) { openSeal(c); return; }
     c.affilAsked = true;
+    if (WS.sys.Tele) WS.sys.Tele.bump('affil_ask');
     const lines = [{ who: 'p', text: AFFIL_Q }, { who: 'c', text: a.line }];
     say = { key: `${c.uid}:${c.dialog.length}`, at: performance.now(), from: 0, len: c.dialog.length, custom: lines, held: false };
     clearTimeout(sealTimer);
@@ -1053,6 +1054,7 @@ WS.UI = (() => {
     // 돋보기로 처음 살펴볼 때 손님 틀에 inspectLine 이 있으면 주인이 혼잣말을 하고, 살펴본 뒤에야 열리는 선택지(needs: 'inspect')가 풀린다
     if (!c.inspected) {
       c.inspected = true;
+      if (WS.sys.Tele) WS.sys.Tele.bump(c.docCheck ? 'inspect_doc' : 'inspect_seal');
       const tt = WS.sys.Customers.tplById(c.tpl);
       if (tt && tt.inspectLine) c.dialog.push({ who: 'p', text: tt.inspectLine });
     }
@@ -1236,6 +1238,7 @@ WS.UI = (() => {
     c.docCheckDone = true;
     c.docCheckVerdict = verdict;
     c.docCheckCorrect = correct;
+    if (WS.sys.Tele) { WS.sys.Tele.bump(verdict === 'accuse' ? 'dc_accuse' : 'dc_pass'); WS.sys.Tele.bump(correct ? 'dc_correct' : 'dc_wrong'); }
     WS.sys.Effects.apply(correct ? dc.onCorrect : dc.onWrong);
     WS.sys.Effects.apply({ flags: [correct ? 'docCheck_correct' : 'docCheck_wrong'] });
   }
@@ -2532,6 +2535,15 @@ WS.UI = (() => {
     });
   }
 
+  // 총 플레이 시간 (계측) — 화면이 보이고 45초 안에 손을 댄 때만 1초씩 센다. 켜 두기만 한 시간은 빠진다
+  let lastTouch = performance.now();
+  ['pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { lastTouch = performance.now(); }, { passive: true, capture: true }));
+  setInterval(() => {
+    const st = S();
+    if (!st || document.visibilityState !== 'visible' || performance.now() - lastTouch > 45000) return;
+    if (['morning', 'prep', 'shop', 'closing', 'night'].includes(st.phase) && WS.sys.Tele) WS.sys.Tele.tick();
+  }, 1000);
+
   const ADMIN_CODE = 'always';
   const ADMIN_KEYCODES = [...ADMIN_CODE].map(c => 'Key' + c.toUpperCase()).join(',');
   document.addEventListener('click', e => {
@@ -3263,7 +3275,7 @@ WS.UI = (() => {
       }
       case 'night-choice': nightChoice(id); return;
       case 'ending-choice': endingChoiceShown[id] = !endingChoiceShown[id]; break;
-      case 'drawer': drawer = id; break;
+      case 'drawer': drawer = id; if (id && WS.sys.Tele) WS.sys.Tele.bump('open_' + String(id).replace(/[^a-z0-9_]/gi, '')); break;
       case 'drawer-close': drawer = null; break;
       case 'magnify': magnifyOpen = true; break;
       case 'magnify-close': magnifyOpen = false; break;
@@ -3295,7 +3307,7 @@ WS.UI = (() => {
         (S().progress.tutorialsSeen = S().progress.tutorialsSeen || {}).crow_guide = true;
         if (act === 'crow-guide-write') mail = { sel: null, compose: 'pick', params: {}, flash: '' };
         break;
-      case 'poster': (S().progress.postersShown = S().progress.postersShown || {})[id] = true; nav = { place: 'docs', sub: 'poster:' + id }; if (c && c.status !== 'done') c.sawPoster = true; break;
+      case 'poster': if (WS.sys.Tele) WS.sys.Tele.bump('poster_view'); (S().progress.postersShown = S().progress.postersShown || {})[id] = true; nav = { place: 'docs', sub: 'poster:' + id }; if (c && c.status !== 'done') c.sawPoster = true; break;
       case 'tut-ok': WS.sys.Progress.markTutorialSeen(id); break;
       case 'tut-step': crowTutStep = Math.max(0, crowTutStep + Number(b.dataset.n)); break;
       case 'tut-sub': case 'tut-skip': {

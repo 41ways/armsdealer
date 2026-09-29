@@ -46,6 +46,7 @@ WS.sys.Trade = (() => {
   // 결말(완벽한 장부)만 이 흔적을 본다. 화면에는 어디에도 보이지 않는다.
   function stain(c) {
     if (!WS.sys.Customers.isStain(c)) return;
+    if (WS.sys.Tele) WS.sys.Tele.bump('stain_deal');
     WS.sys.Effects.apply({ flags: ['illegal_sale'], vars: { illegal_sale_count: 1 } });
   }
 
@@ -57,12 +58,13 @@ WS.sys.Trade = (() => {
     const t = tpl(c), a = WS.sys.Customers.affil(c) || {};
     const hidden = c.faction !== c.trueFaction || !!t.suspicious || !!t.shady || !!t.stain || a.seal === 'fake'
       || (!a.claim && !O.openFactions.includes(c.trueFaction)) || O.looks.includes(t.look);
-    if (hidden) WS.sys.World.add('blackmarket', U.range(O.amount));
+    if (hidden) { WS.sys.World.add('blackmarket', U.range(O.amount)); if (WS.sys.Tele) WS.sys.Tele.bump('offbooks'); }
   }
 
   function finish(c, result, reply) {
     c.status = 'done';
     c.result = result;
+    if (WS.sys.Tele) WS.sys.Tele.decide(c, result);
     if (reply) c.dialog.push({ who: 'c', text: reply });
   }
 
@@ -188,7 +190,7 @@ WS.sys.Trade = (() => {
     finish(c, 'sold', totalQty < want ? line(c, 'partial') : line(c, 'sold'));
     // 장물: 이 거래에 넘긴 장물 수만 센다 (걸리면 손님이 한마디 더 한다 — Stash.bust)
     const stolen = lines.filter(l => l.stash).reduce((s, l) => s + l.qty, 0);
-    if (stolen && X) c.stashBusted = X.sold(c, stolen);
+    if (stolen && X) { c.stashBusted = X.sold(c, stolen); if (WS.sys.Tele) WS.sys.Tele.bump('stash_sell', stolen); }
     if (giftLines.length) gift(c, giftLines);
   }
 
@@ -216,6 +218,7 @@ WS.sys.Trade = (() => {
   }
 
   function refuse(c) {
+    if (WS.sys.Tele && WS.sys.Customers.isStain(c)) WS.sys.Tele.bump('stain_refuse');
     applyWorld(c, c.request ? c.request.item : null, 0, 'refuse');
     WS.sys.Effects.apply(tpl(c).onRefuse);
     S().today.refused++;
@@ -424,6 +427,7 @@ WS.sys.Trade = (() => {
     if (!isPoor(c)) return null;
     const { gifts } = giftSplit(c, lines.map(l => ({ item: l.item, qty: l.qty, stash: l.stash })));
     const o = takeGifts(c, gifts);
+    if (o.value > 0 && WS.sys.Tele) WS.sys.Tele.bump('gift');
     return o.value > 0 ? favor(c, o) : null;
   }
 
@@ -445,6 +449,7 @@ WS.sys.Trade = (() => {
     WS.sys.Effects.apply(tpl(c).onSell);
     backing(tpl(c).onSell);
     const g = takeGifts(c, giftSplit(c, (giftLines || []).map(l => ({ item: l.item, qty: l.qty, stash: l.stash }))).gifts);
+    if (WS.sys.Tele) WS.sys.Tele.bump('forgive');
     c.dialog.push({ who: 'p', text: '(값은 됐다며 물건을 건넨다)' });
     c.status = 'done';
     c.result = 'sold';

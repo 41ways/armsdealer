@@ -41,6 +41,7 @@ WS.sys.RunLog = (() => {
       flags: Object.keys(st.flags || {}), choices: st.choices || {}, world, closed,
       clash: (st.clashLog || []).map(c => ({ d: c.day, a: c.a, b: c.b, w: c.winner, how: c.how, backed: c.backed })),
       sales: sales(st.ledger),
+      tele: st.tele || {}, lat: st.teleLat || {},
       shop: Object.keys(st.upgrades || {}).filter(k => st.upgrades[k]),
     };
   }

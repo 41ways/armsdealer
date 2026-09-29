@@ -121,6 +121,7 @@ WS.sys.Day = (() => {
     st.current = c.uid;
     st.time = Math.max(st.time, c.arrival);
     c.status = 'active';
+    if (WS.sys.Tele) WS.sys.Tele.arrive(c);
     if (WS.sys.Customers.remark) WS.sys.Customers.remark(c); // 이 가게의 과거를 기억하는 한마디 (remarks.js)
     c.dialog = [{ who: 'c', text: c.greet }];
     if (WS.sys.Letters && WS.sys.Letters.checkArrival) WS.sys.Letters.checkArrival(c); // 헛걸음이면 화를 낸다
