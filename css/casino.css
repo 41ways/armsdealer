@@ -303,3 +303,5 @@
   .cs-stagger .cs-narr, .cs-stagger .cs-say, .cs-stagger .cs-foot, .casino.cs-big.bell .cs-narr, .cs-scene.cs-bellshot img { animation: none; }
 }
 .cs-scene.cs-guardshot img { object-position: 66% 50%; } /* 좁은 화면에서도 오른쪽 위의 종이 잘리지 않게 */
+/* 도박장 층(.casino, 화면 전체)이 HUD 를 덮어 날짜·금고 숫자가 안 보이던 것 — HUD 를 그 위로 */
+#ui > .casino ~ .hud { position: relative; z-index: 6; }
