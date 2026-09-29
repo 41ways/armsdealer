@@ -48,10 +48,8 @@ WS.sys.Casino = (() => {
     return true;
   }
   const available = () => open() && !shut() && S().phase === 'closing' && !S().flags.bankrupt && !(WS.sys.Day && WS.sys.Day.endNowLine && WS.sys.Day.endNowLine());
-  const VIP_MIN = 200;
   const canBet = (bet, min = MIN_BET) => Number.isInteger(bet) && bet >= min && bet <= S().gold && !stats().pending;
   const clampBet = (n, min = MIN_BET) => Math.max(min, Math.min(Math.floor(Number(n) || 0), S().gold));
-  const vipOpen = () => !!(S().flags && S().flags.vip_open);
 
   // 판돈을 낸다 — 이길 때까지 금고에서 뺀 채로 두었다가(pending) 끝나면 돌려받는다
   function stake(game, bet) {
@@ -60,10 +58,10 @@ WS.sys.Casino = (() => {
     S().gold -= bet;
     c.rounds++; c.wagered += bet;
     T('cs_rounds'); T('cs_wager', bet); T('cs_g_' + game);
-    // 단골(3판) · 푹 빠짐(6판) — 패가망신 엔딩과 VIP 룸이 이 플래그를 본다
+    // 단골(3판) · 푹 빠짐(6판) — 패가망신 엔딩이 단골을 본다
     const f = S().flags;
     if (c.rounds >= 3 && f.casino_regular === undefined) f.casino_regular = S().day;
-    if (c.rounds >= 6 && f.casino_hooked === undefined) { f.casino_hooked = S().day; f.vip_open = S().day; } // 푹 빠지면 안쪽 VIP 룸 문이 열린다
+    if (c.rounds >= 6 && f.casino_hooked === undefined) { f.casino_hooked = S().day; }
     if (bet > (c.maxBet || 0)) { c.maxBet = bet; }
   }
   // 판이 끝나 payout(돌려받는 총액, 0 이면 잃음)을 정산한다
@@ -84,15 +82,6 @@ WS.sys.Casino = (() => {
     const win = Math.random() < 0.48;
     const face = win ? side : side === 'heads' ? 'tails' : 'heads';
     return settle('coin', bet, win ? bet * 2 : 0, { face, pick: side });
-  }
-
-  // ───── VIP 룸 황금 동전 — 도박장에서 여섯 판 넘게 놀면(casino_hooked) 열리는 큰 판. 최소 200G, 앞뒤 49% ─────
-  function vip(bet, side) {
-    if (!vipOpen() || !canBet(bet, VIP_MIN) || !['heads', 'tails'].includes(side)) return null;
-    stake('vip', bet);
-    const win = Math.random() < 0.49;
-    const face = win ? side : side === 'heads' ? 'tails' : 'heads';
-    return settle('vip', bet, win ? bet * 2 : 0, { face, pick: side });
   }
 
   // ───── 주사위 — 두 개의 합. 낮음(2~6) · 높음(8~12) 은 두 배, 7 은 다섯 배 ─────
@@ -203,5 +192,5 @@ WS.sys.Casino = (() => {
     return first;
   }
 
-  return { MIN_BET, VIP_MIN, vipOpen, vip, open, shut, raidDue, raid, bigCallDue, bigStart, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
+  return { MIN_BET, open, shut, raidDue, raid, bigCallDue, bigStart, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
 })();

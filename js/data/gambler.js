@@ -44,7 +44,7 @@
   });
 
   // ───────── 지하 도박장이 열린 뒤 (js/systems/Casino.js 가 플래그를 켠다) ─────────
-  // casino_regular(세 판 이상) 상태에서 망하면 엔딩 gambler_ruin 「패가망신」 · casino_hooked(여섯 판 이상)면 VIP 룸 문이 열린다
+  // casino_regular(세 판 이상) 상태에서 망하면 엔딩 gambler_ruin 「패가망신」
   const MADAM = { look: 'madam', name: '마담 로자', race: '인간', job: '「검은 주사위」 주인', faction: 'traveler', portrait: '🎭', kind: 'talk' };
   // 감찰관의 탐문 — 도박장을 사흘 넘게(서로 다른 사흘) 찾은 다음 날 (flags.casino_days3). 도박 엔딩은 이 답을 보고 이을 것
   C.push({

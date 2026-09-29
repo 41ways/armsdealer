@@ -80,8 +80,7 @@
   const SCEN = [
     ['도박장', [
       { t: '카이 세 번째 내기 (해금 연출)', d: '내기를 세 번째로 고르면 알림창 + 카이의 초대 대사', day: 12, gold: 800, vars: { gamble_bets: 2 }, spawn: ['gambler_3'] },
-      { t: '도박장 열림 (마감 화면)', d: '「🎲 지하 도박장」 → 로비 → 테이블 6종 (VIP 는 잠김)', day: 13, gold: 1500, flags: OPEN, closing: true },
-      { t: '도박장 · VIP 열림 (마감 화면)', d: '여섯 판 넘게 놀아 안쪽 금장식 문(VIP)이 열린 상태', day: 16, gold: 2500, flags: [...REG, 'vip_open'], closing: true },
+      { t: '도박장 열림 (마감 화면)', d: '「🎲 지하 도박장」 → 로비 → 테이블 5종', day: 13, gold: 1500, flags: OPEN, closing: true },
     ]],
     ['도박에 빠지면', [
       { t: '패가망신 (금고 0 → 영업 종료)', d: '단골(3판) 이후 망함 → 「패가망신」', day: 18, gold: 0, flags: [...OPEN, 'casino_regular'], closing: true, goldBeforeClose: true },
@@ -113,6 +112,31 @@
     redraw();
     say(`${sc.t} — ${sc.d}`);
   }
+  // ── 도박장 화면 확인 — 마감 화면에서 도박장을 연 상태로 곧장 그 장면을 띄운다 (결과는 보여 주기만, 금고는 그대로) ──
+  const CS_GAMES = [['coin', '🪙 동전'], ['shell', '🥤 야바위'], ['dice', '🎲 주사위'], ['roul', '🎡 룰렛'], ['ladder', '🃏 카드 업다운']];
+  const CS_SCENES = [
+    ['입장', [['첫 입장 (계단 → 문지기)', 'enter', { stage: 'descend', first: true }], ['다시 입장 (계단만 짧게)', 'enter', { stage: 'descend', first: false }], ['큰 판 날 입장 (경비와 종)', 'enter', { stage: 'guarded', first: false }], ['홀 (테이블 고르기)', 'lobby', {}]]],
+    ['「도박의 끝」 장면', [['단속! (봐줌)', 'raid', {}], ['큰 판 — 앞/뒤 고르기', 'big', { stage: 'intro' }], ['동전 튕김 → 급습 → 종 → 체포 (자동)', 'big', { stage: 'toss' }], ['종 장면', 'big', { stage: 'bell' }], ['체포 장면', 'big', { stage: 'arrest' }]]],
+  ];
+  function csPrep() {
+    WS.Game.newGame();
+    const st = S();
+    st.day = 14; unlockAll();
+    st.progress.tutorialsSeen = Object.assign(st.progress.tutorialsSeen || {}, { crow_paper: true });
+    ['casino_open', 'casino_notified', 'casino_visited'].forEach(f => { st.flags[f] = 12; });
+    go('shop');
+    st.queue.forEach(q => { if (q.status === 'waiting') q.status = 'done'; });
+    try { WS.sys.Day.closeShop(); } catch (e) { console.error(e); }
+    st.gold = 1500;
+  }
+  function runCs(cmd, arg) { csPrep(); WS.CasinoView.dev(cmd, arg); stateLine(); }
+  const csHtml = () => `<h6>도박장 게임 · 승패 연출 (결과를 골라 바로 보기 — 금고는 그대로)</h6>
+    ${CS_GAMES.map(([g, l]) => `<div class="item"><span><b>${l}</b></span><span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+      <button data-dev="cs" data-cmd="table" data-arg='${JSON.stringify({ game: g })}'>앉기</button>
+      <button data-dev="cs" data-cmd="result" data-arg='${JSON.stringify({ game: g, kind: 'win' })}'>이김</button>
+      <button data-dev="cs" data-cmd="result" data-arg='${JSON.stringify({ game: g, kind: 'jackpot' })}'>큰 승리</button>
+      <button data-dev="cs" data-cmd="result" data-arg='${JSON.stringify({ game: g, kind: 'lose' })}'>짐</button></span></div>`).join('')}
+    ${CS_SCENES.map(([h, list]) => `<h6>${esc(h)}</h6>${list.map(([t, c, a]) => `<div class="item"><span><b>${esc(t)}</b></span><button data-dev="cs" data-cmd="${c}" data-arg='${JSON.stringify(a)}'>보기</button></div>`).join('')}`).join('')}`;
   const scenHtml = () => { let n = 0; return SCEN.map(([g, list]) => `<h6>${esc(g)}</h6>${list.map(x => `<div class="item"><span><b>${esc(x.t)}</b><br><small>${esc(x.d)}</small></span><button data-dev="scen" data-id="${n++}">가기</button></div>`).join('')}`).join(''); };
 
   function go(to, opt) {
@@ -182,7 +206,7 @@
       </div>
       <div class="pane" data-pane="ev"><input id="dev-eq" placeholder="사건 id 로 찾기"><div class="list" id="dev-elist"></div></div>
       <div class="pane" data-pane="end"><div style="color:#9a8a6a;margin-bottom:4px">초록 = 지금 끝나면 조건 충족 (위에서부터 먼저 맞는 것이 뽑힌다)</div><div class="list" id="dev-endlist"></div></div>
-      <div class="pane" data-pane="cs"><div style="color:#9a8a6a;margin-bottom:4px">새 판을 그 장면 직전 상태로 만든다. 마감 화면 시나리오는 「🎲 지하 도박장」을 눌러 이어 본다</div>${scenHtml()}</div>
+      <div class="pane" data-pane="cs">${csHtml()}<h6 style="margin-top:10px">흐름 시나리오</h6><div style="color:#9a8a6a;margin-bottom:4px">새 판을 그 장면 직전 상태로 만든다. 마감 화면 시나리오는 「🎲 지하 도박장」을 눌러 이어 본다</div>${scenHtml()}</div>
       <div id="dev-log">탭을 고른다</div>`;
     document.body.appendChild(el);
     custList('', '전체'); evList('');
@@ -211,6 +235,7 @@
     if (ensureGame()) say('새 게임을 먼저 시작했다');
     const st = S();
     if (act === 'scen') { runScen(+id); stateLine(); return; }
+    if (act === 'cs') { runCs(b.dataset.cmd, JSON.parse(b.dataset.arg || '{}')); return; }
     if (act === 'go') go(id);
     if (act === 'spawn') spawn(id);
     if (act === 'event') fireEvent(id);
