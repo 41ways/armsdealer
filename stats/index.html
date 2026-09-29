@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Next! 플레이 통계</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%92%B8</text></svg>">
+<style>
+:root{--bg:#120c08;--panel:#1d1510;--line:#3a2a1c;--gold:#e0b56a;--ink:#ecdcb8;--mute:#a08c6c;--bar:#c9973f;--bar2:#6b4a22;--warn:#d98a4a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:22px 16px 60px}
+h1{font-size:22px;margin:0 0 4px;color:var(--gold)}
+h2{font-size:16px;margin:32px 0 10px;color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:6px}
+.sub{color:var(--mute);font-size:13px;margin:0 0 16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.tile b{display:block;font-size:22px;color:var(--gold);font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--mute)}
+.warn{background:#2a1a0e;border:1px solid var(--warn);color:var(--warn);border-radius:8px;padding:9px 12px;font-size:13px;margin:12px 0}
+.bars{display:flex;flex-direction:column;gap:5px}
+.row{display:grid;grid-template-columns:minmax(90px,200px) 1fr 74px;gap:8px;align-items:center;font-size:13.5px}
+.row .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .track{height:14px;background:var(--bar2);border-radius:3px;overflow:hidden}
+.row .fill{height:100%;background:var(--bar);border-radius:3px}
+.row .v{text-align:right;color:var(--mute);font-variant-numeric:tabular-nums;font-size:12.5px}
+.row.zero .t{color:var(--mute)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.card h3{margin:0 0 8px;font-size:14px;color:var(--ink)}
+.card .n{font-weight:400;color:var(--mute);font-size:12px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:8px 0}
+summary{cursor:pointer;color:var(--ink)}
+.report{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:10px 0}
+.report h3{margin:0 0 2px;font-size:15px;color:var(--gold)}
+.report .meta{font-size:12px;color:var(--mute);margin-bottom:8px}
+.report p{margin:0 0 8px}
+.tpl{margin:10px 0 4px;font-size:13.5px}.tpl .job{color:var(--mute)}
+#status{color:var(--mute);font-size:13px}
+a{color:var(--gold)}
+@media(max-width:520px){.row{grid-template-columns:96px 1fr 62px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Next! 플레이 통계</h1>
+<p class="sub">끝까지 간 판마다 보내진 익명 요약을 모은 것. 숫자는 그때그때 읽어 오고(1분 캐시), 아래 <a href="#reports">보고서</a>의 해석 글은 따로 관리해서 갱신을 시킬 때만 바뀝니다. <a href="../">게임으로</a></p>
+<p id="status">불러오는 중…</p>
+<div id="app" hidden>
+  <div class="tiles" id="tiles"></div>
+  <div id="notice"></div>
+  <h2>엔딩 분포</h2><div class="bars" id="endings"></div>
+  <h2>몇 번째 판인가</h2><p class="sub">이 브라우저에서 끝낸 순서 기준 — 처음 하는 사람과 여러 번 한 사람의 결말이 어떻게 다른지.</p>
+  <div class="cols" id="byrun"></div>
+  <h2>굵직한 결정</h2><p class="sub">전체 판 중 그 플래그가 켜진 비율.</p>
+  <div class="cols" id="decisions"></div>
+  <h2>손님별 선택</h2><p class="sub">많이 만난 손님부터. 같은 손님에게 어떤 선택이 몇 %였는지.</p>
+  <div id="choices"></div>
+</div>
+<h2 id="reports">보고서</h2>
+<div id="reportList"></div>
+</main>
+<script src="labels.js"></script>
+<script src="reports.js"></script>
+<script>
+(function () {
+  var API = 'https://norara-errors.41ways.workers.dev/runs/agg?app=' + encodeURIComponent(new URLSearchParams(location.search).get('app') || 'armsdealer');
+  var L = window.LABELS || { endings: {}, customers: {}, decisions: [] };
+  var $ = function (id) { return document.getElementById(id); };
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function pct(n, d) { return d ? (n / d * 100) : 0; }
+  function fmt(n) { return Math.round(n * 10) / 10; }
+
+  function bar(label, n, denom, zero) {
+    var r = el('div', 'row' + (zero ? ' zero' : ''));
+    r.appendChild(el('div', 't', label)).title = label;
+    var tr = el('div', 'track'), f = el('div', 'fill'); f.style.width = Math.min(100, pct(n, denom)) + '%'; tr.appendChild(f); r.appendChild(tr);
+    r.appendChild(el('div', 'v', fmt(pct(n, denom)) + '% · ' + n));
+    return r;
+  }
+  function tile(v, label) { var t = el('div', 'tile'); t.appendChild(el('b', null, v)); t.appendChild(el('span', null, label)); return t; }
+
+  function render(d) {
+    var total = (d.total && d.total.n) || 0;
+    $('status').hidden = true; $('app').hidden = false;
+    var bank = 0; d.endings.forEach(function (e) { if (e.ending === 'bankrupt') bank = e.n; });
+    var tiles = $('tiles');
+    tiles.appendChild(tile(total, '끝낸 판'));
+    tiles.appendChild(tile((d.total && d.total.players) || 0, '플레이어(브라우저)'));
+    tiles.appendChild(tile(total ? fmt(d.total.days) : '-', '평균 일수'));
+    tiles.appendChild(tile(total ? fmt(pct(bank, total)) + '%' : '-', '파산 비율'));
+    tiles.appendChild(tile(total && d.total.last ? new Date(d.total.last).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-', '마지막 판'));
+    if (total < 30) $('notice').appendChild(el('div', 'warn', total ? '판이 ' + total + '개뿐이라 경향이라 부르기 이릅니다. 30판은 넘어야 대략의 모양이 보입니다.' : '아직 들어온 판이 없습니다.'));
+
+    // 엔딩 분포 — 한 번도 안 나온 엔딩도 0 으로 보여 준다
+    var seen = {}; d.endings.forEach(function (e) { seen[e.ending] = e.n; });
+    var ids = Object.keys(L.endings); Object.keys(seen).forEach(function (k) { if (ids.indexOf(k) < 0) ids.push(k); });
+    ids.sort(function (a, b) { return (seen[b] || 0) - (seen[a] || 0); });
+    ids.forEach(function (id) { $('endings').appendChild(bar(L.endings[id] || id, seen[id] || 0, total, !seen[id])); });
+
+    // 몇 번째 판
+    var buckets = { '1': {}, '2-3': {}, '4+': {} }, bt = { '1': 0, '2-3': 0, '4+': 0 };
+    d.byRun.forEach(function (r) { buckets[r.b][r.ending] = r.n; bt[r.b] += r.n; });
+    ['1', '2-3', '4+'].forEach(function (b) {
+      var c = el('div', 'card'), h = el('h3', null, (b === '1' ? '첫 판' : b === '2-3' ? '2~3번째 판' : '4번째 이후') + ' ');
+      h.appendChild(el('span', 'n', '(' + bt[b] + '판)')); c.appendChild(h);
+      var list = Object.keys(buckets[b]).sort(function (x, y) { return buckets[b][y] - buckets[b][x]; }).slice(0, 6);
+      if (!list.length) c.appendChild(el('div', 'sub', '아직 없음'));
+      list.forEach(function (k) { c.appendChild(bar(L.endings[k] || k, buckets[b][k], bt[b])); });
+      $('byrun').appendChild(c);
+    });
+
+    // 굵직한 결정
+    var fl = {}; d.flags.forEach(function (f) { fl[f.flag] = f.n; });
+    (L.decisions || []).forEach(function (g) {
+      var c = el('div', 'card'); c.appendChild(el('h3', null, g.title));
+      Object.keys(g.flags).forEach(function (k) { c.appendChild(bar(g.flags[k], fl[k] || 0, total, !fl[k])); });
+      $('decisions').appendChild(c);
+    });
+
+    // 손님별 선택
+    var by = {}; d.choices.forEach(function (c) { (by[c.tpl] = by[c.tpl] || { n: 0, a: {} }); by[c.tpl].n += c.n; by[c.tpl].a[c.action] = c.n; });
+    var tpls = Object.keys(by).sort(function (a, b) { return by[b].n - by[a].n; }).slice(0, 60);
+    if (!tpls.length) $('choices').appendChild(el('div', 'sub', '아직 없음'));
+    tpls.forEach(function (t) {
+      var info = L.customers[t] || { name: t, job: '', choices: {} }, e = by[t];
+      var det = document.createElement('details'), sm = el('summary', null, (info.name || t) + (info.job ? ' · ' + info.job : '') + ' — ' + e.n + '회');
+      det.appendChild(sm);
+      Object.keys(e.a).sort(function (x, y) { return e.a[y] - e.a[x]; }).forEach(function (a) {
+        var lab = a === 'sell' ? '팔았다' : a === 'refuse' ? '거절했다' : a === 'buy' ? '샀다' : (info.choices[a] || a);
+        det.appendChild(bar(lab, e.a[a], e.n));
+      });
+      $('choices').appendChild(det);
+    });
+  }
+
+  function renderReports() {
+    var list = window.REPORTS || [], box = $('reportList');
+    list.forEach(function (r, i) {
+      var wrap = i === 0 ? el('div', 'report') : document.createElement('details');
+      if (i === 0) {
+        wrap.appendChild(el('h3', null, r.title));
+        wrap.appendChild(el('div', 'meta', r.date + ' · 그때까지 ' + ((r.dataAsOf && r.dataAsOf.runs) || 0) + '판 기준 · 최신'));
+        r.body.forEach(function (p) { wrap.appendChild(el('p', null, p)); });
+      } else {
+        wrap.className = 'report';
+        wrap.appendChild(el('summary', null, r.title + ' (' + r.date + ' · ' + ((r.dataAsOf && r.dataAsOf.runs) || 0) + '판 기준)'));
+        r.body.forEach(function (p) { wrap.appendChild(el('p', null, p)); });
+      }
+      box.appendChild(wrap);
+    });
+  }
+  renderReports();
+
+  fetch(API).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(render).catch(function () {
+    $('status').textContent = '통계를 불러오지 못했습니다. 잠시 뒤 다시 열어 보세요.';
+  });
+})();
+</script>
+</body>
+</html>
