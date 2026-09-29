@@ -1,7 +1,7 @@
 // 노름꾼 카이 — 여섯 번 찾아와 같은 내기를 건다. "확실한 돈을 받을래, 동전을 던질래."
 // 위험 선호를 재는 손님이다 (기댓값이 같거나 손해인 판도 섞여 있다). 내기는 카이가 자기 돈으로 하므로 플레이어의 금고는 줄지 않는다.
 // 세 번 받아들이면 영업 뒤 밤마다 지하 도박장에 갈 수 있다 (flags.casino_open — js/systems/Casino.js).
-// 내기를 config.gamblerBets 번 이상 고르면 엔딩 gambler (js/data/endings.js). 고른 것은 state.choices[gambler_N] = safe | bet | pass 로 남는다 (stats/choice_tags.json).
+// 고른 것은 state.choices[gambler_N] = safe | bet | pass 로 남는다 (stats/choice_tags.json).
 (() => {
   const C = WS.data.customers;
   const KAI = { look: 'gambler', name: '노름꾼 카이', race: '인간', job: '떠돌이 노름꾼', faction: 'traveler', portrait: '🎲', kind: 'talk' };

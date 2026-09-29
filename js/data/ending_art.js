@@ -438,28 +438,7 @@ WS.data.endingArt = {
     "thumb": "assets/ending/hires/gambler_ruin_thumb.jpg"
   },
 
-  "gambler": {
-    "title": "마지막 한 판",
-    "album": [
-      {
-        "file": "assets/ending/hires/gambler_album_1.jpg",
-        "caption": "계산대 밑의 낡은 동전"
-      },
-      {
-        "file": "assets/ending/hires/gambler_album_2.jpg",
-        "caption": "모자를 벗은 카이"
-      },
-      {
-        "file": "assets/ending/hires/gambler_album_3.jpg",
-        "caption": "동전 가게"
-      },
-      {
-        "file": "assets/ending/hires/gambler_album_4.jpg",
-        "caption": "내일의 앞뒤"
-      }
-    ],
-    "thumb": "assets/ending/hires/gambler_thumb.jpg"
-  },
+
   "gambling_end": {
     "title": "도박의 끝",
     "album": [

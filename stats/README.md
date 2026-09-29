@@ -40,7 +40,7 @@
 | `cs_days` | 도박장을 찾은 서로 다른 날 수 (3일이면 감찰관 탐문) | 습관 |
 | `cs_shell_hit` · `cs_cheated` | 야바위에서 공 든 컵을 맞힌 수 · 그중 딜러가 속인 수 | 집중력 |
 
-플래그(`data.flags`): `casino_open`(도박장 해금) · `casino_regular`(3판) · `casino_hooked`(6판) · `vip_open`(6판에 열림) · `casino_days3` · `casino_reported`/`casino_denied`/`casino_evaded`(감찰관 마크에게) · `casino_caught1`(단속, 봐줌) · `casino_guarded`/`casino_quit`(마담의 부름) · `casino_arrested`(큰 판에서 체포 → 엔딩 「도박의 끝」). 엔딩 `gambler_ruin`(패가망신)·`gambler_pro`(도박사, v0.9.x 에만 있었음 — 지금은 없음)·`gambler`(마지막 한 판).
+플래그(`data.flags`): `casino_open`(도박장 해금) · `casino_regular`(3판) · `casino_hooked`(6판) · `vip_open`(6판에 열림) · `casino_days3` · `casino_reported`/`casino_denied`/`casino_evaded`(감찰관 마크에게) · `casino_caught1`(단속, 봐줌) · `casino_guarded`/`casino_quit`(마담의 부름) · `casino_arrested`(큰 판에서 체포 → 엔딩 「도박의 끝」). 엔딩 `gambler_ruin`(패가망신)·`gambler_pro`(도박사, v0.9.x 에만 있었음 — 지금은 없음)·`gambler`(마지막 한 판, 지금은 없음).
 
 월드 변수 `gamble_bets` · `gamble_wins`(`data.world`): 노름꾼 카이의 내기(여섯 번 중)를 고른 수 · 딴 수. `choices` 의 `gambler_1..6` 은 `safe`/`bet`/`pass`.
 
