@@ -5,7 +5,8 @@ WS.CasinoView = (() => {
   const C = () => WS.sys.Casino;
   const S = () => WS.Game.state;
   let host = { render() {}, hud: () => '' };
-  let isOn = false, ctx = null, raidN = 0, big = null, game = null, bet = 50, last = null, intro = false, shell = null;
+  let isOn = false, ctx = null, raidN = 0, big = null, game = null, bet = 50, last = null, shell = null;
+  let enter = null; // 입장 연출 — {stage:'descend'|'door', first} · 문지기 문답은 첫 입장에만
   let log = [];
 
   const GAMES = [
@@ -41,6 +42,41 @@ WS.CasinoView = (() => {
     big: 'assets/casino/bigtable.jpg', // 홀 한가운데 판을 둘러싼 손님들
   };
   const scene = (src, cls, inner = '') => `<div class="cs-scene ${cls || ''}"><img src="${src}" alt="" draggable="false" onerror="this.remove()">${inner}</div>`;
+  // ───── 입장 — 돌계단을 내려가 문지기를 만난다 (그림: assets/casino/entry_*.jpg, 제미나이) · 문지기 문답은 첫 입장에만 ─────
+  const ENTER_LINE = {
+    descend: {
+      first: '카이가 일러준 골목 끝, 낡은 철문 뒤로 돌계단이 어둠 속으로 굽어 내려간다. 축축한 벽을 타고 낮은 웃음소리와 짤그랑거리는 소리가 새어 올라온다.',
+      more: '낯익은 돌계단을 다시 내려간다.',
+    },
+    door: '돌계단 끝, 육중한 나무문 앞에 문지기가 말없이 서 있다. 횃불이 얼굴의 반쪽만 비춘다.',
+  };
+  function enterView() {
+    const e = enter, first = e.first;
+    if (e.stage === 'door') {
+      return `<div class="casino cs-cine cs-enter cs-enter-door">
+        ${scene('assets/casino/entry_door.jpg', 'cs-dolly')}
+        <p class="cs-narr">${U.esc(ENTER_LINE.door)}</p>
+        <p class="cs-say"><b>문지기</b>“카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>
+        <div class="cs-foot"><button class="pbtn wide" data-act="cs-enter-next">→ 들어선다</button></div>
+      </div>${host.hud()}`;
+    }
+    return `<div class="casino cs-cine cs-enter cs-enter-descend ${first ? '' : 'quick'}" ${first ? '' : 'data-act="cs-enter-next"'}>
+      ${scene('assets/casino/entry_stairs.jpg', 'cs-dolly')}
+      <p class="cs-narr">${U.esc(first ? ENTER_LINE.descend.first : ENTER_LINE.descend.more)}</p>
+      ${first ? `<div class="cs-foot"><button class="pbtn wide" data-act="cs-enter-next">→ 내려간다</button></div>` : ''}
+    </div>${host.hud()}`;
+  }
+  function enterAdvance() {
+    if (!enter) return;
+    if (enter.stage === 'descend') { if (enter.first) enter = { stage: 'door', first: true }; else enter = null; }
+    else enter = null;
+  }
+  // 이후 입장(문지기 문답 없음)은 계단 장면을 클릭 없이도 짧게 지나간다 — 급한 손님은 눌러서 건너뛸 수 있다
+  function enterAutoRun() {
+    const e = enter;
+    sfx('creak', 0.35);
+    setTimeout(() => { if (enter !== e) return; enterAdvance(); host.render(); }, 900);
+  }
 
   const RAID = {
     1: {
@@ -100,6 +136,7 @@ WS.CasinoView = (() => {
   function html() {
     if (raidN) return raidView();
     if (big) return bigView();
+    if (enter) return enterView();
     const st = S(), c = C(), p = pending();
     if (p && p.game === 'shell' && !shell) shell = { bet: p.bet, ball: p.ball, swaps: p.swaps, slot: [0, 1, 2], phase: 'pick', res: null }; // 새로 불러온 판 — 섞는 건 못 봤다
     if (!p && shell && !shell.res) shell = null;
@@ -115,7 +152,6 @@ WS.CasinoView = (() => {
         <h2>검은 주사위 <small>지하 도박장</small></h2>
         <div class="cs-purse"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div>
       </div>
-      ${intro ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
       ${seat}
       <p class="cs-hint">${U.esc(g.hint)}</p>
       <div class="cs-table t-${game}">${body}</div>
@@ -155,7 +191,6 @@ WS.CasinoView = (() => {
       <div class="cs-head"><h2>검은 주사위 <small>지하 도박장</small></h2>
         <div class="cs-purse"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div></div>
       <div class="cs-hallwrap"><div class="cs-hall"><img class="cs-hall-art" src="assets/casino/lobby.jpg" alt="" draggable="false">${spots}${bigSpot}</div></div>
-      ${intro && !call ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
       ${call ? '<p class="cs-door">홀 한가운데서 마담 로자가 손짓한다. “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”</p>' : ''}
       <p class="cs-swipe">← 옆으로 밀어 홀을 둘러본다 →</p>
       <p class="cs-ask">앉을 테이블을 누른다</p>
@@ -337,15 +372,21 @@ WS.CasinoView = (() => {
     const a = b.dataset.act, id = b.dataset.id, c = C();
     switch (a) {
       case 'cs-open':
-        isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null;
+        isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null; enter = null;
         raidN = c.raidDue() ? c.raid() : 0; // 감찰관에게 모른다고 했다면 단속에 걸린다
-        if (raidN) { sfx('door_open', 0.7); sfx('blade', 0.4); intro = false; } else intro = c.markVisit();
+        if (raidN) { sfx('door_open', 0.7); sfx('blade', 0.4); }
+        else {
+          const first = c.markVisit();
+          enter = { stage: 'descend', first };
+          if (!first) { host.render(); enterAutoRun(); return; } // 다음 입장부터는 문지기 문답 없이 계단만 짧게
+        }
         break;
+      case 'cs-enter-next': enterAdvance(); break;
       case 'cs-big': if (!c.bigCallDue()) return; big = { stage: 'intro' }; break;
       case 'cs-big-back': big = null; break;
       case 'cs-big-end': big = null; isOn = false; return 'next-day';
-      case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; intro = false; last = null; shell = null; return 'next-day'; // 도박장을 나서면 곧장 잠자리로 — 다음 날
-      case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; intro = false; break;
+      case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; enter = null; last = null; shell = null; return 'next-day'; // 도박장을 나서면 곧장 잠자리로 — 다음 날
+      case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; break;
       case 'cs-lobby': if (pending()) return; game = null; last = null; shell = null; break;
       case 'cs-chip': {
         const g = S().gold;
@@ -355,7 +396,6 @@ WS.CasinoView = (() => {
       }
       case 'cs-play': {
         if (big && big.stage === 'intro') { if (c.bigStart(id)) { bigRun(id); host.render(); } return; }
-        intro = false;
         bet = readBet();
         if (!bet) return;
         if (game === 'shell') {

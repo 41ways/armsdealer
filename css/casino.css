@@ -170,6 +170,13 @@
 .cs-scene .on-scene { position: absolute; left: 50%; top: 50%; z-index: 3; margin: -69px 0 0 -66px; }
 .cs-scene .cs-slam { position: absolute; left: 0; right: 0; bottom: 18%; z-index: 3; text-align: center; }
 .casino.cs-big.burst { background: #0c0508; animation: none; }
+
+/* ── 입장 — 돌계단 → 문지기 (그림은 제미나이) ── */
+.cs-scene.cs-dolly img { animation: cs-dolly 1.4s ease-out both; transform-origin: 50% 60%; }
+@keyframes cs-dolly { from { transform: scale(1.1); filter: brightness(.4); } to { transform: scale(1); filter: none; } }
+.cs-enter-descend.quick { cursor: pointer; }
+.cs-enter-descend.quick .cs-scene { animation: cs-scene-quick .9s ease-in both; }
+@keyframes cs-scene-quick { from { opacity: 0; } 20% { opacity: 1; } to { opacity: 1; } }
 .cs-swipe { display: none; margin: -4px 0 0; text-align: center; font-size: 12px; color: #b89e78; }
 @media (max-aspect-ratio: 1/1) { .cs-swipe { display: block; } }
 .cs-scene .cs-coin.big.idle.on-scene { width: 80px; height: 84px; top: 70%; margin: -42px 0 0 -40px; opacity: 1; filter: drop-shadow(0 0 14px rgba(255, 224, 138, .7)); }

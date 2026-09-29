@@ -3,7 +3,7 @@
 > **새 세션에서 이 문서를 읽었다고 바로 작업을 시작하지 말 것.** 사용자가 "시작해"라고 할 때만 진행한다.
 
 ## 이번에 할 일 (사용자가 정한 범위)
-1. **도박장 입장 연출** — 지금은 마감 화면의 「🎲 지하 도박장」 버튼 → 곧바로 홀 그림. 계단을 내려가는 전환, 문지기, 첫 입장과 이후 입장의 차이 등.
+1. ~~**도박장 입장 연출**~~ ✅ (v0.9.13) — 첫 입장: 돌계단(`entry_stairs.jpg`) → 「→ 내려간다」 → 문지기(`entry_door.jpg`, 문답) → 「→ 들어선다」 → 홀. 그다음부터: 계단 장면만 0.9초 보이고 저절로 홀로(눌러서 건너뛰기). 단속 날은 계단 없이 곧장 단속 장면. `CasinoView.js` `enter`/`enterView`/`enterAdvance`/`enterAutoRun`.
 2. **도박장 안 게임의 승리·패배 연출** — 지금은 결과 한 줄(`resultLine`) + 동전 소리 정도. 게임마다 이겼을 때·졌을 때 연출(금화 쏟아짐, 딜러 반응, 화면 흔들림 등).
 3. **버튼·이미지 다듬기** — 칩 버튼, 판돈 입력, 게임별 버튼, 홀 그림 속 테이블 이름표, 테이블 그림 등.
 4. **「도박의 끝」으로 이어지는 흐름 다듬기** — 감찰관 탐문 → 첫 단속(봐줌) → 마담의 부름 → 큰 판 → 체포 → 엔딩.
@@ -36,7 +36,7 @@
 | `css/casino.css` | 도박장 스타일 전부 (뒤로 갈수록 나중에 덮은 규칙) |
 | `js/data/endings.js` | `gambling_end`(quote 필드), `gambler_ruin` |
 | `js/ui/UIManager.js` | 마감 화면 버튼, `cs-` 동작을 CasinoView 로 넘김(`next-day` 반환 시 다음 날), 엔딩 인용구(`e.quote`) |
-| `assets/casino/` | 홀·테이블 6종·소품(컵·구슬·동전 앞뒤·카드 뒷면)·큰 판 그림(`bigtable.jpg`) |
+| `assets/casino/` | 입장(`entry_stairs.jpg`·`entry_door.jpg`, `tools/casino_scene.py` 로 워터마크 지움)·홀·테이블 6종·소품(컵·구슬·동전 앞뒤·카드 뒷면)·큰 판 그림(`bigtable.jpg`) |
 | `assets/ending/hires/canary_album_*.jpg` | 「도박의 끝」 앨범 4장 (급습·제보서·종·카나리아) |
 | `assets/sprites/gambler.png`, `madam.png` | 카이·마담 로자 표정 시트 (`tools/make_sprite_sheet.py`) |
 
