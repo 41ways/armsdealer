@@ -13,10 +13,10 @@ WS.CasinoView = (() => {
     { id: 'shell', name: '야바위', icon: '🥤', hint: '공이 든 컵을 눈으로 좇아라. 맞히면 두 배.' },
     { id: 'dice', name: '주사위', icon: '🎲', hint: '두 주사위의 합. 낮음·높음 두 배, 7은 다섯 배.' },
     { id: 'roul', name: '룰렛', icon: '🎡', hint: '0~36. 색·홀짝 두 배, 숫자 하나는 서른여섯 배. 0은 다 진다.' },
-    { id: 'ladder', name: '카드 사다리', icon: '🃏', hint: '다음 카드가 높은지 낮은지. 맞힐수록 배율이 쌓이고, 언제든 멈춘다. 같으면 진다.' },
+    { id: 'ladder', name: '카드 업다운', icon: '🃏', hint: '다음 카드가 높을까 낮을까. 맞힐수록 배율이 불어나고, 언제든 멈추고 가져간다. 같은 숫자면 진다.' },
     { id: 'vip', name: 'VIP 룸 · 황금 동전', icon: '👑', hint: '위층 큰 판. 최소 200G, 앞뒤를 맞히면 두 배.', vip: true },
   ];
-  const SHORT = { coin: '앞이냐 뒤냐', shell: '공 든 컵을 좇아라', dice: '두 주사위의 합', roul: '구슬은 어디에 서나', ladder: '높다 낮다, 멈출 때를 안다', vip: '위층의 큰 판' };
+  const SHORT = { coin: '앞이냐 뒤냐', shell: '공 든 컵을 좇아라', dice: '두 주사위의 합', roul: '구슬은 어디에 서나', ladder: '높을까 낮을까', vip: '위층의 큰 판' };
   const NAME = Object.fromEntries(GAMES.map(g => [g.id, g.name]));
   const DIE = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const RANK = n => ({ 1: 'A', 11: 'J', 12: 'Q', 13: 'K' }[n] || String(n));
@@ -55,7 +55,7 @@ WS.CasinoView = (() => {
       ${scene(ART.raid, 'shake', '<b class="cs-scene-title">단속!</b>')}
       <p class="cs-narr">${U.esc(r.narr)}</p>
       <p class="cs-say"><b>${U.esc(r.who)}</b>${U.esc(r.line)}</p>
-      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">가게로 돌아간다</button></div>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">잠자리로 돌아간다 →</button></div>
     </div>${host.hud()}`;
   }
 
@@ -80,7 +80,7 @@ WS.CasinoView = (() => {
     }
     if (b.stage === 'burst') {
       return `<div class="casino cs-cine cs-big burst">
-        ${scene(ART.raid, 'flash shake', `${coin('air frozen on-scene')}<b class="cs-slam">쾅!</b>`)}
+        ${scene(ART.raid, 'flash shake')}
       </div>${host.hud()}`;
     }
     return `<div class="casino cs-cine cs-big arrest">
@@ -122,7 +122,7 @@ WS.CasinoView = (() => {
       ${res}
       ${stakeBox(p)}
       ${log.length ? `<ul class="cs-log">${log.slice(-6).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>` : ''}
-      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave" ${p ? 'disabled' : ''}>${p ? '판이 끝나야 나갈 수 있다' : '도박장을 나선다'}</button></div>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave" ${p ? 'disabled' : ''}>${p ? '판이 끝나야 나갈 수 있다' : '도박장을 나선다 (다음 날로) →'}</button></div>
     </div>${host.hud()}`;
   }
 
@@ -159,7 +159,7 @@ WS.CasinoView = (() => {
       ${call ? '<p class="cs-door">홀 한가운데서 마담 로자가 손짓한다. “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”</p>' : ''}
       <p class="cs-swipe">← 옆으로 밀어 홀을 둘러본다 →</p>
       <p class="cs-ask">앉을 테이블을 누른다</p>
-      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다</button></div>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다 (다음 날로) →</button></div>
     </div>${host.hud()}`;
   }
 
@@ -239,7 +239,15 @@ WS.CasinoView = (() => {
         const ia = s.slot.indexOf(a), ib = s.slot.indexOf(b);
         s.slot[ia] = b; s.slot[ib] = a;
         sfx('latch', 0.25);
-        shellApply(); setTimeout(step, MS); return;
+        shellApply();
+        // 두 컵이 한 줄로 겹쳐 지나가지 않게 — 하나는 앞으로(아래·크게), 하나는 뒤로(위·작게) 호를 그리며 자리를 바꾼다
+        [[ia, 'arc-front'], [ib, 'arc-back']].forEach(([cup, cls]) => {
+          const el = document.querySelector(`.cs-slot[data-cup="${cup}"]`);
+          if (!el) return;
+          el.classList.remove('arc-front', 'arc-back'); void el.offsetWidth; el.classList.add(cls);
+          setTimeout(() => el.classList.remove(cls), MS - 30);
+        });
+        setTimeout(step, MS); return;
       }
       s.phase = 'pick'; shellApply();
     };
@@ -248,25 +256,51 @@ WS.CasinoView = (() => {
 
   // ───── 카드 사다리 ─────
   const cardHtml = (n, k, cls = '') => `<div class="cs-card ${cls} ${[1, 2].includes(k % 4) ? 'red' : ''}"><b>${RANK(n)}</b><i>${SUIT[k % 4]}</i></div>`;
+  // ───── 카드 업다운 ─────
+  let udFlash = ''; // 방금 맞혔다 — 새 카드를 한 번 빛낸다
+  const udCard = (n, st, cls = '') => {
+    const su = SUIT[st % 4], red = st % 4 === 1 || st % 4 === 2;
+    return `<div class="ud-card ${red ? 'red' : ''} ${cls}"><span class="ud-c1">${RANK(n)}<i>${su}</i></span><b>${su}</b><span class="ud-c2">${RANK(n)}<i>${su}</i></span></div>`;
+  };
+  const udBack = (cls = '') => `<div class="ud-card back ${cls}"></div>`;
+  const udTrail = (hist, upto) => {
+    const h = (hist || []).slice(0, upto);
+    if (!h.length) return '';
+    const more = h.length > 6 ? `<span class="ud-more">+${h.length - 6}</span>` : '';
+    return `<div class="ud-trail">${more}${h.slice(-6).map(x => udCard(x.n, x.s, 'mini')).join('<i class="ud-step">›</i>')}</div>`;
+  };
   function ladderPanel(p) {
     const l = p && p.game === 'ladder' ? p : null;
     if (!l) {
       const r = last && last.game === 'ladder' ? last : null;
-      const shown = r ? `<div class="cs-cards">${cardHtml(r.from, r.steps)}<span class="cs-arrow">→</span>${r.over ? cardHtml(r.next, r.steps + 1, 'flip') : ''}</div>` : '<div class="cs-cards"><div class="cs-card idle"><b>?</b></div></div>';
-      return `${shown}<div class="cs-row">${btn('카드를 뽑는다', 'start')}</div><p class="cs-note">맞힐수록 배율이 곱해진다. 한 번 맞히면 그때부터 가져갈 수 있다.</p>`;
+      let board;
+      if (r && r.over) {
+        const h = r.hist || [];
+        const cur = h[h.length - 1] || { n: r.from, s: 0 };
+        board = `${udTrail(h, h.length - 1)}<div class="ud-main">${udCard(cur.n, cur.s)}<span class="ud-vs lose">${r.dir === 'hi' ? '▲' : '▼'}</span>${udCard(r.next, r.nextSuit || 0, 'flip bust')}</div>`;
+      } else if (r && r.cashed) {
+        board = `${udTrail(r.hist, (r.hist || []).length)}<p class="ud-cashed">✋ 연속 ${r.steps}번 · ×${r.mult} 에서 멈췄다</p>`;
+      } else board = `<div class="ud-main">${udBack('deck')}</div>`;
+      return `<div class="ud">${board}</div>
+        <div class="cs-row">${btn(r ? '다시 뽑는다' : '카드를 뽑는다', 'start', 'gold')}</div>
+        <p class="cs-note">A가 가장 낮고 K가 가장 높다. 같은 숫자가 나오면 진다. 한 번 맞히면 그때부터 언제든 멈추고 가져갈 수 있다.</p>`;
     }
     const o = C().ladderOdds(l.card);
     const pct = x => `${Math.round(x.p * 100)}%`;
     const cur = Math.floor(l.bet * l.mult);
-    const prev = l.steps ? `<span class="cs-arrow">←</span>${cardHtml(l.prev, l.steps - 1, 'small')}` : '';
-    return `<div class="cs-cards">${cardHtml(l.card, l.steps, 'flip')}${prev}</div>
-      <p class="cs-mult">배율 ×${l.mult} · 지금 가져가면 <b>${cur}G</b> <small>(판돈 ${l.bet}G)</small></p>
-      <div class="cs-row">
-        <button class="pbtn cs-play" data-act="cs-guess" data-id="hi" ${o.hi.p > 0 ? '' : 'disabled'}>더 높다 ×${o.hi.m} <small>${pct(o.hi)}</small></button>
-        <button class="pbtn cs-play" data-act="cs-guess" data-id="lo" ${o.lo.p > 0 ? '' : 'disabled'}>더 낮다 ×${o.lo.m} <small>${pct(o.lo)}</small></button>
-        <button class="pbtn gold" data-act="cs-cash" ${l.steps ? '' : 'disabled'}>가져간다 +${cur}G</button>
-      </div>`;
+    const payIf = x => Math.floor(l.bet * Math.round(l.mult * x.m * 100) / 100);
+    const fl = udFlash; udFlash = '';
+    const guess = (id, arrow, label, x) => `<button class="ud-btn ${id}" data-act="cs-guess" data-id="${id}" ${x.p > 0 ? '' : 'disabled'}>
+        <span class="ud-arrow">${arrow}</span><b>${label}</b><small>${x.p > 0 ? `${pct(x)} · 맞히면 ${payIf(x)}G` : '더는 없다'}</small></button>`;
+    return `<div class="ud">
+      ${udTrail(l.hist, (l.hist || []).length - 1)}
+      <div class="ud-main">${udCard(l.card, l.suit || 0, `flip ${fl}`)}<span class="ud-vs">?</span>${udBack('next')}</div>
+      <div class="ud-meter"><span>${l.steps ? `🔥 연속 ${l.steps}` : '첫 장'}</span><b>×${l.mult}</b><span>지금 멈추면 <em>${cur}G</em></span></div>
+      <div class="ud-btns">${guess('hi', '▲', '높다', o.hi)}${guess('lo', '▼', '낮다', o.lo)}</div>
+      <button class="pbtn gold ud-cash" data-act="cs-cash" ${l.steps ? '' : 'disabled'}>${l.steps ? `✋ 멈추고 ${cur}G 받기` : '한 번은 맞혀야 멈출 수 있다'}</button>
+    </div>`;
   }
+
 
   // ───── 결과 한 줄 ─────
   const SAY = {
@@ -283,7 +317,7 @@ WS.CasinoView = (() => {
     else if (r.game === 'shell' && !win) extra = ' 컵을 잘못 골랐다.';
     if (r.game === 'roul') extra = ` 구슬은 ${r.n}번 (${r.color === 'red' ? '빨강' : r.color === 'black' ? '검정' : '초록'}).`;
     if (r.game === 'ladder' && r.over) extra = ` ${RANK(r.from)} 다음은 ${RANK(r.next)}.`;
-    if (r.game === 'ladder' && r.cashed) extra = ` ${r.steps}번 맞히고 손을 뗐다 (×${r.mult}).`;
+    if (r.game === 'ladder' && r.cashed) extra = ` 연속 ${r.steps}번 맞히고 손을 뗐다 (×${r.mult}).`;
     return `<p class="cs-result ${win ? 'w' : r.net < 0 ? 'l' : ''}"><b>${money(r.net)}</b>${U.esc(extra)} ${U.esc(pickSay(win ? 'win' : 'lose'))}</p>`;
   }
   function record(r) {
@@ -309,8 +343,8 @@ WS.CasinoView = (() => {
         break;
       case 'cs-big': if (!c.bigCallDue()) return; big = { stage: 'intro' }; break;
       case 'cs-big-back': big = null; break;
-      case 'cs-big-end': big = null; isOn = false; break;
-      case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; intro = false; last = null; shell = null; break;
+      case 'cs-big-end': big = null; isOn = false; return 'next-day';
+      case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; intro = false; last = null; shell = null; return 'next-day'; // 도박장을 나서면 곧장 잠자리로 — 다음 날
       case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; intro = false; break;
       case 'cs-lobby': if (pending()) return; game = null; last = null; shell = null; break;
       case 'cs-chip': {
@@ -356,7 +390,7 @@ WS.CasinoView = (() => {
       case 'cs-guess': {
         const r = c.ladderGuess(id);
         if (!r) return;
-        if (r.over) record(r); else sfx('latch', 0.4);
+        if (r.over) record(r); else { udFlash = 'hit'; sfx('latch', 0.4); }
         break;
       }
       case 'cs-cash': { const r = c.ladderCash(); if (r) record(r); break; }

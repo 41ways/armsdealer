@@ -184,10 +184,57 @@
 
 /* 앉은 테이블 — 그 테이블 그림을 판 밑에 깔고, 홀 그림이 뒤에 비친다 */
 .casino:not(.cs-cine) { background: linear-gradient(rgba(14, 5, 9, .72), rgba(10, 3, 6, .9)), url(../assets/casino/lobby.jpg) center / cover no-repeat, #0c0508; }
-.cs-table.t-coin { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_coin.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
-.cs-table.t-shell { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_shell.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
-.cs-table.t-dice { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_dice.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
-.cs-table.t-roul { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_roul.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
-.cs-table.t-ladder { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_ladder.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
-.cs-table.t-vip { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_vip.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
 .cs-table { min-height: 260px; }
+
+/* 카드 업다운 */
+.ud { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.ud-main { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.ud-card { position: relative; width: 96px; height: 136px; border-radius: 10px; background: linear-gradient(160deg, #fffaf0, #efe2c4); color: #1c1a1e; border: 2px solid #3a2a1a;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, .55), inset 0 0 0 4px #fffaf0, inset 0 0 0 5px #c8a86a; font-family: Georgia, 'Nanum Myeongjo', serif; }
+.ud-card.red { color: #b0242a; }
+.ud-card > b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 54px; line-height: 1; }
+.ud-c1, .ud-c2 { position: absolute; display: flex; flex-direction: column; align-items: center; font-weight: 900; font-size: 20px; line-height: 1; }
+.ud-c1 i, .ud-c2 i { font-style: normal; font-size: 15px; }
+.ud-c1 { left: 8px; top: 8px; } .ud-c2 { right: 8px; bottom: 8px; transform: rotate(180deg); }
+.ud-card.back { background: url(../assets/casino/card_back.png) center / 100% 100% no-repeat; box-shadow: 0 8px 16px rgba(0, 0, 0, .55); image-rendering: pixelated; border: 0; }
+.ud-card.back.deck { box-shadow: 3px 3px 0 #2a0c14, 6px 6px 0 #4a1a26, 9px 9px 0 #2a0c14, 0 12px 20px rgba(0, 0, 0, .6); }
+.ud-card.back.next { animation: ud-bob 1.6s ease-in-out infinite; }
+@keyframes ud-bob { 50% { transform: translateY(-5px) rotate(1.5deg); } }
+.ud-card.flip { animation: ud-flip .45s ease-out; }
+@keyframes ud-flip { from { transform: rotateY(90deg) scale(.9); } to { transform: none; } }
+.ud-card.hit { box-shadow: 0 0 0 3px #ffe08a, 0 0 26px rgba(255, 224, 138, .8), inset 0 0 0 4px #fffaf0, inset 0 0 0 5px #c8a86a; }
+.ud-card.bust { box-shadow: 0 0 0 3px #ff5a44, 0 0 26px rgba(255, 90, 68, .7), inset 0 0 0 4px #fffaf0; filter: saturate(.8); }
+.ud-card.mini { width: 40px; height: 56px; border-radius: 5px; box-shadow: 0 3px 6px rgba(0, 0, 0, .5), inset 0 0 0 2px #fffaf0; }
+.ud-card.mini > b { font-size: 22px; } .ud-card.mini .ud-c1 { font-size: 11px; left: 4px; top: 3px; } .ud-card.mini .ud-c1 i { font-size: 9px; } .ud-card.mini .ud-c2 { display: none; }
+.ud-vs { font-size: 32px; font-weight: 900; color: #f0c766; text-shadow: 0 2px 0 #000; }
+.ud-vs.lose { color: #ff7a66; }
+.ud-trail { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center; opacity: .9; }
+.ud-step { font-style: normal; color: #ffe08a; font-weight: 900; }
+.ud-more { font-size: 12px; color: #cdb48a; margin-right: 4px; }
+.ud-meter { display: flex; align-items: baseline; gap: 14px; padding: 6px 14px; border-radius: 20px; background: rgba(0, 0, 0, .45); border: 1px solid #7a5a2a; font-size: 13px; color: #e6d3ae; }
+.ud-meter b { font-size: 24px; color: #ffe08a; }
+.ud-meter em { font-style: normal; font-weight: 700; color: #ffe08a; }
+.ud-btns { display: flex; gap: 10px; width: min(100%, 420px); }
+.ud-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border-radius: 8px; cursor: pointer; font: inherit; color: #fff4dc;
+  border: 2px solid #1a0a0e; box-shadow: 0 4px 0 #1a0a0e; transition: transform .08s; }
+.ud-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #1a0a0e; }
+.ud-btn.hi { background: linear-gradient(#3e6aa0, #274a78); }
+.ud-btn.lo { background: linear-gradient(#a8443a, #7a2a24); }
+.ud-btn:disabled { filter: grayscale(1) brightness(.6); cursor: default; }
+.ud-arrow { font-size: 22px; line-height: 1; }
+.ud-btn b { font-size: 17px; }
+.ud-btn small { font-size: 11.5px; opacity: .9; }
+.ud-cash { min-height: 44px; width: min(100%, 420px); }
+.ud-cashed { margin: 0; font-size: 14px; color: #ffe08a; }
+.ud-cash:not(:disabled) { background: linear-gradient(#f0c766, #c8902c); color: #23140a; border-color: #3d2508; }
+
+/* 야바위 — 자리를 바꾸는 두 컵이 서로를 뚫고 지나가지 않게 앞뒤로 호를 그린다 */
+.cs-slot { transition: left .32s ease-in-out; }
+.cs-slot.arc-front { z-index: 3; }
+.cs-slot.arc-back { z-index: 1; }
+.cs-slot.arc-front .cs-cup { animation: cs-arc-front .32s ease-in-out; }
+.cs-slot.arc-back .cs-cup { animation: cs-arc-back .32s ease-in-out; }
+@keyframes cs-arc-front { 50% { transform: translateY(14px) scale(1.1); } }
+@keyframes cs-arc-back { 50% { transform: translateY(-18px) scale(.86); filter: brightness(.7) drop-shadow(0 6px 5px rgba(0, 0, 0, .5)); } }
+.cs-slot.arc-front .cs-ball, .cs-slot.arc-back .cs-ball { opacity: 0; }
+.cs-table { background: radial-gradient(ellipse at 50% 40%, rgba(110, 30, 50, .92) 0%, rgba(58, 15, 28, .95) 70%), repeating-linear-gradient(45deg, rgba(0, 0, 0, .05) 0 2px, transparent 2px 5px); border-radius: 60px / 40px; border: 6px solid #5a3418; box-shadow: inset 0 0 0 2px #c8a86a, inset 0 0 40px rgba(0, 0, 0, .6), 0 10px 24px rgba(0, 0, 0, .6); }

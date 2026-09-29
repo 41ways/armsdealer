@@ -2333,7 +2333,9 @@ WS.UI = (() => {
     const finalLine = (st.finalNews || []).filter(n => n.big).map(n => n.text)[0] || null;
     const A = [bkB(`<div class="eb-eyebrow">DAY ${st.day} · 결말</div>`)]
       .concat(finalLine ? [bkB(`<p class="eb-final">— 그날 밤 · ${U.esc(finalLine)} —</p>`)] : [])
-      .concat([bkB(`<h1>${U.esc(e.title)}</h1>`), bkP(e.text, 'ending-text')]);
+      .concat([bkB(`<h1>${U.esc(e.title)}</h1>`), bkP(e.text, 'ending-text')])
+      // 인용구 (quote: { text, by }) — 본문과 한 줄 띄워 기울임꼴로
+      .concat(e.quote ? [bkB(`<p class="ending-text eb-quote"><i>“${U.esc(e.quote.text)}”</i><span>— ${U.esc(e.quote.by)}</span></p>`)] : []);
     const B = [];
     const lis = bigNews ? bigNews : (e.requires || []).map(r => cleanReq(r, others)).filter(Boolean);
     if (lis.length) B.push(bkB(`<h3>${bigNews ? '이 가게가 스쳐 간 사건들' : '이 결말의 조건'}</h3>`, true), ...lis.map(t => bkB(`<div class="eb-li">${bigNews ? '·' : '✓'} ${U.esc(t)}</div>`)));
@@ -3152,7 +3154,8 @@ WS.UI = (() => {
     if (!b || b.disabled) return;
     const D = WS.sys.Day;
     let act = b.dataset.act;
-    if (act.startsWith('cs-')) { WS.CasinoView.act(b); return; } // 지하 도박장 (js/ui/CasinoView.js)
+    // 지하 도박장 (js/ui/CasinoView.js) — 나서면 곧장 다음 날로 (next-day 흐름 그대로: 밤 손님 · 결말 포함)
+    if (act.startsWith('cs-')) { if (WS.CasinoView.act(b) !== 'next-day') return; act = 'next-day'; }
     if (act.startsWith('menu-')) { menuAct(b); return; }
     // 손님 버튼은 나타난 뒤 0.3초 동안 눌림 무시 / 거절은 꾹 눌러야만 실행 (holdRefuse)
     if (b.closest('.act-grid:not(.say-grid)') && barLocked()) return;

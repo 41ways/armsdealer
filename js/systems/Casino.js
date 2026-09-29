@@ -153,7 +153,7 @@ WS.sys.Casino = (() => {
     return settle('shell', p.bet, win ? p.bet * 2 : 0, { pick: cup, ball, cheated });
   }
 
-  // ───── 카드 사다리 — 카드 한 장(1~13)을 보고 다음 카드가 높은지 낮은지 맞힌다. 맞힐수록 배율이 쌓이고, 언제든 멈추고 가져간다. 같으면 진다 ─────
+  // ───── 카드 업다운 (id 는 예전 이름 ladder 그대로) — 카드 한 장(A=1 ~ K=13)을 보고 다음 카드가 높은지 낮은지 맞힌다. 맞힐수록 배율이 쌓이고, 언제든 멈추고 가져간다. 같으면 진다 ─────
   const EDGE = 0.94;
   function ladderOdds(card) {
     const pHi = (13 - card) / 13, pLo = (card - 1) / 13;
@@ -163,7 +163,8 @@ WS.sys.Casino = (() => {
   function ladderStart(bet) {
     if (!canBet(bet)) return null;
     stake('ladder', bet);
-    const l = { game: 'ladder', bet, card: 1 + ri(13), mult: 1, steps: 0 };
+    const l = { game: 'ladder', bet, card: 1 + ri(13), suit: ri(4), mult: 1, steps: 0 };
+    l.hist = [{ n: l.card, s: l.suit }];
     stats().pending = l;
     return l;
   }
@@ -172,10 +173,11 @@ WS.sys.Casino = (() => {
     if (!l || l.game !== 'ladder' || !['hi', 'lo'].includes(dir)) return null;
     const o = ladderOdds(l.card)[dir];
     if (!(o.p > 0)) return null;
-    const next = 1 + ri(13);
+    const next = 1 + ri(13), suit = ri(4);
     const win = dir === 'hi' ? next > l.card : next < l.card;
-    if (!win) return settle('ladder', l.bet, 0, { from: l.card, next, dir, steps: l.steps, over: true });
-    l.prev = l.card; l.card = next; l.mult = Math.round(l.mult * o.m * 100) / 100; l.steps++;
+    if (!win) return settle('ladder', l.bet, 0, { from: l.card, next, nextSuit: suit, dir, steps: l.steps, over: true, hist: (l.hist || []).slice() });
+    l.prev = l.card; l.card = next; l.suit = suit; l.mult = Math.round(l.mult * o.m * 100) / 100; l.steps++;
+    (l.hist = l.hist || []).push({ n: next, s: suit });
     const t = S().tele; if (t && l.steps > (t.cs_ladder_max || 0)) t.cs_ladder_max = l.steps;
     return { game: 'ladder', win: true, over: false, from: l.prev, next, dir, steps: l.steps, mult: l.mult };
   }
@@ -183,7 +185,7 @@ WS.sys.Casino = (() => {
     const l = stats().pending;
     if (!l || l.game !== 'ladder' || l.steps < 1) return null;
     T('cs_stop');
-    return settle('ladder', l.bet, Math.floor(l.bet * l.mult), { steps: l.steps, mult: l.mult, cashed: true });
+    return settle('ladder', l.bet, Math.floor(l.bet * l.mult), { steps: l.steps, mult: l.mult, cashed: true, hist: (l.hist || []).slice() });
   }
 
   function markVisit() {
