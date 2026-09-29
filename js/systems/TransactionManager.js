@@ -347,7 +347,7 @@ WS.sys.Trade = (() => {
       return;
     }
     record(c, ch.id, {});
-    finish(c, 'talked', say(ch.reply));
+    finish(c, 'talked', say(c.rollSay || ch.reply));
   }
 
   function availableChoices(c) {

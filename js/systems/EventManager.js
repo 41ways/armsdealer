@@ -87,6 +87,12 @@ WS.sys.Effects = (() => {
     if (eff.crowd && WS.sys.Calendar) WS.sys.Calendar.crowdAdd(eff.crowd);
     if (eff.market && WS.sys.Calendar) WS.sys.Calendar.marketAdd(eff.market);
     if (eff.disaster && WS.sys.Calendar) WS.sys.Calendar.strike();
+    // 확률 효과 — { chance: { p, win: {효과, say?}, lose: {효과, say?} } }. 결과 문장(say)은 손님의 마지막 대사가 된다 (Trade.choose)
+    if (eff.chance) [].concat(eff.chance).forEach(ch => {
+      const hit = Math.random() < ch.p, r = (hit ? ch.win : ch.lose) || {};
+      apply(r.effects, who);
+      if (who && r.say) who.rollSay = r.say;
+    });
     if (eff.if) [].concat(eff.if).forEach(b => apply(WS.sys.Conditions.check(b.when) ? b.then : b.else, who));
   }
 

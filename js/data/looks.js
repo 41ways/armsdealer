@@ -422,6 +422,11 @@ WS.data.looks = {
     helmet: 'turban', hatColor: '#e8dcc0', body: 'cloak', bodyColors: ['#b8883a', '#6a4a8a', '#3a6a6a'], mouth: 'smile',
   },
   // 이야기 손님 몇이 traveler 시트 하나에 몰려 다 같은 얼굴로 보이던 것을 나눈다 — 두건 없이 긴 머리, 수염 없음, 흙빛 옷
+  // 노름꾼 — 챙 넓은 모자에 번지르르한 조끼
+  gambler: {
+    skins: ['#e0a888', '#ecb894'], eyes: '#2a1a12', ears: 'human', beard: 'small', beardColors: ['#1a1210'],
+    helmet: 'widehat', hatColor: '#3a1a1a', body: 'noble', bodyColors: ['#6a1a2a', '#2a3a5a'], trim: '#e8c85a', mouth: 'grin',
+  },
   traveler_b: {
     skin: '#8a5a3a', eyes: '#3a2a1a', ears: 'human', hair: 'long', hairColor: '#2a1a14',
     helmet: 'none', body: 'tunic', bodyColor: '#5a4a34', mouth: 'plain',

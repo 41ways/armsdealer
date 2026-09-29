@@ -1,6 +1,6 @@
 // 게임 전역 설정과 세계 상태 변수 정의 (데이터)
 WS.data.config = {
-  version: 'v0.9.6',   // 우상단에 항상 표시 — 배포할 때 올린다
+  version: 'v0.9.7',   // 우상단에 항상 표시 — 배포할 때 올린다
   title: 'Next!',
   startGold: 300,
   rent: 20,
@@ -15,6 +15,7 @@ WS.data.config = {
   shopSlots: 25, // 창고 기본 칸 수. v0.9.4: 20 → 25 (부피 480 → 600). 9일째부터 손님이 늘어 아침마다 창고가 차서 못 들이는 날이 많았다 (design/qa_report_4.md)
   storageExpand: { steps: [{ cost: 250, slots: 10 }, { cost: 400, slots: 10 }, { cost: 600, slots: 10 }] }, // 창고 확장 3단계 (까마귀로 목수에게 의뢰): 단계마다 창고 10칸(부피 +240) — 최종 (25+30)칸 × 24 = 1320. v0.9.2: 300/500/700 → 250/400/600 (design/qa_report_4.md)
   slotVolume: 24, // 창고 한 칸의 부피. 물건 1개의 부피 = slotVolume ÷ stack (창고 용량 = shopSlots × slotVolume)
+  gamblerBets: 5, // 노름꾼의 내기(여섯 번 중)를 이만큼 이상 고르면 엔딩 gambler
   campaignDays: 30, // v0.9.3: 40 → 30일. 결말은 30일째 밤이 지난 뒤(= "31일째") 판정. 이야기 날짜는 아래 campaignPresets[30] 의 dayWarp 로 40일 눈금을 그대로 쓴다
   // 가닥 잡기(js/systems/Clash.js) 타이밍 손잡이. start~last 는 충돌이 열리는 실제 날짜 구간(기본 12~28),
   //   forceDay 는 "이날부터 한 번도 충돌에 못 나와 본 열린 줄기를 확 앞세운다"(끝물 몰아치기) 기준일 — 기본 26.
@@ -253,6 +254,8 @@ WS.data.config = {
 
 // min/max 생략 시 0~100
 WS.data.worldVars = {
+  gamble_bets:     { label: '도박 건 횟수', init: 0 }, // 노름꾼 카이 — 내기를 고른 횟수 (js/data/gambler.js). config.gamblerBets 번 이상이면 '마지막 한 판'
+  gamble_wins:     { label: '도박 딴 횟수', init: 0 },
   kingdom_power:   { label: '왕국 군사력', init: 30 },
   goblin_power:    { label: '고블린 군사력', init: 15 },
   dwarf_tech:      { label: '드워프 기술력', init: 10 },

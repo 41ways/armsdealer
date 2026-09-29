@@ -739,6 +739,72 @@
    "decline": [
     "neutral"
    ]
+  },
+  "gambler_1": {
+   "safe": [
+    "profit"
+   ],
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_2": {
+   "safe": [
+    "profit"
+   ],
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_3": {
+   "safe": [
+    "profit"
+   ],
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_4": {
+   "safe": [
+    "profit"
+   ],
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_5": {
+   "safe": [
+    "profit"
+   ],
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_6": {
+   "safe": [
+    "profit"
+   ],
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
   }
  }
 }
