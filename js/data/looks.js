@@ -432,6 +432,11 @@ WS.data.looks = {
     skins: ['#f0c8a8', '#e8b898'], eyes: '#2a1a12', ears: 'human', hair: 'long', hairColors: ['#1a1014', '#4a1a1a'],
     helmet: 'circlet', body: 'noble', bodyColors: ['#5a1a3a', '#2a2a4a'], trim: '#e8c85a', mouth: 'smile',
   },
+  // 왕실 조달청 서기 — 소매 깃이 닳은 남색 관복, 머리는 단정하게
+  clerk: {
+    skins: ['#e8c4a4', '#ddb896'], eyes: '#2a1a12', ears: 'human', hair: 'short', hairColors: ['#4a3422', '#2a1a14'],
+    helmet: 'cap', hatColor: '#2a3a5a', body: 'tunic', bodyColors: ['#2a3a5a', '#33445e'], trim: '#c8a850', mouth: 'plain',
+  },
   traveler_b: {
     skin: '#8a5a3a', eyes: '#3a2a1a', ears: 'human', hair: 'long', hairColor: '#2a1a14',
     helmet: 'none', body: 'tunic', bodyColor: '#5a4a34', mouth: 'plain',

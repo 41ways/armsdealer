@@ -279,6 +279,7 @@ WS.CasinoView = (() => {
   function afterRender() {
     const st = S();
     if (!st || !st.flags || st.replay || !st.flags.casino_open || st.flags.casino_notified !== undefined) return;
+    if (!['morning', 'prep', 'shop', 'closing', 'night'].includes(st.phase)) return; // 타이틀·결말 화면에서는 띄우지 않는다
     st.flags.casino_notified = st.day;
     const el = document.createElement('div');
     el.className = 'cs-notice';

@@ -14,7 +14,8 @@ WS.sys.Casino = (() => {
     return st.casino || (st.casino = { rounds: 0, wagered: 0, won: 0, lost: 0, best: 0, pending: null });
   };
   const open = () => !!(S().flags && S().flags.casino_open);
-  const available = () => open() && S().phase === 'closing';
+  // 오늘 밤 곧바로 결말로 가는 날(파산 · 압류 · 도박사 수락)에는 도박장에 갈 수 없다
+  const available = () => open() && S().phase === 'closing' && !S().flags.bankrupt && !(WS.sys.Day && WS.sys.Day.endNowLine && WS.sys.Day.endNowLine());
   const VIP_MIN = 200;
   const canBet = (bet, min = MIN_BET) => Number.isInteger(bet) && bet >= min && bet <= S().gold && !stats().pending;
   const clampBet = (n, min = MIN_BET) => Math.max(min, Math.min(Math.floor(Number(n) || 0), S().gold));

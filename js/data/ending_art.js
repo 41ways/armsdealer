@@ -414,5 +414,71 @@ WS.data.endingArt = {
   "thunder_age": {
     "title": "천둥의 시대",
     "thumb": "assets/ending/hires/thunder_age_thumb.png"
+  },
+  "gambler_ruin": {
+    "title": "패가망신",
+    "album": [
+      {
+        "file": "assets/ending/hires/gambler_ruin_album_1.jpg",
+        "caption": "문에 붙은 압류 딱지"
+      },
+      {
+        "file": "assets/ending/hires/gambler_ruin_album_2.jpg",
+        "caption": "비어 버린 금고"
+      },
+      {
+        "file": "assets/ending/hires/gambler_ruin_album_3.jpg",
+        "caption": "경매에 넘어간 진열대"
+      },
+      {
+        "file": "assets/ending/hires/gambler_ruin_album_4.jpg",
+        "caption": "카이는 아직 동전을 던지고 있다"
+      }
+    ],
+    "thumb": "assets/ending/hires/gambler_ruin_thumb.jpg"
+  },
+  "gambler_pro": {
+    "title": "도박사",
+    "album": [
+      {
+        "file": "assets/ending/hires/gambler_pro_album_1.jpg",
+        "caption": "내려가는 간판"
+      },
+      {
+        "file": "assets/ending/hires/gambler_pro_album_2.jpg",
+        "caption": "지분 절반의 계약서"
+      },
+      {
+        "file": "assets/ending/hires/gambler_pro_album_3.jpg",
+        "caption": "판을 벌이는 쪽"
+      },
+      {
+        "file": "assets/ending/hires/gambler_pro_album_4.jpg",
+        "caption": "낮이 없는 곳"
+      }
+    ],
+    "thumb": "assets/ending/hires/gambler_pro_thumb.jpg"
+  },
+  "gambler": {
+    "title": "마지막 한 판",
+    "album": [
+      {
+        "file": "assets/ending/hires/gambler_album_1.jpg",
+        "caption": "계산대 밑의 낡은 동전"
+      },
+      {
+        "file": "assets/ending/hires/gambler_album_2.jpg",
+        "caption": "모자를 벗은 카이"
+      },
+      {
+        "file": "assets/ending/hires/gambler_album_3.jpg",
+        "caption": "동전 가게"
+      },
+      {
+        "file": "assets/ending/hires/gambler_album_4.jpg",
+        "caption": "내일의 앞뒤"
+      }
+    ],
+    "thumb": "assets/ending/hires/gambler_thumb.jpg"
   }
 };

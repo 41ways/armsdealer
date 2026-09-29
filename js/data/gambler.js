@@ -45,7 +45,7 @@
   // casino_regular(세 판 이상 놀았다) → 그 상태에서 망하면 엔딩 gambler_ruin 「패가망신」 (endings.js · config.endNow)
   // casino_hooked (여섯 판 이상) → 마담 로자의 초대(VIP 룸) → 카이의 부탁 → 서기 에릭의 차용증 → 로자의 마지막 제안 → 받아들이면 그날 밤 엔딩 gambler_pro 「도박사」
   const MADAM = { look: 'madam', name: '마담 로자', race: '인간', job: '「검은 주사위」 주인', faction: 'traveler', portrait: '🎭', kind: 'talk' };
-  const CLERK = { look: 'guild_agent', name: '서기 에릭', race: '인간', job: '왕실 조달청 서기', faction: 'kingdom', portrait: '📜', kind: 'talk' };
+  const CLERK = { look: 'clerk', name: '서기 에릭', race: '인간', job: '왕실 조달청 서기', faction: 'kingdom', portrait: '📜', kind: 'talk' };
   C.push(
     {
       id: 'gm_madam', ...MADAM,

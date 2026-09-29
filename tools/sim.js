@@ -11,6 +11,8 @@
 //   --stockcap=N  무기 · 방어구 한 가지를 N개 넘게 들이지 않는다 (창고 칸이 아까워 적게 쌓는 버릇)
 //   --assort[=K]  지난 7일 두 번 넘게 찾은 물건은 하루 평균 요구량 × K(기본 1.5)를 늘 갖춰 둔다
 //   (품절로 놓친 손님 · 창고 찬 정도는 늘 센다: 9일째부터 새로 온 사러 온 손님 중 요구를 다 못 채운 비율. 약속하고 돌아와 채우면 놓친 게 아니다)
+//   --casino=F:R  카이의 내기 세 번 뒤 열린 지하 도박장에서 매일 밤 금고의 F(0~1) 비율씩 R 판 (동전·주사위·룰렛·카드사다리를 돌려 가며). --gamble=bet|safe|pass  카이의 내기는 늘 그렇게.
+//                 --pro=accept|decline  마담 로자의 초대·마지막 제안 (도박사의 길). 안 주면 다른 손님처럼 정책대로. 세 옵션 모두 기본은 꺼짐
 //   --loan=0  초보의 대출을 끈다 / --midday 초보가 영업 중에도 한 번 더 주문한다 (기본 꺼짐)
 //   --buffer  도매·매입 때 금고에 남길 (임대료+구독료) 일수 (기본 natural·kind 2, merchant 1.5)
 //   --dump=0  금고가 오늘 밤 임대료에 못 미칠 때 도매상에 처분하는 규칙을 끈다
@@ -92,6 +94,9 @@ function parseArgs(argv) {
     else if (k === 'set') o.set = JSON.parse(v);
     else if (k === 'midday') o.midday = v !== '0';
     else if (k === 'loan') o.loan = v !== '0';
+    else if (k === 'casino') { const [f, r] = v.split(':'); o.casino = { frac: +f, rounds: +(r || 3) }; }
+    else if (k === 'gamble') o.gamble = v;
+    else if (k === 'pro') o.pro = v;
     else if (k === 'stockcap') o.stockcap = +v;
     else if (k === 'assort') o.assort = v == null ? 1.5 : +v;
   }
@@ -175,7 +180,7 @@ function playRun(seed, opt) {
   const ctx = makeWorld(seed, opt.cfg, opt.set);
   const WS = ctx.WS;
   const rnd = mulberry32(seed ^ 0x9e3779b9); // 정책 쪽 무작위 (게임 난수와 따로)
-  const D = WS.sys.Day, T = WS.sys.Trade, Inv = WS.sys.Inventory, M = WS.sys.Market, L = WS.sys.Letters;
+  const D = WS.sys.Day, T = WS.sys.Trade, Inv = WS.sys.Inventory, M = WS.sys.Market, L = WS.sys.Letters, CS = WS.sys.Casino;
   const S = () => WS.Game.state;
   opt = fillDefaults({ ...opt });
   const TIER = opt.policy;
@@ -192,6 +197,10 @@ function playRun(seed, opt) {
   const pickOne = list => list[Math.floor(rnd() * list.length)];
   // 되돌릴 수 없는 선택(ch.confirm — 열쇠를 넘긴다 등)은 다른 게 없을 때만. 빚 수금원에게는 낼 수 있으면(오늘 밤 임대료를 남기고) 낸다
   const choosePolicy = (list, c) => {
+    // 도박꾼 카이 · 도박사의 길 — 옵션이 있을 때만 정책을 덮는다
+    if (c && opt.gamble && /^gambler_\d$/.test(c.tpl || '')) return list.find(ch => ch.id === opt.gamble) || list[0];
+    if (c && opt.pro && /^gm_madam/.test(c.tpl || '')) return list.find(ch => ch.id === opt.pro) || list[0];
+    if (c && opt.pro && c.tpl === 'gm_kai_broke') return list.find(ch => ch.id === 'lend') || list[0];
     if (list.some(ch => !ch.confirm)) list = list.filter(ch => !ch.confirm);
     // 금화를 내는 선택지로 오늘 밤 임대료·구독료를 못 내게 되면 고르지 않는다 (HUD 에 임대료가 늘 보인다) — 다른 게 있을 때만
     const gOf = ch => (ch.effects && typeof ch.effects.gold === 'number' ? ch.effects.gold : 0);
@@ -521,6 +530,18 @@ function playRun(seed, opt) {
     }
   }
 
+  // 지하 도박장 — 판돈은 금고의 opt.casino.frac (최소 10G). 게임은 돌려 가며 (동전 · 주사위 · 룰렛 · 카드 사다리(한 번 맞히면 멈춤))
+  function casinoNight() {
+    const c = opt.casino;
+    for (let i = 0; i < c.rounds && S().gold >= 10; i++) {
+      const bet = Math.max(10, Math.floor(S().gold * c.frac));
+      const g = (S().casino ? S().casino.rounds : 0) % 4;
+      if (g === 0) CS.coin(bet, 'heads');
+      else if (g === 1) CS.dice(bet, 'low');
+      else if (g === 2) CS.roulette(bet, 'red');
+      else if (CS.ladderStart(bet)) { const l = CS.stats().pending; const o = CS.ladderOdds(l.card); const r = CS.ladderGuess(o.hi.p >= o.lo.p ? 'hi' : 'lo'); if (!r.over) CS.ladderCash(); }
+    }
+  }
   function night() {
     if (!D.nightDue()) return;
     if (!D.startNight()) return;
@@ -557,6 +578,7 @@ function playRun(seed, opt) {
         if (BEG && opt.midday && i === 2) sinks(); // 초보는 영업 중에도 금고가 차면 곧장 주문한다
       }
       D.closeShop();
+      if (opt.casino && CS.available()) casinoNight();
       noteLow();
       res.sink += (st.today.paper || 0) + (st.today.guard || 0);
       if (SAMPLE_DAYS.includes(st.day)) { res.gold[st.day] = st.gold; (res.world = res.world || {})[st.day] = { ...st.world }; }
@@ -588,6 +610,7 @@ function playRun(seed, opt) {
     res.weave = Object.keys(st.weaveSeen || {});
     res.weaveNet = st.weaveNet || {};
     res.endFlags = Object.keys(st.flags);
+    res.casino = st.casino ? { rounds: st.casino.rounds, wagered: st.casino.wagered, won: st.casino.won, lost: st.casino.lost, open: st.flags.casino_open, regular: st.flags.casino_regular, hooked: st.flags.casino_hooked, vip: st.flags.vip_open, pro: st.flags.gambler_pro_accepted, endDay: st.day } : { open: st.flags.casino_open, endDay: st.day };
     if (!res.ending && !res.over60) res.noEnding = true;
     if (st.flags.bankrupt !== undefined) {
       res.bankruptDay = st.flags.bankrupt;
@@ -615,7 +638,7 @@ const pctl = (a, q) => { if (!a.length) return null; const s = a.slice().sort((x
 function summarize(runs, opt) {
   const n = runs.length;
   const mins = runs.filter(r => Number.isFinite(r.minGold)).map(r => r.minGold);
-  const bank = runs.filter(r => r.ending === 'bankrupt');
+  const bank = runs.filter(r => r.ending === 'bankrupt' || r.ending === 'gambler_ruin');
   const byCause = k => bank.filter(r => r.bankruptCause === k);
   const rentB = byCause('rent');
   const endings = {};
@@ -630,6 +653,12 @@ function summarize(runs, opt) {
     set: opt.set || null, n, policy: opt.policy, seed: opt.seed, paper: opt.paper, dump: opt.dump, buffer: opt.buffer, cfg: opt.cfg || null,
     bankrupt: bank.length, bankruptRate: bank.length / n, bankruptMedianDay: median(bank.map(r => r.bankruptDay)), bankruptByPeriod: bankDays,
     bankruptRent: rentB.length, bankruptRentMedianDay: median(rentB.map(r => r.bankruptDay)), bankruptSeized: byCause('seized').length, bankruptGuild: byCause('guild').length,
+    casinoSum: (() => {
+      const o = runs.filter(r => r.casino && r.casino.open !== undefined), pl = o.filter(r => r.casino.rounds);
+      return { open: o.length, regular: o.filter(r => r.casino.regular !== undefined).length, hooked: o.filter(r => r.casino.hooked !== undefined).length, vip: o.filter(r => r.casino.vip !== undefined).length,
+        pro: o.filter(r => r.casino.pro !== undefined).length, roundsMedian: median(pl.map(r => r.casino.rounds)), wageredMedian: median(pl.map(r => r.casino.wagered)),
+        netMedian: median(pl.map(r => r.casino.won - r.casino.lost)), endDayMedian: median(o.map(r => r.casino.endDay)) };
+    })(),
     gold, endings: Object.fromEntries(Object.entries(endings).sort((a, b) => b[1] - a[1])),
     exceptions: runs.filter(r => r.error).length, errors, noEnding: runs.filter(r => r.noEnding).length, over60: runs.filter(r => r.over60).length,
     stuckCustomers: runs.reduce((s, r) => s + r.stuck, 0),
@@ -697,6 +726,8 @@ function print(sum) {
     console.log(`  빈손으로 돌아감 ${pct(x.emptyRate)} · 주력 다섯(${x.top.join('/')}) 놓침 ${pct(x.topLostRate)} · 나머지(요청의 ${pct(x.tailShare)}) 놓침 ${pct(x.tailLostRate)}`);
     console.log(`창고(9일째~ 아침 도매 뒤): 평균 ${pct(x.fillMean)} 참 · 85% 넘는 날 ${pct(x.fill85)} · 자리 없어 못 산 날 ${pct(x.spaceBlockDays)}`); }
   console.log('플래그(판 수 / 그중 파산): ' + Object.entries(sum.marks).filter(([, v]) => v).map(([k, v]) => `${k} ${v}/${sum.markBankrupt[k]}`).join(', '));
+  { const cs = sum.casinoSum;
+    if (cs.open) console.log(`도박장: 열림 ${cs.open}/${sum.n} · 단골(3판) ${cs.regular} · 푹 빠짐(6판) ${cs.hooked} · VIP ${cs.vip} · 도박사 수락 ${cs.pro} · 판 수 중앙값 ${cs.roundsMedian} · 건 돈 중앙값 ${cs.wageredMedian}G · 순손익 중앙값 ${cs.netMedian}G · 끝난 날 중앙값 ${cs.endDayMedian}`); }
   console.log('엔딩: ' + Object.entries(sum.endings).map(([k, v]) => `${k} ${v}`).join(', '));
   { const g = sum.converge;
     console.log(`가닥(파산 뺀 판): 판 끝 동시 충족 결말 수 ${JSON.stringify(g.satisfied)} · 판당 충돌 수 ${JSON.stringify(g.clashes)} · 결말 고른 방식 ${JSON.stringify(g.why)}`); }

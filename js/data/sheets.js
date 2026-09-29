@@ -1335,5 +1335,50 @@ WS.data.sheets = {
       "angry",
       "surprised"
     ]
+  },
+  "gambler": {
+    "src": "assets/sprites/gambler.png",
+    "fw": 78,
+    "fh": 88,
+    "frames": [
+      "idle",
+      "breathe",
+      "blink",
+      "talk",
+      "talk2",
+      "happy",
+      "angry",
+      "surprised"
+    ]
+  },
+  "madam": {
+    "src": "assets/sprites/madam.png",
+    "fw": 78,
+    "fh": 82,
+    "frames": [
+      "idle",
+      "breathe",
+      "blink",
+      "talk",
+      "talk2",
+      "happy",
+      "angry",
+      "surprised"
+    ]
+  },
+  "clerk": {
+    "src": "assets/sprites/clerk.png",
+    "fw": 78,
+    "fh": 84,
+    "frames": [
+      "idle",
+      "breathe",
+      "blink",
+      "talk",
+      "talk2",
+      "happy",
+      "angry",
+      "surprised"
+    ]
   }
 };
