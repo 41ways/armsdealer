@@ -91,8 +91,8 @@
       { id: 'evade', label: '소문은 들었소만 직접 본 건 없소', reply: '소문이라. 그것도 단서이긴 하오. 또 들르겠소.', effects: { flags: ['casino_evaded'] } },
     ],
   });
-  // 「모른다」고 한 뒤 — 도박장에 가면 발각(한 번은 봐줌) → 마담의 부름 → 다시 가면 발각 → 감찰관이 밀고자가 따로 있었다고 알려 줌 → 엔딩 canary
-  //  (발각 장면은 js/ui/CasinoView.js · 조건은 js/systems/Casino.js raidDue)
+  // 「모른다」고 한 뒤 — 도박장에 가면 발각(한 번은 봐줌) → 마담의 부름 → 다시 가면 마담이 큰 판에 끼라고 부름 → 동전이 튕기는 동안 감찰관이 들이닥침 → 엔딩 gambling_end 「도박의 끝」
+  //  (발각·큰 판 장면은 js/ui/CasinoView.js · 조건은 js/systems/Casino.js raidDue / bigCallDue)
   C.push(
     {
       id: 'gm_madam_guard', ...MADAM,
@@ -102,16 +102,6 @@
       choices: [
         { id: 'go', label: '알겠소, 가 보겠소', reply: '그래야죠. 판은 당신을 기다려요.', effects: { flags: ['casino_guarded'] } },
         { id: 'quit', label: '…이제 발을 끊겠소', reply: '아쉽네요. 그래도 문은 열어 둘게요. …원하시면요.', effects: { flags: ['casino_quit'], vars: { integrity: 1 } } },
-      ],
-    },
-    {
-      id: 'gm_inspector_canary', look: 'inspector_theo', name: '감찰관 마크', race: '인간', job: '왕국 감찰관', faction: 'kingdom', portrait: '🕵️', kind: 'talk',
-      spawn: { when: { all: [{ flag: 'casino_caught2' }, { since: { flag: 'casino_caught2', days: 1 } }] }, pinned: true },
-      ask: { tag: '밀고', note: '도박장이 두 번 들킨 까닭' },
-      greet: '당신이 운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도 다른 이들은 아니었소. 어젯밤 단속 전에 제보서 세 장이 내 책상에 있었소. 이웃 상인의 필체 한 장, 도박장 딜러 한 장, 당신 단골 손님 한 장. 우리 감찰청은 이런 사람들을 카나리아라 부르오. 광산의 새처럼 가장 먼저 노래하니까.',
-      choices: [
-        { id: 'who', label: '누가 그런 짓을 했단 말이오', reply: '이름은 밝힐 수 없소. 다만 당신이 등을 돌린 사람들만은 아니었소. 당신이 잘 대해 준 사람도 있었소.', effects: { flags: ['casino_canary'] } },
-        { id: 'silent', label: '…(입을 다문다)', reply: '그래, 당신은 끝내 노래하지 않았소. 그게 당신을 지켜 주진 못했소만.', effects: { flags: ['casino_canary'] } },
       ],
     },
   );

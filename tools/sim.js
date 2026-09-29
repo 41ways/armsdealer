@@ -12,7 +12,7 @@
 //   --assort[=K]  지난 7일 두 번 넘게 찾은 물건은 하루 평균 요구량 × K(기본 1.5)를 늘 갖춰 둔다
 //   (품절로 놓친 손님 · 창고 찬 정도는 늘 센다: 9일째부터 새로 온 사러 온 손님 중 요구를 다 못 채운 비율. 약속하고 돌아와 채우면 놓친 게 아니다)
 //   --casino=F:R  카이의 내기 세 번 뒤 열린 지하 도박장에서 매일 밤 금고의 F(0~1) 비율씩 R 판 (동전·주사위·룰렛·카드사다리를 돌려 가며). --gamble=bet|safe|pass  카이의 내기는 늘 그렇게.
-//                 --inspector=deny|report|evade  감찰관 마크의 도박 탐문 (deny 면 두 번 발각 → 엔딩 canary)
+//                 --inspector=deny|report|evade  감찰관 마크의 도박 탐문 (deny 면 첫 발각 → 큰 판 → 체포, 엔딩 gambling_end)
 //                 --pro=accept|decline  마담 로자의 초대·마지막 제안 (도박사의 길). 안 주면 다른 손님처럼 정책대로. 세 옵션 모두 기본은 꺼짐
 //   --loan=0  초보의 대출을 끈다 / --midday 초보가 영업 중에도 한 번 더 주문한다 (기본 꺼짐)
 //   --buffer  도매·매입 때 금고에 남길 (임대료+구독료) 일수 (기본 natural·kind 2, merchant 1.5)
@@ -537,6 +537,7 @@ function playRun(seed, opt) {
   // 지하 도박장 — 판돈은 금고의 opt.casino.frac (최소 10G). 게임은 돌려 가며 (동전 · 주사위 · 룰렛 · 카드 사다리(한 번 맞히면 멈춤))
   function casinoNight() {
     if (CS.raidDue()) { CS.raid(); return; } // 모른다고 한 뒤 도박장에 가면 단속
+    if (CS.bigCallDue()) { CS.bigStart('heads'); return; } // 마담의 큰 판 → 체포
     CS.markVisit();
     const c = opt.casino;
     for (let i = 0; i < c.rounds && S().gold >= 10; i++) {

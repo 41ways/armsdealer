@@ -481,8 +481,8 @@ WS.data.endingArt = {
     ],
     "thumb": "assets/ending/hires/gambler_thumb.jpg"
   },
-  "canary": {
-    "title": "카나리아",
+  "gambling_end": {
+    "title": "도박의 끝",
     "album": [
       {
         "file": "assets/ending/hires/canary_album_1.jpg",

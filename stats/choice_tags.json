@@ -873,14 +873,6 @@
    "quit": [
     "honest"
    ]
-  },
-  "gm_inspector_canary": {
-   "who": [
-    "neutral"
-   ],
-   "silent": [
-    "neutral"
-   ]
   }
  }
 }

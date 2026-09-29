@@ -16,18 +16,20 @@ WS.sys.Casino = (() => {
   const open = () => !!(S().flags && S().flags.casino_open);
   // 오늘 밤 곧바로 결말로 가는 날(파산 · 압류 · 도박사 수락)에는 도박장에 갈 수 없다
   // ── 감찰관에게 "모른다"고 한 뒤 (flags.casino_denied — js/data/gambler.js gm_inspector) ──
-  // 첫 발각(casino_caught1)은 봐준다 → 이튿날 마담 로자가 "경비와 종을 세웠다"고 부른다(casino_guarded) → 다시 가면 두 번째 발각(casino_caught2)
-  // → 감찰관이 "다른 이들이 밀고했다"고 알려 준다 (gm_inspector_canary → casino_canary → 엔딩 canary)
+  // 첫 발각(casino_caught1)은 봐준다 → 이튿날 마담 로자가 "경비와 종을 세웠다"고 부른다(casino_guarded) → 다시 가면 마담이 「큰 판」에 끼라고 부른다(bigCallDue)
+  // → 동전 던지기 도중 감찰관이 들이닥친다 (casino_arrested → 엔딩 gambling_end 「도박의 끝」)
   const raidDue = () => {
     const f = S().flags;
-    if (f.casino_denied !== undefined && f.casino_caught1 === undefined) return 1;
-    if (f.casino_caught1 !== undefined && f.casino_guarded !== undefined && f.casino_caught2 === undefined) return 2;
-    return 0;
+    return f.casino_denied !== undefined && f.casino_caught1 === undefined ? 1 : 0;
   };
-  // 문이 닫혀 있다: 첫 발각 뒤 마담의 부름이 있기 전 · 두 번째 발각 뒤 · 마담에게 발을 끊겠다고 한 뒤
+  const bigCallDue = () => {
+    const f = S().flags;
+    return f.casino_guarded !== undefined && f.casino_arrested === undefined && f.casino_quit === undefined;
+  };
+  // 문이 닫혀 있다: 첫 발각 뒤 마담의 부름이 있기 전 · 체포된 뒤 · 마담에게 발을 끊겠다고 한 뒤
   const shut = () => {
     const f = S().flags;
-    return (f.casino_caught1 !== undefined && f.casino_guarded === undefined) || f.casino_caught2 !== undefined || f.casino_quit !== undefined;
+    return (f.casino_caught1 !== undefined && f.casino_guarded === undefined) || f.casino_arrested !== undefined || f.casino_quit !== undefined;
   };
   function raid() {
     const n = raidDue();
@@ -36,6 +38,14 @@ WS.sys.Casino = (() => {
     T('cs_raid');
     if (WS.sys.Save) WS.sys.Save.autosave();
     return n;
+  }
+  // 큰 판 — 앞뒤를 고르고 동전을 던지는 순간 체포된다. 결과(승패)는 끝내 정해지지 않는다. 던지기 전에 플래그를 켜 두어 새로 불러와도 결말로 간다
+  function bigStart(face) {
+    if (!bigCallDue() || !['heads', 'tails'].includes(face)) return false;
+    S().flags.casino_arrested = S().day;
+    T('cs_bigplay');
+    if (WS.sys.Save) WS.sys.Save.autosave();
+    return true;
   }
   const available = () => open() && !shut() && S().phase === 'closing' && !S().flags.bankrupt && !(WS.sys.Day && WS.sys.Day.endNowLine && WS.sys.Day.endNowLine());
   const VIP_MIN = 200;
@@ -191,5 +201,5 @@ WS.sys.Casino = (() => {
     return first;
   }
 
-  return { MIN_BET, VIP_MIN, vipOpen, vip, open, shut, raidDue, raid, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
+  return { MIN_BET, VIP_MIN, vipOpen, vip, open, shut, raidDue, raid, bigCallDue, bigStart, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
 })();

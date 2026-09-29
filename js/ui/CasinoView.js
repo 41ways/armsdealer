@@ -5,7 +5,7 @@ WS.CasinoView = (() => {
   const C = () => WS.sys.Casino;
   const S = () => WS.Game.state;
   let host = { render() {}, hud: () => '' };
-  let isOn = false, ctx = null, raidN = 0, game = null, bet = 50, last = null, intro = false, shell = null;
+  let isOn = false, ctx = null, raidN = 0, big = null, game = null, bet = 50, last = null, intro = false, shell = null;
   let log = [];
 
   const GAMES = [
@@ -30,7 +30,7 @@ WS.CasinoView = (() => {
     document.addEventListener('input', e => { if (e.target && e.target.id === 'cs-bet') bet = Number(e.target.value) || 0; });
   }
   // 열어 둔 판(state)·날이 바뀌면 저절로 닫힌다 — 새 판·다음 날에 도박장이 남아 있지 않게
-  const on = () => isOn && !!ctx && ctx.st === S() && ctx.day === S().day && (!!raidN || C().available());
+  const on = () => isOn && !!ctx && ctx.st === S() && ctx.day === S().day && (!!raidN || !!big || C().available());
 
   // ───────── 화면 ─────────
   // ───── 단속 — 감찰관에게 모른다고 한 뒤 도박장에 가면 (Casino.raidDue) ─────
@@ -39,11 +39,6 @@ WS.CasinoView = (() => {
       narr: '지하 도박장의 문이 걷어차여 열린다. 딜러가 판을 엎고, 손님들이 벽을 타고 흩어진다. 촛불 사이로 감찰관 마크가 걸어 들어온다.',
       who: '감찰관 마크',
       line: '“…밤엔 문 닫고 자서 모른다더니, 자네였군.” (한숨을 쉰다) “이번 한 번은 못 본 걸로 해 주겠소. 다음엔 없소.”',
-    },
-    2: {
-      narr: '종이 울리기도 전에 문이 열렸다. 문간의 경비 둘은 이미 손이 묶여 있고, 탁자 위의 동전이 바닥으로 쏟아진다.',
-      who: '감찰관 마크',
-      line: '“종도 경비도 소용없었소. 두 번은 내가 봐줄 수 없소.” (수첩을 덮는다) “내일 가게에서 보겠소.”',
     },
   };
   function raidView() {
@@ -56,8 +51,49 @@ WS.CasinoView = (() => {
     </div>${host.hud()}`;
   }
 
+  // ───── 큰 판 — 마담의 부름(Casino.bigCallDue). 동전이 튕기는 동안 감찰관이 들이닥친다 (Casino.bigStart → 엔딩 「도박의 끝」) ─────
+  function bigView() {
+    const b = big;
+    if (b.stage === 'intro') {
+      return `<div class="casino cs-big">
+        <div class="cs-banner cs-big-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>큰 판</h2></div>
+        <p class="cs-narr">홀 한가운데 금화가 산처럼 쌓인 탁자가 놓였다. 손님들이 숨을 죽이고 둘러서 있고, 딜러의 손이 떨린다. 마담 로자가 낮게 말한다. 「판돈은 당신의 전부예요. 한 번 던져서, 끝내요.」</p>
+        <p class="cs-sys">승리하면 승리 엔딩, 패배하면 패배 엔딩으로 이어집니다.</p>
+        <div class="cs-coin big idle">?</div>
+        <div class="cs-row">${btn('앞면', 'heads', 'gold')}${btn('뒷면', 'tails', 'gold')}</div>
+        <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-back">…아직 이르다</button></div>
+      </div>${host.hud()}`;
+    }
+    if (b.stage === 'toss') {
+      return `<div class="casino cs-big tossing">
+        <div class="cs-bigstage"><div class="cs-coin big air">${b.face === 'heads' ? '앞' : '뒤'}</div></div>
+        <p class="cs-narr cs-center">동전이 허공으로 튕긴다…</p>
+      </div>${host.hud()}`;
+    }
+    if (b.stage === 'burst') {
+      return `<div class="casino cs-big burst">
+        <div class="cs-bigstage"><div class="cs-coin big air frozen">${b.face === 'heads' ? '앞' : '뒤'}</div></div>
+        <p class="cs-slam">쾅!</p>
+      </div>${host.hud()}`;
+    }
+    return `<div class="casino cs-big arrest">
+      <div class="cs-banner cs-raid-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>현행범 <small>체포</small></h2></div>
+      <p class="cs-narr">문이 부서지듯 열리고 감찰청 병사들이 홀을 채운다. 동전은 허공에 뜬 채, 아무도 그것을 보지 않는다.</p>
+      <p class="cs-say"><b>감찰관 마크</b>“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “당신이 운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도 다른 이들은 아니었소.”</p>
+      <p class="cs-narr">동전은 끝내 바닥에 닿지 않았다.</p>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-end">끌려간다</button></div>
+    </div>${host.hud()}`;
+  }
+  function bigRun(face) {
+    const b = big = { stage: 'toss', face };
+    sfx('latch', 0.5);
+    setTimeout(() => { if (big !== b) return; b.stage = 'burst'; sfx('door_open', 0.9); sfx('blade', 0.6); host.render(); }, 2300);
+    setTimeout(() => { if (big !== b) return; b.stage = 'arrest'; host.render(); }, 3500);
+  }
+
   function html() {
     if (raidN) return raidView();
+    if (big) return bigView();
     const st = S(), c = C(), p = pending();
     if (p && p.game === 'shell' && !shell) shell = { bet: p.bet, ball: p.ball, swaps: p.swaps, slot: [0, 1, 2], phase: 'pick', res: null }; // 새로 불러온 판 — 섞는 건 못 봤다
     if (!p && shell && !shell.res) shell = null;
@@ -88,6 +124,7 @@ WS.CasinoView = (() => {
   function lobby() {
     const st = S(), c = C();
     const rent = WS.sys.Day.rent();
+    const call = c.bigCallDue();
     const cards = GAMES.map(g => {
       const locked = g.vip && !c.vipOpen();
       const min = g.vip ? c.VIP_MIN : c.MIN_BET;
@@ -98,9 +135,10 @@ WS.CasinoView = (() => {
     return `<div class="casino cs-lobby">
       <div class="cs-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>검은 주사위 <small>지하 도박장</small></h2></div>
       <div class="cs-purse cs-purse-l"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div>
-      ${intro ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
+      ${intro && !call ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
+      ${call ? '<p class="cs-door">홀 안쪽에서 마담 로자가 손짓한다. “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”</p>' : ''}
       <p class="cs-ask">어느 테이블에 앉겠소?</p>
-      <div class="cs-tcards">${cards}</div>
+      <div class="cs-tcards">${call ? `<button class="cs-tcard vip bigcall" data-act="cs-big"><span class="cs-timg"><i>🎭</i></span><b>큰 판 · 마담의 부름</b><small>홀 한가운데의 특별한 판</small><em>판돈은 전부</em></button>` : ''}${cards}</div>
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다</button></div>
     </div>${host.hud()}`;
   }
@@ -249,6 +287,9 @@ WS.CasinoView = (() => {
         raidN = c.raidDue() ? c.raid() : 0; // 감찰관에게 모른다고 했다면 단속에 걸린다
         if (raidN) { sfx('door_open', 0.7); sfx('blade', 0.4); intro = false; } else intro = c.markVisit();
         break;
+      case 'cs-big': if (!c.bigCallDue()) return; big = { stage: 'intro' }; break;
+      case 'cs-big-back': big = null; break;
+      case 'cs-big-end': big = null; isOn = false; break;
       case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; intro = false; last = null; shell = null; break;
       case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; intro = false; break;
       case 'cs-lobby': if (pending()) return; game = null; last = null; shell = null; break;
@@ -259,6 +300,7 @@ WS.CasinoView = (() => {
         break;
       }
       case 'cs-play': {
+        if (big && big.stage === 'intro') { if (c.bigStart(id)) { bigRun(id); host.render(); } return; }
         intro = false;
         bet = readBet();
         if (!bet) return;
