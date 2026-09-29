@@ -41,44 +41,9 @@
     });
   });
 
-  // ───────── 도박사의 길 — 지하 도박장이 열린 뒤 (js/systems/Casino.js 가 플래그를 켠다) ─────────
-  // casino_regular(세 판 이상 놀았다) → 그 상태에서 망하면 엔딩 gambler_ruin 「패가망신」 (endings.js · config.endNow)
-  // casino_hooked (여섯 판 이상) → 마담 로자의 초대(VIP 룸) → 카이의 부탁 → 서기 에릭의 차용증 → 로자의 마지막 제안 → 받아들이면 그날 밤 엔딩 gambler_pro 「도박사」
+  // ───────── 지하 도박장이 열린 뒤 (js/systems/Casino.js 가 플래그를 켠다) ─────────
+  // casino_regular(세 판 이상) 상태에서 망하면 엔딩 gambler_ruin 「패가망신」 · casino_hooked(여섯 판 이상)면 VIP 룸 문이 열린다
   const MADAM = { look: 'madam', name: '마담 로자', race: '인간', job: '「검은 주사위」 주인', faction: 'traveler', portrait: '🎭', kind: 'talk' };
-  const CLERK = { look: 'clerk', name: '서기 에릭', race: '인간', job: '왕실 조달청 서기', faction: 'kingdom', portrait: '📜', kind: 'talk' };
-  C.push(
-    {
-      id: 'gm_madam', ...MADAM,
-      spawn: { when: { all: [{ flag: 'casino_hooked' }, { realDay: { gte: 13 } }] }, pinned: true },
-      ask: { tag: '초대장', note: '위층 VIP 룸' },
-      greet: '아래층에서 당신 손을 지켜봤어요. 판돈을 밀 때 눈빛이 변하더군요. 위층 방 초대장을 가져왔어요. 앉겠어요?',
-      choices: [
-        { id: 'accept', label: '초대를 받는다', reply: '좋아요. 오늘 밤부터 위층 문이 열려 있을 거예요. 판돈은 아래층의 두 배부터예요.', effects: { flags: ['vip_open'] } },
-        { id: 'decline', label: '나는 장사꾼이오', reply: '쳇. …문은 열어 둘게요. 마음이 바뀌면 오세요.', effects: { flags: ['vip_declined'], vars: { integrity: 1 } } },
-      ],
-    },
-    {
-      id: 'gm_kai_broke', ...KAI,
-      spawn: { when: { all: [{ flag: 'vip_open' }, { since: { flag: 'vip_open', days: 2 } }] }, pinned: true },
-      ask: { tag: '부탁', gold: -100, note: '노름꾼 카이가 빌려 달라 함' },
-      greet: '…털렸소. 위층에서 마지막 한 푼까지. 100G만 빌려주시오. 다음 판에 반드시 갚겠소. 정말이오.',
-      choices: [
-        { id: 'lend', label: '100G를 빌려준다', when: { gold: { gte: 100 } }, reply: '고맙소… 자네는 나 같은 놈 되지 마시오. 이건 진심이오.', effects: { gold: -100, flags: ['kai_lent', 'pro_v2'] } },
-        { id: 'refuse', label: '더는 못 빌려준다', reply: '…그렇겠지. 나라도 안 빌려주지. 동전 값은 내가 알아서 하겠소.', effects: { flags: ['kai_refused', 'pro_v2'] } },
-      ],
-    },
-    {
-      id: 'gm_clerk', ...CLERK,
-      spawn: { when: { all: [{ flag: 'vip_open' }, { customerSeen: 'gm_kai_broke' }, { flag: 'pro_v2' }, { since: { flag: 'pro_v2', days: 2 } }] }, pinned: true },
-      ask: { tag: '차용증', gold: 250, note: '조달청 공금으로 건 판돈' },
-      greet: '어젯밤 위층에서 당신께 250G를 잃은 사람입니다. …제 돈이 아닙니다. 조달청 금고 돈입니다. 차용증을 물러 주십시오. 사흘 뒤 감사가 옵니다.',
-      choices: [
-        { id: 'forgive', label: '차용증을 찢는다', reply: '…감사합니다. 이 은혜는 잊지 않겠습니다. 다시는 그 계단을 내려가지 않겠습니다.', effects: { flags: ['pro_mercy', 'pro_v3'], vars: { reputation: 1 } } },
-        { id: 'collect', label: '판은 판이오. 갚으시오', reply: '(품에서 봉투를 꺼내 놓는다) …여기 250G입니다. 저는 이제 끝났군요.', effects: { gold: 250, flags: ['pro_cruel', 'pro_v3'], vars: { integrity: -1 } } },
-        { id: 'report', label: '감찰관에게 알린다', reply: '…그러시군요. 옳은 일을 하시는 겁니다. 제가 가서 자수하겠습니다.', effects: { flags: ['pro_reported', 'pro_v3'], vars: { rel_kingdom: 2, integrity: 1 } } },
-      ],
-    },
-  );
   // 감찰관의 탐문 — 도박장을 사흘 넘게(서로 다른 사흘) 찾은 다음 날 (flags.casino_days3). 도박 엔딩은 이 답을 보고 이을 것
   C.push({
     id: 'gm_inspector', look: 'inspector_theo', name: '감찰관 마크', race: '인간', job: '왕국 감찰관', faction: 'kingdom', portrait: '🕵️', kind: 'talk',
@@ -104,22 +69,5 @@
         { id: 'quit', label: '…이제 발을 끊겠소', reply: '아쉽네요. 그래도 문은 열어 둘게요. …원하시면요.', effects: { flags: ['casino_quit'], vars: { integrity: 1 } } },
       ],
     },
-  );
-  // 마지막 제안 — 한 번 거절하면 사흘 뒤 한 번 더 온다
-  const offer = (id, prev, greet) => ({
-    id, ...MADAM,
-    spawn: { when: { all: prev }, pinned: true },
-    ask: { tag: '마지막 제안', note: '가게를 접고 지하로' },
-    greet,
-    choices: [
-      { id: 'accept', label: '가게를 접고 내려간다', confirm: '정말 내려간다 — 가게 문을 닫고 이야기가 끝난다', reply: '현명해요. 계약서는 위층에 준비돼 있어요. 오늘 밤부터 당신도 판을 벌이는 쪽이에요.', effects: { flags: ['gambler_pro_accepted'] } },
-      { id: 'decline', label: '아직은 칼이 좋소', reply: '…그래요. 하지만 손은 이미 판 위에 있어요. 마음이 바뀌면 부르세요.', effects: { flags: ['pro_declined'] } },
-    ],
-  });
-  C.push(
-    offer('gm_madam_final', [{ flag: 'vip_open' }, { customerSeen: 'gm_clerk' }, { flag: 'pro_v3' }, { since: { flag: 'pro_v3', days: 2 } }, { realDay: { gte: 17 } }],
-      '위층 방이 당신 없이는 심심해졌어요. 그래서 제안이에요. 도박장 절반을 당신 이름으로 올리겠어요. 대신 낮의 칼 장사는 접고 아래로 내려와요. 이쪽이 벌이도 낫잖아요?'),
-    offer('gm_madam_final2', [{ customerSeen: 'gm_madam_final' }, { flag: 'pro_declined' }, { since: { flag: 'pro_declined', days: 3 } }, { noFlag: 'gambler_pro_accepted' }, { realDay: { lte: 27 } }],
-      '한 번 더 물어볼게요. 절반은 아직 당신 몫이에요. 칼은 언제든 다른 사람이 팔지만, 그 자리에 앉을 손은 흔치 않아요.'),
   );
 })();

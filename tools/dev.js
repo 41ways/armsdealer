@@ -81,13 +81,9 @@
     ['도박장', [
       { t: '카이 세 번째 내기 (해금 연출)', d: '내기를 세 번째로 고르면 알림창 + 카이의 초대 대사', day: 12, gold: 800, vars: { gamble_bets: 2 }, spawn: ['gambler_3'] },
       { t: '도박장 열림 (마감 화면)', d: '「🎲 지하 도박장」 → 로비 → 테이블 6종 (VIP 는 잠김)', day: 13, gold: 1500, flags: OPEN, closing: true },
-      { t: '도박장 · VIP 열림 (마감 화면)', d: '황금 동전 테이블(최소 200G)이 열려 있다', day: 16, gold: 2500, flags: [...REG, 'vip_open'], closing: true },
+      { t: '도박장 · VIP 열림 (마감 화면)', d: '여섯 판 넘게 놀아 안쪽 금장식 문(VIP)이 열린 상태', day: 16, gold: 2500, flags: [...REG, 'vip_open'], closing: true },
     ]],
-    ['도박사의 길 (VIP 초대 → 마지막 제안)', [
-      { t: '① 마담 로자의 VIP 초대', d: '받는다 / 나는 장사꾼이오', day: 14, gold: 1500, flags: REG, spawn: ['gm_madam'] },
-      { t: '② 카이의 부탁 (100G)', d: '빌려준다 / 거절', day: 16, gold: 1500, flags: [...REG, 'vip_open'], spawn: ['gm_kai_broke'] },
-      { t: '③ 서기 에릭의 차용증', d: '찢는다 / 받아낸다 / 감찰관에게 알린다', day: 18, gold: 1500, flags: [...REG, 'vip_open', 'pro_v2'], spawn: ['gm_clerk'] },
-      { t: '④ 마담의 마지막 제안 → 도박사 엔딩', d: '받아들이면 그날 밤 「도박사」', day: 20, gold: 1500, flags: [...REG, 'vip_open', 'pro_v3', 'kai_lent'], spawn: ['gm_madam_final'] },
+    ['도박에 빠지면', [
       { t: '패가망신 (금고 0 → 영업 종료)', d: '단골(3판) 이후 망함 → 「패가망신」', day: 18, gold: 0, flags: [...OPEN, 'casino_regular'], closing: true, goldBeforeClose: true },
     ]],
     ['감찰관 갈래 (모른다 → 큰 판 → 도박의 끝)', [

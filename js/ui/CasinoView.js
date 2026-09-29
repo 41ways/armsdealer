@@ -38,7 +38,7 @@ WS.CasinoView = (() => {
   const ART = {
     raid: 'assets/ending/hires/canary_album_1.jpg',   // 걷어차인 문
     bell: 'assets/ending/hires/canary_album_3.jpg',   // 울리지 않은 종 · 묶인 경비
-    big: 'assets/ending/hires/gambler_pro_album_3.jpg', // 홀 한가운데 판을 둘러싼 손님들
+    big: 'assets/casino/bigtable.jpg', // 홀 한가운데 판을 둘러싼 손님들
   };
   const scene = (src, cls, inner = '') => `<div class="cs-scene ${cls || ''}"><img src="${src}" alt="" draggable="false" onerror="this.remove()">${inner}</div>`;
 
@@ -146,7 +146,7 @@ WS.CasinoView = (() => {
       const g = GAMES.find(x => x.id === id);
       const locked = g.vip && !c.vipOpen();
       const min = g.vip ? c.VIP_MIN : c.MIN_BET;
-      if (locked) return `<div class="spot locked cs-spot" style="${pos(l, t, w, h)}" title="초청장이 있어야 들어간다"><span class="spot-label">🔒 VIP 룸</span></div>`;
+      if (locked) return `<div class="spot locked cs-spot" style="${pos(l, t, w, h)}" title="도박장에서 여섯 판 넘게 놀면 열린다"><span class="spot-label">🔒 VIP 룸</span></div>`;
       return `<button class="spot cs-spot ${g.vip ? 'vip' : ''}" data-act="cs-game" data-id="${id}" style="${pos(l, t, w, h)}" title="${U.esc(g.hint)}">
         <span class="spot-label">${g.icon} ${g.vip ? 'VIP 룸' : U.esc(g.name)}</span><i class="spot-badge">${min}G~</i></button>`;
     }).join('');

@@ -60,10 +60,10 @@ WS.sys.Casino = (() => {
     S().gold -= bet;
     c.rounds++; c.wagered += bet;
     T('cs_rounds'); T('cs_wager', bet); T('cs_g_' + game);
-    // 단골(3판) · 푹 빠짐(6판) — 패가망신 엔딩과 도박사의 길(js/data/gambler.js)이 이 플래그를 본다
+    // 단골(3판) · 푹 빠짐(6판) — 패가망신 엔딩과 VIP 룸이 이 플래그를 본다
     const f = S().flags;
     if (c.rounds >= 3 && f.casino_regular === undefined) f.casino_regular = S().day;
-    if (c.rounds >= 6 && f.casino_hooked === undefined) f.casino_hooked = S().day;
+    if (c.rounds >= 6 && f.casino_hooked === undefined) { f.casino_hooked = S().day; f.vip_open = S().day; } // 푹 빠지면 안쪽 VIP 룸 문이 열린다
     if (bet > (c.maxBet || 0)) { c.maxBet = bet; }
   }
   // 판이 끝나 payout(돌려받는 총액, 0 이면 잃음)을 정산한다
@@ -86,7 +86,7 @@ WS.sys.Casino = (() => {
     return settle('coin', bet, win ? bet * 2 : 0, { face, pick: side });
   }
 
-  // ───── VIP 룸 황금 동전 — 마담 로자의 초대를 받아들이면 앉는 큰 판. 최소 200G, 앞뒤 49% ─────
+  // ───── VIP 룸 황금 동전 — 도박장에서 여섯 판 넘게 놀면(casino_hooked) 열리는 큰 판. 최소 200G, 앞뒤 49% ─────
   function vip(bet, side) {
     if (!vipOpen() || !canBet(bet, VIP_MIN) || !['heads', 'tails'].includes(side)) return null;
     stake('vip', bet);

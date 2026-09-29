@@ -13,7 +13,6 @@
 //   (품절로 놓친 손님 · 창고 찬 정도는 늘 센다: 9일째부터 새로 온 사러 온 손님 중 요구를 다 못 채운 비율. 약속하고 돌아와 채우면 놓친 게 아니다)
 //   --casino=F:R  카이의 내기 세 번 뒤 열린 지하 도박장에서 매일 밤 금고의 F(0~1) 비율씩 R 판 (동전·주사위·룰렛·카드사다리를 돌려 가며). --gamble=bet|safe|pass  카이의 내기는 늘 그렇게.
 //                 --inspector=deny|report|evade  감찰관 마크의 도박 탐문 (deny 면 첫 발각 → 큰 판 → 체포, 엔딩 gambling_end)
-//                 --pro=accept|decline  마담 로자의 초대·마지막 제안 (도박사의 길). 안 주면 다른 손님처럼 정책대로. 세 옵션 모두 기본은 꺼짐
 //   --loan=0  초보의 대출을 끈다 / --midday 초보가 영업 중에도 한 번 더 주문한다 (기본 꺼짐)
 //   --buffer  도매·매입 때 금고에 남길 (임대료+구독료) 일수 (기본 natural·kind 2, merchant 1.5)
 //   --dump=0  금고가 오늘 밤 임대료에 못 미칠 때 도매상에 처분하는 규칙을 끈다
@@ -97,7 +96,6 @@ function parseArgs(argv) {
     else if (k === 'loan') o.loan = v !== '0';
     else if (k === 'casino') { const [f, r] = v.split(':'); o.casino = { frac: +f, rounds: +(r || 3) }; }
     else if (k === 'gamble') o.gamble = v;
-    else if (k === 'pro') o.pro = v;
     else if (k === 'inspector') o.inspector = v;
     else if (k === 'stockcap') o.stockcap = +v;
     else if (k === 'assort') o.assort = v == null ? 1.5 : +v;
@@ -201,10 +199,8 @@ function playRun(seed, opt) {
   const choosePolicy = (list, c) => {
     // 도박꾼 카이 · 도박사의 길 — 옵션이 있을 때만 정책을 덮는다
     if (c && opt.gamble && /^gambler_\d$/.test(c.tpl || '')) return list.find(ch => ch.id === opt.gamble) || list[0];
-    if (c && opt.pro && /^gm_madam/.test(c.tpl || '')) return list.find(ch => ch.id === opt.pro) || list[0];
     if (c && opt.inspector && c.tpl === 'gm_inspector') return list.find(ch => ch.id === opt.inspector) || list[0];
     if (c && c.tpl === 'gm_madam_guard' && opt.casino) return list.find(ch => ch.id === 'go') || list[0];
-    if (c && opt.pro && c.tpl === 'gm_kai_broke') return list.find(ch => ch.id === 'lend') || list[0];
     if (list.some(ch => !ch.confirm)) list = list.filter(ch => !ch.confirm);
     // 금화를 내는 선택지로 오늘 밤 임대료·구독료를 못 내게 되면 고르지 않는다 (HUD 에 임대료가 늘 보인다) — 다른 게 있을 때만
     const gOf = ch => (ch.effects && typeof ch.effects.gold === 'number' ? ch.effects.gold : 0);
@@ -617,7 +613,7 @@ function playRun(seed, opt) {
     res.weave = Object.keys(st.weaveSeen || {});
     res.weaveNet = st.weaveNet || {};
     res.endFlags = Object.keys(st.flags);
-    res.casino = st.casino ? { rounds: st.casino.rounds, wagered: st.casino.wagered, won: st.casino.won, lost: st.casino.lost, open: st.flags.casino_open, regular: st.flags.casino_regular, hooked: st.flags.casino_hooked, vip: st.flags.vip_open, pro: st.flags.gambler_pro_accepted, endDay: st.day } : { open: st.flags.casino_open, endDay: st.day };
+    res.casino = st.casino ? { rounds: st.casino.rounds, wagered: st.casino.wagered, won: st.casino.won, lost: st.casino.lost, open: st.flags.casino_open, regular: st.flags.casino_regular, hooked: st.flags.casino_hooked, vip: st.flags.vip_open, endDay: st.day } : { open: st.flags.casino_open, endDay: st.day };
     if (!res.ending && !res.over60) res.noEnding = true;
     if (st.flags.bankrupt !== undefined) {
       res.bankruptDay = st.flags.bankrupt;
@@ -663,7 +659,7 @@ function summarize(runs, opt) {
     casinoSum: (() => {
       const o = runs.filter(r => r.casino && r.casino.open !== undefined), pl = o.filter(r => r.casino.rounds);
       return { open: o.length, regular: o.filter(r => r.casino.regular !== undefined).length, hooked: o.filter(r => r.casino.hooked !== undefined).length, vip: o.filter(r => r.casino.vip !== undefined).length,
-        pro: o.filter(r => r.casino.pro !== undefined).length, roundsMedian: median(pl.map(r => r.casino.rounds)), wageredMedian: median(pl.map(r => r.casino.wagered)),
+        roundsMedian: median(pl.map(r => r.casino.rounds)), wageredMedian: median(pl.map(r => r.casino.wagered)),
         netMedian: median(pl.map(r => r.casino.won - r.casino.lost)), endDayMedian: median(o.map(r => r.casino.endDay)) };
     })(),
     gold, endings: Object.fromEntries(Object.entries(endings).sort((a, b) => b[1] - a[1])),
@@ -734,7 +730,7 @@ function print(sum) {
     console.log(`창고(9일째~ 아침 도매 뒤): 평균 ${pct(x.fillMean)} 참 · 85% 넘는 날 ${pct(x.fill85)} · 자리 없어 못 산 날 ${pct(x.spaceBlockDays)}`); }
   console.log('플래그(판 수 / 그중 파산): ' + Object.entries(sum.marks).filter(([, v]) => v).map(([k, v]) => `${k} ${v}/${sum.markBankrupt[k]}`).join(', '));
   { const cs = sum.casinoSum;
-    if (cs.open) console.log(`도박장: 열림 ${cs.open}/${sum.n} · 단골(3판) ${cs.regular} · 푹 빠짐(6판) ${cs.hooked} · VIP ${cs.vip} · 도박사 수락 ${cs.pro} · 판 수 중앙값 ${cs.roundsMedian} · 건 돈 중앙값 ${cs.wageredMedian}G · 순손익 중앙값 ${cs.netMedian}G · 끝난 날 중앙값 ${cs.endDayMedian}`); }
+    if (cs.open) console.log(`도박장: 열림 ${cs.open}/${sum.n} · 단골(3판) ${cs.regular} · 푹 빠짐(6판) ${cs.hooked} · VIP ${cs.vip} · 판 수 중앙값 ${cs.roundsMedian} · 건 돈 중앙값 ${cs.wageredMedian}G · 순손익 중앙값 ${cs.netMedian}G · 끝난 날 중앙값 ${cs.endDayMedian}`); }
   console.log('엔딩: ' + Object.entries(sum.endings).map(([k, v]) => `${k} ${v}`).join(', '));
   { const g = sum.converge;
     console.log(`가닥(파산 뺀 판): 판 끝 동시 충족 결말 수 ${JSON.stringify(g.satisfied)} · 판당 충돌 수 ${JSON.stringify(g.clashes)} · 결말 고른 방식 ${JSON.stringify(g.why)}`); }

@@ -806,53 +806,6 @@
     "neutral"
    ]
   },
-  "gm_madam": {
-   "accept": [
-    "risk"
-   ],
-   "decline": [
-    "honest"
-   ]
-  },
-  "gm_kai_broke": {
-   "lend": [
-    "care"
-   ],
-   "refuse": [
-    "cold"
-   ]
-  },
-  "gm_clerk": {
-   "forgive": [
-    "care"
-   ],
-   "collect": [
-    "cold",
-    "profit"
-   ],
-   "report": [
-    "authority",
-    "honest"
-   ]
-  },
-  "gm_madam_final": {
-   "accept": [
-    "risk",
-    "profit"
-   ],
-   "decline": [
-    "neutral"
-   ]
-  },
-  "gm_madam_final2": {
-   "accept": [
-    "risk",
-    "profit"
-   ],
-   "decline": [
-    "neutral"
-   ]
-  },
   "gm_inspector": {
    "report": [
     "honest",

@@ -1,6 +1,6 @@
 // 게임 전역 설정과 세계 상태 변수 정의 (데이터)
 WS.data.config = {
-  version: 'v0.9.9',   // 우상단에 항상 표시 — 배포할 때 올린다
+  version: 'v0.9.10',   // 우상단에 항상 표시 — 배포할 때 올린다
   title: 'Next!',
   startGold: 300,
   rent: 20,
@@ -215,7 +215,6 @@ WS.data.config = {
   // text: 마감 화면 한 줄 (위에서부터 처음 맞는 것)
   endNow: [
     { when: { flag: 'casino_arrested' }, text: '수갑이 손목에 채워진다. 허공에 뜬 동전은 끝내 바닥에 닿지 않았다.' },
-    { when: { flag: 'gambler_pro_accepted' }, text: '가게 불을 끈다. 진열대의 칼은 이웃이 가져갔다. 오늘 밤부터 내가 앉을 자리는 지하의 판 위다.' },
     { when: { all: [{ flag: 'bankrupt' }, { flag: 'casino_regular' }] }, text: '금고가 비었다. 어젯밤 지하에서 잃은 돈이 마지막 임대료였다…' },
     { when: { flag: 'smuggle_king_accepted' }, text: '가게 불을 끈다. 뒷문 밖에 짐마차 바퀴 소리가 멎는다. 오늘 밤부터는 다른 장사다.' },
     { when: { flag: 'shop_seized' }, text: '열쇠는 집행관 손에 넘어갔다. 오늘이 마지막 장사였다.' },

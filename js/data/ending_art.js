@@ -437,28 +437,7 @@ WS.data.endingArt = {
     ],
     "thumb": "assets/ending/hires/gambler_ruin_thumb.jpg"
   },
-  "gambler_pro": {
-    "title": "도박사",
-    "album": [
-      {
-        "file": "assets/ending/hires/gambler_pro_album_1.jpg",
-        "caption": "내려가는 간판"
-      },
-      {
-        "file": "assets/ending/hires/gambler_pro_album_2.jpg",
-        "caption": "지분 절반의 계약서"
-      },
-      {
-        "file": "assets/ending/hires/gambler_pro_album_3.jpg",
-        "caption": "판을 벌이는 쪽"
-      },
-      {
-        "file": "assets/ending/hires/gambler_pro_album_4.jpg",
-        "caption": "낮이 없는 곳"
-      }
-    ],
-    "thumb": "assets/ending/hires/gambler_pro_thumb.jpg"
-  },
+
   "gambler": {
     "title": "마지막 한 판",
     "album": [

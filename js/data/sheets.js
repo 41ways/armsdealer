@@ -1365,20 +1365,5 @@ WS.data.sheets = {
       "angry",
       "surprised"
     ]
-  },
-  "clerk": {
-    "src": "assets/sprites/clerk.png",
-    "fw": 78,
-    "fh": 84,
-    "frames": [
-      "idle",
-      "breathe",
-      "blink",
-      "talk",
-      "talk2",
-      "happy",
-      "angry",
-      "surprised"
-    ]
   }
 };
