@@ -1008,6 +1008,7 @@ tr.key td:first-child, li.key { font-weight: 800; }
 
 /* ── 타이틀 메뉴: 새 게임 → 이어하기 → 불러오기 → 수집품 ── */
 .ts-menu .pbtn.ts-coll { animation-delay: 1.8s; }
+.ts-menu .pbtn.ts-about { animation-delay: 1.95s; }
 @media (max-height: 640px) { .ts-menu { gap: 8px; } .ts-menu .pbtn { min-height: 44px; } }
 
 /* ── 수집품 (엔딩 해금 현황) ── */
