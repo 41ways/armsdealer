@@ -740,72 +740,6 @@
     "neutral"
    ]
   },
-  "gambler_1": {
-   "safe": [
-    "profit"
-   ],
-   "bet": [
-    "risk"
-   ],
-   "pass": [
-    "neutral"
-   ]
-  },
-  "gambler_2": {
-   "safe": [
-    "profit"
-   ],
-   "bet": [
-    "risk"
-   ],
-   "pass": [
-    "neutral"
-   ]
-  },
-  "gambler_3": {
-   "safe": [
-    "profit"
-   ],
-   "bet": [
-    "risk"
-   ],
-   "pass": [
-    "neutral"
-   ]
-  },
-  "gambler_4": {
-   "safe": [
-    "profit"
-   ],
-   "bet": [
-    "risk"
-   ],
-   "pass": [
-    "neutral"
-   ]
-  },
-  "gambler_5": {
-   "safe": [
-    "profit"
-   ],
-   "bet": [
-    "risk"
-   ],
-   "pass": [
-    "neutral"
-   ]
-  },
-  "gambler_6": {
-   "safe": [
-    "profit"
-   ],
-   "bet": [
-    "risk"
-   ],
-   "pass": [
-    "neutral"
-   ]
-  },
   "gm_inspector": {
    "report": [
     "honest",
@@ -825,6 +759,46 @@
    ],
    "quit": [
     "honest"
+   ]
+  },
+  "gambler_1": {
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_2": {
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_3": {
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_4": {
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
+   ]
+  },
+  "gambler_5": {
+   "bet": [
+    "risk"
+   ],
+   "pass": [
+    "neutral"
    ]
   }
  }

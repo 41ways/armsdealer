@@ -42,7 +42,7 @@
 
 플래그(`data.flags`): `casino_open`(도박장 해금) · `casino_regular`(3판) · `casino_hooked`(6판) · `vip_open`(6판에 열림) · `casino_days3` · `casino_reported`/`casino_denied`/`casino_evaded`(감찰관 마크에게) · `casino_caught1`(단속, 봐줌) · `casino_guarded`/`casino_quit`(마담의 부름) · `casino_arrested`(큰 판에서 체포 → 엔딩 「도박의 끝」). 엔딩 `gambler_ruin`(패가망신)·`gambler_pro`(도박사, v0.9.x 에만 있었음 — 지금은 없음)·`gambler`(마지막 한 판, 지금은 없음).
 
-월드 변수 `gamble_bets` · `gamble_wins`(`data.world`): 노름꾼 카이의 내기(여섯 번 중)를 고른 수 · 딴 수. `choices` 의 `gambler_1..6` 은 `safe`/`bet`/`pass`.
+월드 변수 `gamble_bets` · `gamble_wins`(`data.world`): 노름꾼 카이의 내기(6·9·12·15·18일, 다섯 번 중)를 건 수 · 딴 수. `choices` 의 `gambler_1..5` 는 `bet`/`pass` (v0.9.12 부터 — 그 전엔 여섯 번, `safe` 도 있었음).
 
 ## 선택 성향 태그 (`choice_tags.json`)
 갈림길 72곳·선택지 178개에 성향 태그(배려·외면·정직·은폐·권위 순응·권위 거부·편들기·중립·이익·위험·배신)를 붙인 표.

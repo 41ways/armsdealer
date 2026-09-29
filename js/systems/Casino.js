@@ -192,9 +192,9 @@ WS.sys.Casino = (() => {
     const st = S();
     const first = st.flags.casino_visited === undefined;
     if (first) st.flags.casino_visited = st.day;
-    // 도박장을 찾은 날 수(하루에 몇 번 들어와도 한 번) — 3일이 되면 감찰관이 냄새를 맡는다 (js/data/gambler.js gm_inspector)
+    // 도박장을 찾은 날 수(하루에 몇 번 들어와도 한 번, 문이 열린 그날 밤은 세지 않는다) — 3일이 되면 이튿날 감찰관이 온다 (js/data/gambler.js gm_inspector)
     const c = stats();
-    if (c.lastDay !== st.day) {
+    if (c.lastDay !== st.day && st.day > (st.flags.casino_open || 0)) {
       c.lastDay = st.day; c.days = (c.days || 0) + 1;
       T('cs_days');
       if (c.days >= 3 && st.flags.casino_days3 === undefined) st.flags.casino_days3 = st.day;

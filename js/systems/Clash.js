@@ -43,7 +43,7 @@ WS.sys.Clash = (() => {
   const byId = id => routes().find(r => r.id === id);
   // 충돌을 여는 실제 날짜 구간 (config.clash 로 덮어쓸 수 있다 — 시뮬에서 충돌 없는 판을 재 볼 때 { start: 99 })
   const cc = () => WS.data.config.clash || {};
-  const PERSONAL = ['smuggle_king', 'gambling_end', 'gambler_ruin', 'bankrupt', 'red_ford_again', 'perfect_ledger', 'informant', 'pin_heir', 'star_guests'];
+  const PERSONAL = ['gambling_end', 'smuggle_king', 'gambler_ruin', 'bankrupt', 'red_ford_again', 'perfect_ledger', 'informant', 'pin_heir', 'star_guests'];
   // 전쟁 당사자 — 이 줄기가 낀 충돌에서 한쪽에만 대면 「박쥐」 길이 닫힌다
   const WAR_SIDES = ['goblin', 'kingdom', 'demonlord', 'knight', 'court'];
 
