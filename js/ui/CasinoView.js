@@ -34,6 +34,14 @@ WS.CasinoView = (() => {
 
   // ───────── 화면 ─────────
   // ───── 단속 — 감찰관에게 모른다고 한 뒤 도박장에 가면 (Casino.raidDue) ─────
+  // 장면 그림 — 엔딩 앨범 그림을 그대로 쓴다 (js/data/ending_art.js)
+  const ART = {
+    raid: 'assets/ending/hires/canary_album_1.jpg',   // 걷어차인 문
+    bell: 'assets/ending/hires/canary_album_3.jpg',   // 울리지 않은 종 · 묶인 경비
+    big: 'assets/ending/hires/gambler_pro_album_3.jpg', // 홀 한가운데 판을 둘러싼 손님들
+  };
+  const scene = (src, cls, inner = '') => `<div class="cs-scene ${cls || ''}"><img src="${src}" alt="" draggable="false" onerror="this.remove()">${inner}</div>`;
+
   const RAID = {
     1: {
       narr: '지하 도박장의 문이 걷어차여 열린다. 딜러가 판을 엎고, 손님들이 벽을 타고 흩어진다. 촛불 사이로 감찰관 마크가 걸어 들어온다.',
@@ -43,8 +51,8 @@ WS.CasinoView = (() => {
   };
   function raidView() {
     const r = RAID[raidN];
-    return `<div class="casino cs-raidscene">
-      <div class="cs-banner cs-raid-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>단속! <small>지하 도박장</small></h2></div>
+    return `<div class="casino cs-cine cs-raidscene">
+      ${scene(ART.raid, 'shake', '<b class="cs-scene-title">단속!</b>')}
       <p class="cs-narr">${U.esc(r.narr)}</p>
       <p class="cs-say"><b>${U.esc(r.who)}</b>${U.esc(r.line)}</p>
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">가게로 돌아간다</button></div>
@@ -54,33 +62,31 @@ WS.CasinoView = (() => {
   // ───── 큰 판 — 마담의 부름(Casino.bigCallDue). 동전이 튕기는 동안 감찰관이 들이닥친다 (Casino.bigStart → 엔딩 「도박의 끝」) ─────
   function bigView() {
     const b = big;
+    const coin = cls => `<div class="cs-coin big ${b.face === "tails" ? "tails" : ""} ${cls}">${b.face === 'tails' ? '뒤' : '앞'}</div>`;
     if (b.stage === 'intro') {
-      return `<div class="casino cs-big">
-        <div class="cs-banner cs-big-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>큰 판</h2></div>
-        <p class="cs-narr">홀 한가운데 금화가 산처럼 쌓인 탁자가 놓였다. 손님들이 숨을 죽이고 둘러서 있고, 딜러의 손이 떨린다. 마담 로자가 낮게 말한다. 「판돈은 당신의 전부예요. 한 번 던져서, 끝내요.」</p>
+      return `<div class="casino cs-cine cs-big">
+        ${scene(ART.big, 'dim', `<b class="cs-scene-title">큰 판</b>${coin('idle on-scene')}`)}
+        <p class="cs-narr">홀 한가운데 금화가 산처럼 쌓인 탁자. 손님들이 숨을 죽이고 둘러서 있고, 딜러의 손이 떨린다. 마담 로자가 낮게 말한다. 「판돈은 당신의 전부예요. 한 번 던져서, 끝내요.」</p>
         <p class="cs-sys">승리하면 승리 엔딩, 패배하면 패배 엔딩으로 이어집니다.</p>
-        <div class="cs-coin big idle">?</div>
         <div class="cs-row">${btn('앞면', 'heads', 'gold')}${btn('뒷면', 'tails', 'gold')}</div>
         <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-back">…아직 이르다</button></div>
       </div>${host.hud()}`;
     }
     if (b.stage === 'toss') {
-      return `<div class="casino cs-big tossing">
-        <div class="cs-bigstage"><div class="cs-coin big air">${b.face === 'heads' ? '앞' : '뒤'}</div></div>
+      return `<div class="casino cs-cine cs-big tossing">
+        ${scene(ART.big, 'dim heart', coin('air on-scene'))}
         <p class="cs-narr cs-center">동전이 허공으로 튕긴다…</p>
       </div>${host.hud()}`;
     }
     if (b.stage === 'burst') {
-      return `<div class="casino cs-big burst">
-        <div class="cs-bigstage"><div class="cs-coin big air frozen">${b.face === 'heads' ? '앞' : '뒤'}</div></div>
-        <p class="cs-slam">쾅!</p>
+      return `<div class="casino cs-cine cs-big burst">
+        ${scene(ART.raid, 'flash shake', `${coin('air frozen on-scene')}<b class="cs-slam">쾅!</b>`)}
       </div>${host.hud()}`;
     }
-    return `<div class="casino cs-big arrest">
-      <div class="cs-banner cs-raid-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>현행범 <small>체포</small></h2></div>
-      <p class="cs-narr">문이 부서지듯 열리고 감찰청 병사들이 홀을 채운다. 동전은 허공에 뜬 채, 아무도 그것을 보지 않는다.</p>
+    return `<div class="casino cs-cine cs-big arrest">
+      ${scene(ART.raid, '', '<b class="cs-scene-title">현행범</b>')}
+      <p class="cs-narr">문이 부서지듯 열리고 감찰청 병사들이 홀을 채운다. 골목 끝의 종은 끝내 울리지 않았다. 동전은 허공에 뜬 채, 아무도 그것을 보지 않는다.</p>
       <p class="cs-say"><b>감찰관 마크</b>“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “당신이 운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도 다른 이들은 아니었소.”</p>
-      <p class="cs-narr">동전은 끝내 바닥에 닿지 않았다.</p>
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-end">끌려간다</button></div>
     </div>${host.hud()}`;
   }
@@ -88,7 +94,7 @@ WS.CasinoView = (() => {
     const b = big = { stage: 'toss', face };
     sfx('latch', 0.5);
     setTimeout(() => { if (big !== b) return; b.stage = 'burst'; sfx('door_open', 0.9); sfx('blade', 0.6); host.render(); }, 2300);
-    setTimeout(() => { if (big !== b) return; b.stage = 'arrest'; host.render(); }, 3500);
+    setTimeout(() => { if (big !== b) return; b.stage = 'arrest'; host.render(); }, 3700);
   }
 
   function html() {
@@ -101,7 +107,7 @@ WS.CasinoView = (() => {
     if (p) game = p.game; // 불러온 판이 진행 중이면 그 테이블에 앉은 채로
     if (game === null || (game === 'vip' && !c.vipOpen())) { game = null; return lobby(); }
     const g = GAMES.find(x => x.id === game);
-    const seat = `<div class="cs-seat"><button class="mini" data-act="cs-lobby" ${p ? 'disabled' : ''}>← 테이블 고르기</button><b>${g.icon} ${U.esc(g.name)}</b></div>`;
+    const seat = `<div class="cs-seat"><button class="mini" data-act="cs-lobby" ${p ? 'disabled' : ''}>← 홀로</button><img src="assets/casino/table_${g.id}.png" alt="" draggable="false" onerror="this.remove()"><b>${g.icon} ${U.esc(g.name)}</b></div>`;
     const body = panel(p);
     const res = last ? resultLine(last) : '';
     return `<div class="casino">
@@ -112,7 +118,7 @@ WS.CasinoView = (() => {
       ${intro ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
       ${seat}
       <p class="cs-hint">${U.esc(g.hint)}</p>
-      <div class="cs-table">${body}</div>
+      <div class="cs-table t-${game}">${body}</div>
       ${res}
       ${stakeBox(p)}
       ${log.length ? `<ul class="cs-log">${log.slice(-6).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>` : ''}
@@ -121,24 +127,38 @@ WS.CasinoView = (() => {
   }
 
   // ───── 로비 — 어느 테이블에 앉을지 ─────
+  // 홀 그림 위의 테이블 자리 — [게임, left%, top%, width%, height%] (assets/casino/lobby.jpg 1280×714 기준). vip 는 안쪽의 금장식 문
+  const HALL = [
+    ['coin', 6.5, 63, 12.5, 22],
+    ['shell', 27, 38, 11, 31],
+    ['dice', 35.5, 59.5, 17, 23.5],
+    ['roul', 54.5, 57, 20, 33],
+    ['ladder', 75.5, 70, 21, 28],
+    ['vip', 64.8, 23.5, 8.8, 20],
+  ];
+  const BIG_SPOT = [42, 33, 13, 24]; // 큰 판 — 홀 한가운데, 마담 로자가 서 있는 자리
   function lobby() {
     const st = S(), c = C();
     const rent = WS.sys.Day.rent();
     const call = c.bigCallDue();
-    const cards = GAMES.map(g => {
+    const pos = (l, t, w, h) => `left:${l}%;top:${t}%;width:${w}%;height:${h}%`;
+    const spots = HALL.map(([id, l, t, w, h]) => {
+      const g = GAMES.find(x => x.id === id);
       const locked = g.vip && !c.vipOpen();
       const min = g.vip ? c.VIP_MIN : c.MIN_BET;
-      return `<button class="cs-tcard ${locked ? 'locked' : ''} ${g.vip ? 'vip' : ''}" ${locked ? 'disabled' : `data-act="cs-game" data-id="${g.id}"`}>
-        <span class="cs-timg"><img src="assets/casino/table_${g.id}.png" alt="" draggable="false" onerror="this.remove()"><i>${g.icon}</i></span>
-        <b>${U.esc(g.name)}</b><small>${locked ? '초청장이 있어야 앉는다' : U.esc(SHORT[g.id])}</small><em>${locked ? '🔒' : `최소 ${min}G`}</em></button>`;
+      if (locked) return `<div class="spot locked cs-spot" style="${pos(l, t, w, h)}" title="초청장이 있어야 들어간다"><span class="spot-label">🔒 VIP 룸</span></div>`;
+      return `<button class="spot cs-spot ${g.vip ? 'vip' : ''}" data-act="cs-game" data-id="${id}" style="${pos(l, t, w, h)}" title="${U.esc(g.hint)}">
+        <span class="spot-label">${g.icon} ${g.vip ? 'VIP 룸' : U.esc(g.name)}</span><i class="spot-badge">${min}G~</i></button>`;
     }).join('');
+    const bigSpot = call ? `<button class="spot call cs-spot cs-bigspot" data-act="cs-big" style="${pos(...BIG_SPOT)}"><span class="spot-label">🎭 마담 로자 — 큰 판</span></button>` : '';
     return `<div class="casino cs-lobby">
-      <div class="cs-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>검은 주사위 <small>지하 도박장</small></h2></div>
-      <div class="cs-purse cs-purse-l"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div>
+      <div class="cs-head"><h2>검은 주사위 <small>지하 도박장</small></h2>
+        <div class="cs-purse"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div></div>
+      <div class="cs-hallwrap"><div class="cs-hall"><img class="cs-hall-art" src="assets/casino/lobby.jpg" alt="" draggable="false">${spots}${bigSpot}</div></div>
       ${intro && !call ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
-      ${call ? '<p class="cs-door">홀 안쪽에서 마담 로자가 손짓한다. “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”</p>' : ''}
-      <p class="cs-ask">어느 테이블에 앉겠소?</p>
-      <div class="cs-tcards">${call ? `<button class="cs-tcard vip bigcall" data-act="cs-big"><span class="cs-timg"><i>🎭</i></span><b>큰 판 · 마담의 부름</b><small>홀 한가운데의 특별한 판</small><em>판돈은 전부</em></button>` : ''}${cards}</div>
+      ${call ? '<p class="cs-door">홀 한가운데서 마담 로자가 손짓한다. “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”</p>' : ''}
+      <p class="cs-swipe">← 옆으로 밀어 홀을 둘러본다 →</p>
+      <p class="cs-ask">앉을 테이블을 누른다</p>
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다</button></div>
     </div>${host.hud()}`;
   }
@@ -347,6 +367,9 @@ WS.CasinoView = (() => {
 
   // 지하 도박장이 처음 열린 순간 — 화면 위에서 알림창이 내려온다 (카이의 세 번째 내기 뒤)
   function afterRender() {
+    // 좁은 화면에서 홀 그림이 옆으로 넘칠 때 — 처음엔 한가운데를 보여 준다
+    const hw = document.querySelector('.cs-hallwrap');
+    if (hw && !hw.dataset.centered) { hw.dataset.centered = '1'; hw.scrollLeft = (hw.scrollWidth - hw.clientWidth) / 2; }
     const st = S();
     if (!st || !st.flags || st.replay || !st.flags.casino_open || st.flags.casino_notified !== undefined) return;
     if (!['morning', 'prep', 'shop', 'closing', 'night'].includes(st.phase)) return; // 타이틀·결말 화면에서는 띄우지 않는다

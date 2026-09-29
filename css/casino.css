@@ -141,3 +141,53 @@
 .casino.cs-big.burst { background: #fff; animation: cs-flash .5s ease-out forwards; }
 @keyframes cs-flash { 0% { background: #fff; } 100% { background: #3a0810; } }
 .cs-slam { margin: 0; font-size: 56px; font-weight: 900; color: #ff5a44; text-shadow: 0 4px 0 #000; animation: cs-shake .35s 3; }
+
+/* ── 홀 · 장면 (v2) — 도박장 안에 들어선 느낌: 홀 그림을 배경으로 깔고, 그림 속 테이블을 눌러 앉는다 ── */
+.casino { background: linear-gradient(rgba(14, 5, 9, .88), rgba(10, 3, 6, .94)), url(../assets/casino/lobby.jpg) center / cover no-repeat, #0c0508; }
+.cs-hallwrap { margin: 0 -14px; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; }
+.cs-hall { position: relative; width: max(100%, calc(56vh * 1.793)); aspect-ratio: 1280 / 714; border-block: 2px solid #7a5a2a; box-shadow: 0 8px 22px rgba(0, 0, 0, .6); }
+.cs-hall-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; pointer-events: none; }
+.cs-spot { cursor: pointer; }
+.cs-spot .spot-label { opacity: 1; transform: none; font-size: 12px; color: #fff0c8; border-color: #b8902c; background: rgba(20, 6, 10, .85); }
+.cs-spot:hover { border-color: rgba(240, 199, 102, .95); background: rgba(240, 199, 102, .14); box-shadow: 0 0 22px rgba(240, 199, 102, .45) inset, 0 0 14px rgba(240, 199, 102, .35); }
+.cs-spot.vip .spot-label { background: rgba(90, 60, 10, .9); }
+.cs-bigspot { border-color: rgba(255, 140, 110, .7); }
+.cs-bigspot .spot-label { background: rgba(120, 20, 30, .92); border-color: #ff9a86; }
+.cs-lobby .cs-ask { text-align: center; }
+.cs-seat img { height: 44px; image-rendering: pixelated; filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .6)); }
+/* 장면 그림 (단속 · 큰 판) — 엔딩 앨범 그림을 크게 */
+.casino.cs-cine { align-items: stretch; }
+.cs-scene { position: relative; margin: 0 -14px; height: clamp(240px, 50vh, 560px); overflow: hidden; border-block: 2px solid #7a5a2a; background: #000; }
+.cs-scene img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+.cs-scene::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(8, 2, 4, .85)); pointer-events: none; }
+.cs-scene.dim img { filter: brightness(.7) saturate(1.2); }
+.cs-scene.heart img { animation: cs-heartimg .9s ease-in-out infinite; }
+@keyframes cs-heartimg { 50% { filter: brightness(.45) saturate(1.4); transform: scale(1.02); } }
+.cs-scene.shake { animation: cs-shake .35s 3; }
+.cs-scene.flash::before { content: ''; position: absolute; inset: 0; z-index: 2; background: #fff; animation: cs-flashout .6s ease-out forwards; pointer-events: none; }
+@keyframes cs-flashout { to { opacity: 0; } }
+.cs-scene-title { position: absolute; left: 16px; bottom: 10px; z-index: 3; font-size: 30px; letter-spacing: .12em; color: #ff9a86; text-shadow: 0 3px 0 #000, 0 0 16px rgba(0, 0, 0, .9); }
+.cs-scene .on-scene { position: absolute; left: 50%; top: 50%; z-index: 3; margin: -69px 0 0 -66px; }
+.cs-scene .cs-slam { position: absolute; left: 0; right: 0; bottom: 18%; z-index: 3; text-align: center; }
+.casino.cs-big.burst { background: #0c0508; animation: none; }
+.cs-swipe { display: none; margin: -4px 0 0; text-align: center; font-size: 12px; color: #b89e78; }
+@media (max-aspect-ratio: 1/1) { .cs-swipe { display: block; } }
+.cs-scene .cs-coin.big.idle.on-scene { width: 80px; height: 84px; top: 70%; margin: -42px 0 0 -40px; opacity: 1; filter: drop-shadow(0 0 14px rgba(255, 224, 138, .7)); }
+/* 넓은 화면: 다른 화면처럼 660px 가운데 칸에 가두지 않고 무대 전체를 도박장으로 */
+#stage #ui > .casino { width: auto; align-self: stretch; }
+.casino > * { width: 100%; max-width: 1000px; margin-inline: auto; flex-shrink: 0; }
+@media (min-aspect-ratio: 1/1) {
+  .cs-hallwrap { margin-inline: auto; overflow: visible; }
+  .cs-hall { width: min(100%, calc((100vh - 250px) * 1.793)); margin: 0 auto; border: 2px solid #7a5a2a; border-radius: 6px; overflow: hidden; }
+  .cs-scene { margin-inline: auto; border: 2px solid #7a5a2a; border-radius: 6px; height: clamp(260px, 56vh, 620px); }
+}
+
+/* 앉은 테이블 — 그 테이블 그림을 판 밑에 깔고, 홀 그림이 뒤에 비친다 */
+.casino:not(.cs-cine) { background: linear-gradient(rgba(14, 5, 9, .72), rgba(10, 3, 6, .9)), url(../assets/casino/lobby.jpg) center / cover no-repeat, #0c0508; }
+.cs-table.t-coin { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_coin.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
+.cs-table.t-shell { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_shell.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
+.cs-table.t-dice { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_dice.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
+.cs-table.t-roul { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_roul.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
+.cs-table.t-ladder { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_ladder.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
+.cs-table.t-vip { background: radial-gradient(ellipse at 50% 45%, rgba(90, 26, 44, .55), rgba(30, 8, 14, .85) 75%), url(../assets/casino/table_vip.png) center 70% / auto 115% no-repeat, #2a0c14; image-rendering: pixelated; }
+.cs-table { min-height: 260px; }
