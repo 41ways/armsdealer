@@ -79,6 +79,18 @@
       ],
     },
   );
+  // 감찰관의 탐문 — 도박장을 사흘 넘게(서로 다른 사흘) 찾은 다음 날 (flags.casino_days3). 도박 엔딩은 이 답을 보고 이을 것
+  C.push({
+    id: 'gm_inspector', look: 'inspector_theo', name: '감찰관 마크', race: '인간', job: '왕국 감찰관', faction: 'kingdom', portrait: '🕵️', kind: 'talk',
+    spawn: { when: { all: [{ flag: 'casino_days3' }, { since: { flag: 'casino_days3', days: 1 } }] }, pinned: true },
+    ask: { tag: '탐문', note: '밤마다 도박이 성행한다는 제보' },
+    greet: '요즘 밤마다 이 근처 어디선가 도박이 성행한다는 보고가 올라오고 있소. 상점가에서 장사하는 자네라면 밤 사정에 밝을 텐데, 아는 거 있소?',
+    choices: [
+      { id: 'report', label: '뒷골목 지하에 「검은 주사위」라는 도박장이 있소', reply: '「검은 주사위」라… 협조에 감사하오. 감찰청이 알아서 하겠소.', effects: { flags: ['casino_reported'], vars: { rel_kingdom: 2, integrity: 1 } } },
+      { id: 'deny', label: '밤엔 문 닫고 자서 모르오', reply: '…그렇소? 알겠소. 혹시 기억나는 게 있으면 감찰청으로 오시오.', effects: { flags: ['casino_denied'], vars: { integrity: -1 } } },
+      { id: 'evade', label: '소문은 들었소만 직접 본 건 없소', reply: '소문이라. 그것도 단서이긴 하오. 또 들르겠소.', effects: { flags: ['casino_evaded'] } },
+    ],
+  });
   // 마지막 제안 — 한 번 거절하면 사흘 뒤 한 번 더 온다
   const offer = (id, prev, greet) => ({
     id, ...MADAM,

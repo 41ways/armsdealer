@@ -852,6 +852,18 @@
    "decline": [
     "neutral"
    ]
+  },
+  "gm_inspector": {
+   "report": [
+    "honest",
+    "authority"
+   ],
+   "deny": [
+    "deceit"
+   ],
+   "evade": [
+    "neutral"
+   ]
   }
  }
 }

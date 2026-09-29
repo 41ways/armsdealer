@@ -158,6 +158,13 @@ WS.sys.Casino = (() => {
     const st = S();
     const first = st.flags.casino_visited === undefined;
     if (first) st.flags.casino_visited = st.day;
+    // 도박장을 찾은 날 수(하루에 몇 번 들어와도 한 번) — 3일이 되면 감찰관이 냄새를 맡는다 (js/data/gambler.js gm_inspector)
+    const c = stats();
+    if (c.lastDay !== st.day) {
+      c.lastDay = st.day; c.days = (c.days || 0) + 1;
+      T('cs_days');
+      if (c.days >= 3 && st.flags.casino_days3 === undefined) st.flags.casino_days3 = st.day;
+    }
     T('cs_visits');
     return first;
   }

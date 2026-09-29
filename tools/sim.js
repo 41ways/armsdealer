@@ -532,6 +532,7 @@ function playRun(seed, opt) {
 
   // 지하 도박장 — 판돈은 금고의 opt.casino.frac (최소 10G). 게임은 돌려 가며 (동전 · 주사위 · 룰렛 · 카드 사다리(한 번 맞히면 멈춤))
   function casinoNight() {
+    CS.markVisit();
     const c = opt.casino;
     for (let i = 0; i < c.rounds && S().gold >= 10; i++) {
       const bet = Math.max(10, Math.floor(S().gold * c.frac));
