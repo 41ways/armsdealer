@@ -5,7 +5,7 @@ WS.CasinoView = (() => {
   const C = () => WS.sys.Casino;
   const S = () => WS.Game.state;
   let host = { render() {}, hud: () => '' };
-  let isOn = false, ctx = null, game = 'coin', bet = 50, last = null, intro = false, shell = null;
+  let isOn = false, ctx = null, game = null, bet = 50, last = null, intro = false, shell = null;
   let log = [];
 
   const GAMES = [
@@ -14,7 +14,9 @@ WS.CasinoView = (() => {
     { id: 'dice', name: '주사위', icon: '🎲', hint: '두 주사위의 합. 낮음·높음 두 배, 7은 다섯 배.' },
     { id: 'roul', name: '룰렛', icon: '🎡', hint: '0~36. 색·홀짝 두 배, 숫자 하나는 서른여섯 배. 0은 다 진다.' },
     { id: 'ladder', name: '카드 사다리', icon: '🃏', hint: '다음 카드가 높은지 낮은지. 맞힐수록 배율이 쌓이고, 언제든 멈춘다. 같으면 진다.' },
+    { id: 'vip', name: 'VIP 룸 · 황금 동전', icon: '👑', hint: '위층 큰 판. 최소 200G, 앞뒤를 맞히면 두 배.', vip: true },
   ];
+  const SHORT = { coin: '앞이냐 뒤냐', shell: '공 든 컵을 좇아라', dice: '두 주사위의 합', roul: '구슬은 어디에 서나', ladder: '높다 낮다, 멈출 때를 안다', vip: '위층의 큰 판' };
   const NAME = Object.fromEntries(GAMES.map(g => [g.id, g.name]));
   const DIE = ['', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
   const RANK = n => ({ 1: 'A', 11: 'J', 12: 'Q', 13: 'K' }[n] || String(n));
@@ -36,9 +38,10 @@ WS.CasinoView = (() => {
     if (p && p.game === 'shell' && !shell) shell = { bet: p.bet, ball: p.ball, swaps: p.swaps, slot: [0, 1, 2], phase: 'pick', res: null }; // 새로 불러온 판 — 섞는 건 못 봤다
     if (!p && shell && !shell.res) shell = null;
     const rent = WS.sys.Day.rent();
-    const broke = st.gold < c.MIN_BET;
-    const tabs = GAMES.map(g => `<button class="cs-tab ${g.id === game ? 'on' : ''}" data-act="cs-game" data-id="${g.id}" ${p ? 'disabled' : ''}><i>${g.icon}</i>${g.name}</button>`).join('');
+    if (p) game = p.game; // 불러온 판이 진행 중이면 그 테이블에 앉은 채로
+    if (game === null || (game === 'vip' && !c.vipOpen())) { game = null; return lobby(); }
     const g = GAMES.find(x => x.id === game);
+    const seat = `<div class="cs-seat"><button class="mini" data-act="cs-lobby" ${p ? 'disabled' : ''}>← 테이블 고르기</button><b>${g.icon} ${U.esc(g.name)}</b></div>`;
     const body = panel(p);
     const res = last ? resultLine(last) : '';
     return `<div class="casino">
@@ -47,25 +50,47 @@ WS.CasinoView = (() => {
         <div class="cs-purse"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div>
       </div>
       ${intro ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
-      <div class="cs-tabs">${tabs}</div>
+      ${seat}
       <p class="cs-hint">${U.esc(g.hint)}</p>
       <div class="cs-table">${body}</div>
       ${res}
-      ${stakeBox(p, broke)}
+      ${stakeBox(p)}
       ${log.length ? `<ul class="cs-log">${log.slice(-6).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>` : ''}
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave" ${p ? 'disabled' : ''}>${p ? '판이 끝나야 나갈 수 있다' : '도박장을 나선다'}</button></div>
     </div>${host.hud()}`;
   }
 
-  function stakeBox(p, broke) {
+  // ───── 로비 — 어느 테이블에 앉을지 ─────
+  function lobby() {
+    const st = S(), c = C();
+    const rent = WS.sys.Day.rent();
+    const cards = GAMES.map(g => {
+      const locked = g.vip && !c.vipOpen();
+      const min = g.vip ? c.VIP_MIN : c.MIN_BET;
+      return `<button class="cs-tcard ${locked ? 'locked' : ''} ${g.vip ? 'vip' : ''}" ${locked ? 'disabled' : `data-act="cs-game" data-id="${g.id}"`}>
+        <span class="cs-timg"><img src="assets/casino/table_${g.id}.png" alt="" draggable="false" onerror="this.remove()"><i>${g.icon}</i></span>
+        <b>${U.esc(g.name)}</b><small>${locked ? '초청장이 있어야 앉는다' : U.esc(SHORT[g.id])}</small><em>${locked ? '🔒' : `최소 ${min}G`}</em></button>`;
+    }).join('');
+    return `<div class="casino cs-lobby">
+      <div class="cs-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>검은 주사위 <small>지하 도박장</small></h2></div>
+      <div class="cs-purse cs-purse-l"><span>금고</span><b>${st.gold}G</b><em class="${st.gold < rent ? 'bad' : ''}">내일 밤 임대료 ${rent}G</em></div>
+      ${intro ? '<p class="cs-door">문지기가 손을 내민다. “카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>' : ''}
+      <p class="cs-ask">어느 테이블에 앉겠소?</p>
+      <div class="cs-tcards">${cards}</div>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다</button></div>
+    </div>${host.hud()}`;
+  }
+
+  function stakeBox(p) {
     if (p || (shell && shell.res)) return '';
     const st = S();
-    if (broke) return '<div class="cs-stake"><p class="cs-broke">판돈으로 걸 돈이 없다. 최소 10G는 있어야 한다.</p></div>';
-    const b = C().clampBet(bet);
+    const min = game === 'vip' ? C().VIP_MIN : C().MIN_BET;
+    if (st.gold < min) return `<div class="cs-stake"><p class="cs-broke">판돈으로 걸 돈이 없다. 이 테이블은 최소 ${min}G다.</p></div>`;
+    const b = C().clampBet(bet, min);
     const chip = (label, id) => `<button class="mini cs-chip" data-act="cs-chip" data-id="${id}">${label}</button>`;
     return `<div class="cs-stake">
       <label for="cs-bet">판돈</label>
-      <input id="cs-bet" type="number" inputmode="numeric" min="${C().MIN_BET}" max="${st.gold}" step="10" value="${b}"> <span>G</span>
+      <input id="cs-bet" type="number" inputmode="numeric" min="${min}" max="${st.gold}" step="10" value="${b}"> <span>G</span>
       <div class="cs-chips">${chip('10', '10')}${chip('50', '50')}${chip('100', '100')}${chip('500', '500')}${chip('절반', 'half')}${chip('전부', 'all')}</div>
     </div>`;
   }
@@ -73,9 +98,9 @@ WS.CasinoView = (() => {
   const btn = (label, id, cls = '') => `<button class="pbtn cs-play ${cls}" data-act="cs-play" data-id="${id}">${label}</button>`;
   function panel(p) {
     const r = last && last.game === game && !p ? last : null;
-    if (game === 'coin') {
+    if (game === 'coin' || game === 'vip') {
       const face = r ? `<div class="cs-coin ${r.face} flip">${r.face === 'heads' ? '앞' : '뒤'}</div>` : '<div class="cs-coin idle">?</div>';
-      return `${face}<div class="cs-row">${btn('앞면 ×2', 'heads')}${btn('뒷면 ×2', 'tails')}</div>`;
+      return `${face}<div class="cs-row">${btn('앞면 ×2', 'heads', game === 'vip' ? 'gold' : '')}${btn('뒷면 ×2', 'tails', game === 'vip' ? 'gold' : '')}</div>`;
     }
     if (game === 'dice') {
       const dice = r ? `<div class="cs-dice">${r.dice.map(d => `<span class="cs-die roll">${DIE[d]}</span>`).join('')}<b>${r.sum}</b></div>` : '<div class="cs-dice"><span class="cs-die">⚀</span><span class="cs-die">⚁</span></div>';
@@ -188,22 +213,27 @@ WS.CasinoView = (() => {
   // ───────── 눌림 ─────────
   const readBet = () => {
     const el = document.getElementById('cs-bet');
-    return C().clampBet(el ? el.value : bet);
+    const min = game === 'vip' ? C().VIP_MIN : C().MIN_BET;
+    const v = C().clampBet(el ? el.value : bet, min);
+    return S().gold >= min ? v : 0;
   };
   function act(b) {
     const a = b.dataset.act, id = b.dataset.id, c = C();
     switch (a) {
-      case 'cs-open': isOn = true; ctx = { st: S(), day: S().day }; last = null; shell = null; intro = c.markVisit(); break;
+      case 'cs-open': isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null; intro = c.markVisit(); break;
       case 'cs-leave': if (pending()) return; isOn = false; intro = false; last = null; shell = null; break;
-      case 'cs-game': if (pending()) return; game = id; last = null; shell = null; intro = false; break;
+      case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; intro = false; break;
+      case 'cs-lobby': if (pending()) return; game = null; last = null; shell = null; break;
       case 'cs-chip': {
         const g = S().gold;
-        bet = id === 'half' ? Math.max(c.MIN_BET, Math.floor(g / 2)) : id === 'all' ? g : Math.min(g, Number(id));
+        const mn = game === 'vip' ? c.VIP_MIN : c.MIN_BET;
+        bet = id === 'half' ? Math.max(mn, Math.floor(g / 2)) : id === 'all' ? g : Math.min(g, Math.max(mn, Number(id)));
         break;
       }
       case 'cs-play': {
         intro = false;
         bet = readBet();
+        if (!bet) return;
         if (game === 'shell') {
           if (id === 'again') { shell = null; last = null; break; }
           const sh = c.shellStart(bet);
@@ -215,6 +245,7 @@ WS.CasinoView = (() => {
         if (game === 'ladder') { if (!c.ladderStart(bet)) return; last = null; break; }
         let r = null;
         if (game === 'coin') r = c.coin(bet, id);
+        else if (game === 'vip') r = c.vip(bet, id);
         else if (game === 'dice') r = c.dice(bet, id);
         else if (game === 'roul') {
           const n = document.getElementById('cs-n');
@@ -244,5 +275,22 @@ WS.CasinoView = (() => {
     host.render();
   }
 
-  return { init, html, act, on, pending };
+  // 지하 도박장이 처음 열린 순간 — 화면 위에서 알림창이 내려온다 (카이의 세 번째 내기 뒤)
+  function afterRender() {
+    const st = S();
+    if (!st || !st.flags || st.replay || !st.flags.casino_open || st.flags.casino_notified !== undefined) return;
+    st.flags.casino_notified = st.day;
+    const el = document.createElement('div');
+    el.className = 'cs-notice';
+    el.setAttribute('role', 'status');
+    el.innerHTML = '<i>🎲</i><span><b>지하 도박장이 해금되었습니다</b><small>영업이 끝나면 「검은 주사위」에 갈 수 있다</small></span>';
+    const off = () => { el.classList.remove('on'); setTimeout(() => el.remove(), 400); };
+    el.addEventListener('click', off);
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('on'));
+    setTimeout(off, 7000);
+    sfx('coins', 0.5);
+  }
+
+  return { init, html, act, on, pending, afterRender };
 })();

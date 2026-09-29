@@ -84,3 +84,34 @@
 .cs-shell-msg { min-height: 1.4em; }
 @media (prefers-reduced-motion: reduce) { .cs-coin.flip, .cs-die.roll, .cs-ball-num.spin, .cs-card.flip { animation: none; } .cs-slot { transition: none; } }
 .bottom-bar .pbtn[data-act="cs-open"] { white-space: nowrap; flex: 0 0 auto; }
+
+/* 로비 · 테이블 고르기 */
+.cs-banner { position: relative; height: 150px; margin: -4px -6px 0; border-radius: 8px; overflow: hidden; border: 2px solid #7a5a2a; background: #1e0a10; }
+.cs-banner img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
+.cs-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 5, 8, .1), rgba(12, 5, 8, .75)); }
+.cs-banner h2 { position: absolute; left: 14px; bottom: 8px; z-index: 1; margin: 0; font-size: 26px; letter-spacing: .08em; color: #f0c766; text-shadow: 0 2px 0 #000, 0 0 14px rgba(0, 0, 0, .8); }
+.cs-banner h2 small { font-size: 13px; color: #e6d3ae; letter-spacing: .04em; }
+.cs-purse-l { justify-content: flex-end; }
+.cs-ask { margin: 0; font-size: 16px; font-weight: 700; color: #f0c766; }
+.cs-tcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.cs-tcard { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px 9px; border: 2px solid #5a2a34; border-radius: 6px; background: #2c1018; color: #f0e3cc; font: inherit; cursor: pointer; text-align: center; }
+.cs-tcard:hover:not(:disabled) { border-color: #e3b04e; background: #421622; transform: translateY(-2px); }
+.cs-tcard b { font-size: 15px; color: #ffe08a; }
+.cs-tcard small { font-size: 12px; color: #cdb48a; min-height: 2.4em; line-height: 1.25; }
+.cs-tcard em { font-style: normal; font-size: 11.5px; color: #b89e78; }
+.cs-timg { position: relative; width: 100%; height: 84px; display: grid; place-items: center; }
+.cs-timg img { max-width: 100%; max-height: 84px; image-rendering: pixelated; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .5)); }
+.cs-timg i { font-style: normal; font-size: 40px; position: absolute; }
+.cs-timg img + i { display: none; }
+.cs-tcard.vip { border-color: #b8902c; background: linear-gradient(180deg, #4a2a10, #2c1018); }
+.cs-tcard.locked { opacity: .5; cursor: default; filter: grayscale(.6); }
+.cs-seat { display: flex; align-items: center; gap: 10px; }
+.cs-seat b { color: #ffe08a; font-size: 16px; }
+/* 해금 알림 */
+.cs-notice { position: fixed; left: 50%; top: 14px; z-index: 9999; transform: translate(-50%, -140%); transition: transform .45s cubic-bezier(.2, 1.2, .4, 1); display: flex; align-items: center; gap: 12px; padding: 12px 18px; max-width: min(92vw, 420px);
+  border: 2px solid #e3b04e; border-radius: 8px; background: linear-gradient(180deg, #4a1424, #2a0c14); color: #fff0c8; box-shadow: 0 8px 26px rgba(0, 0, 0, .6); cursor: pointer; }
+.cs-notice.on { transform: translate(-50%, 0); }
+.cs-notice i { font-style: normal; font-size: 30px; }
+.cs-notice b { display: block; font-size: 16px; color: #ffe08a; }
+.cs-notice small { display: block; font-size: 12.5px; color: #e6d3ae; margin-top: 2px; }
+.casino > * { flex-shrink: 0; }

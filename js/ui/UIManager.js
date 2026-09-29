@@ -2733,6 +2733,7 @@ WS.UI = (() => {
     turnDir = ''; // 쪽 넘김 애니메이션은 넘긴 직후 한 번만
     $ui().dataset.phase = phase;
     document.getElementById('stage').dataset.phase = phase;
+    if (!booting && WS.CasinoView) WS.CasinoView.afterRender();
     const knocking = phase === 'night' && !!$ui().querySelector('.nk-door-wrap.knocking');
     knockSfx(knocking);
     knockFrames(knocking);

@@ -38,6 +38,8 @@
 | `cs_g_coin` `cs_g_shell` `cs_g_dice` `cs_g_roul` `cs_g_ladder` | 게임별 판 수 | 선호 게임 (동전·주사위=운, 야바위=관찰) |
 | `cs_shell_hit` · `cs_cheated` | 야바위에서 공 든 컵을 맞힌 수 · 그중 딜러가 속인 수 | 집중력 |
 
+플래그(`data.flags`): `casino_open`(도박장 해금) · `casino_regular`(3판) · `casino_hooked`(6판) · `vip_open` · `kai_lent` · `pro_mercy`/`pro_cruel`/`pro_reported`(서기 에릭에게) · `gambler_pro_accepted`. 엔딩 `gambler_ruin`(패가망신)·`gambler_pro`(도박사)·`gambler`(마지막 한 판).
+
 월드 변수 `gamble_bets` · `gamble_wins`(`data.world`): 노름꾼 카이의 내기(여섯 번 중)를 고른 수 · 딴 수. `choices` 의 `gambler_1..6` 은 `safe`/`bet`/`pass`.
 
 ## 선택 성향 태그 (`choice_tags.json`)

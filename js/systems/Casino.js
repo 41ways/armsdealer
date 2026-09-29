@@ -15,8 +15,10 @@ WS.sys.Casino = (() => {
   };
   const open = () => !!(S().flags && S().flags.casino_open);
   const available = () => open() && S().phase === 'closing';
-  const canBet = bet => Number.isInteger(bet) && bet >= MIN_BET && bet <= S().gold && !stats().pending;
-  const clampBet = n => Math.max(MIN_BET, Math.min(Math.floor(Number(n) || 0), S().gold));
+  const VIP_MIN = 200;
+  const canBet = (bet, min = MIN_BET) => Number.isInteger(bet) && bet >= min && bet <= S().gold && !stats().pending;
+  const clampBet = (n, min = MIN_BET) => Math.max(min, Math.min(Math.floor(Number(n) || 0), S().gold));
+  const vipOpen = () => !!(S().flags && S().flags.vip_open);
 
   // 판돈을 낸다 — 이길 때까지 금고에서 뺀 채로 두었다가(pending) 끝나면 돌려받는다
   function stake(game, bet) {
@@ -25,6 +27,10 @@ WS.sys.Casino = (() => {
     S().gold -= bet;
     c.rounds++; c.wagered += bet;
     T('cs_rounds'); T('cs_wager', bet); T('cs_g_' + game);
+    // 단골(3판) · 푹 빠짐(6판) — 패가망신 엔딩과 도박사의 길(js/data/gambler.js)이 이 플래그를 본다
+    const f = S().flags;
+    if (c.rounds >= 3 && f.casino_regular === undefined) f.casino_regular = S().day;
+    if (c.rounds >= 6 && f.casino_hooked === undefined) f.casino_hooked = S().day;
     if (bet > (c.maxBet || 0)) { c.maxBet = bet; }
   }
   // 판이 끝나 payout(돌려받는 총액, 0 이면 잃음)을 정산한다
@@ -45,6 +51,15 @@ WS.sys.Casino = (() => {
     const win = Math.random() < 0.48;
     const face = win ? side : side === 'heads' ? 'tails' : 'heads';
     return settle('coin', bet, win ? bet * 2 : 0, { face, pick: side });
+  }
+
+  // ───── VIP 룸 황금 동전 — 마담 로자의 초대를 받아들이면 앉는 큰 판. 최소 200G, 앞뒤 49% ─────
+  function vip(bet, side) {
+    if (!vipOpen() || !canBet(bet, VIP_MIN) || !['heads', 'tails'].includes(side)) return null;
+    stake('vip', bet);
+    const win = Math.random() < 0.49;
+    const face = win ? side : side === 'heads' ? 'tails' : 'heads';
+    return settle('vip', bet, win ? bet * 2 : 0, { face, pick: side });
   }
 
   // ───── 주사위 — 두 개의 합. 낮음(2~6) · 높음(8~12) 은 두 배, 7 은 다섯 배 ─────
@@ -146,5 +161,5 @@ WS.sys.Casino = (() => {
     return first;
   }
 
-  return { MIN_BET, open, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
+  return { MIN_BET, VIP_MIN, vipOpen, vip, open, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
 })();

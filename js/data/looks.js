@@ -427,6 +427,11 @@ WS.data.looks = {
     skins: ['#e0a888', '#ecb894'], eyes: '#2a1a12', ears: 'human', beard: 'small', beardColors: ['#1a1210'],
     helmet: 'widehat', hatColor: '#3a1a1a', body: 'noble', bodyColors: ['#6a1a2a', '#2a3a5a'], trim: '#e8c85a', mouth: 'grin',
   },
+  // 마담 — 검은 주사위의 주인. 긴 머리에 금빛 장식
+  madam: {
+    skins: ['#f0c8a8', '#e8b898'], eyes: '#2a1a12', ears: 'human', hair: 'long', hairColors: ['#1a1014', '#4a1a1a'],
+    helmet: 'circlet', body: 'noble', bodyColors: ['#5a1a3a', '#2a2a4a'], trim: '#e8c85a', mouth: 'smile',
+  },
   traveler_b: {
     skin: '#8a5a3a', eyes: '#3a2a1a', ears: 'human', hair: 'long', hairColor: '#2a1a14',
     helmet: 'none', body: 'tunic', bodyColor: '#5a4a34', mouth: 'plain',
