@@ -5,7 +5,7 @@ WS.CasinoView = (() => {
   const C = () => WS.sys.Casino;
   const S = () => WS.Game.state;
   let host = { render() {}, hud: () => '' };
-  let isOn = false, ctx = null, game = null, bet = 50, last = null, intro = false, shell = null;
+  let isOn = false, ctx = null, raidN = 0, game = null, bet = 50, last = null, intro = false, shell = null;
   let log = [];
 
   const GAMES = [
@@ -30,10 +30,34 @@ WS.CasinoView = (() => {
     document.addEventListener('input', e => { if (e.target && e.target.id === 'cs-bet') bet = Number(e.target.value) || 0; });
   }
   // 열어 둔 판(state)·날이 바뀌면 저절로 닫힌다 — 새 판·다음 날에 도박장이 남아 있지 않게
-  const on = () => isOn && !!ctx && ctx.st === S() && ctx.day === S().day && C().available();
+  const on = () => isOn && !!ctx && ctx.st === S() && ctx.day === S().day && (!!raidN || C().available());
 
   // ───────── 화면 ─────────
+  // ───── 단속 — 감찰관에게 모른다고 한 뒤 도박장에 가면 (Casino.raidDue) ─────
+  const RAID = {
+    1: {
+      narr: '지하 도박장의 문이 걷어차여 열린다. 딜러가 판을 엎고, 손님들이 벽을 타고 흩어진다. 촛불 사이로 감찰관 마크가 걸어 들어온다.',
+      who: '감찰관 마크',
+      line: '“…밤엔 문 닫고 자서 모른다더니, 자네였군.” (한숨을 쉰다) “이번 한 번은 못 본 걸로 해 주겠소. 다음엔 없소.”',
+    },
+    2: {
+      narr: '종이 울리기도 전에 문이 열렸다. 문간의 경비 둘은 이미 손이 묶여 있고, 탁자 위의 동전이 바닥으로 쏟아진다.',
+      who: '감찰관 마크',
+      line: '“종도 경비도 소용없었소. 두 번은 내가 봐줄 수 없소.” (수첩을 덮는다) “내일 가게에서 보겠소.”',
+    },
+  };
+  function raidView() {
+    const r = RAID[raidN];
+    return `<div class="casino cs-raidscene">
+      <div class="cs-banner cs-raid-banner"><img src="assets/casino/lobby.jpg" alt="" draggable="false" onerror="this.remove()"><h2>단속! <small>지하 도박장</small></h2></div>
+      <p class="cs-narr">${U.esc(r.narr)}</p>
+      <p class="cs-say"><b>${U.esc(r.who)}</b>${U.esc(r.line)}</p>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">가게로 돌아간다</button></div>
+    </div>${host.hud()}`;
+  }
+
   function html() {
+    if (raidN) return raidView();
     const st = S(), c = C(), p = pending();
     if (p && p.game === 'shell' && !shell) shell = { bet: p.bet, ball: p.ball, swaps: p.swaps, slot: [0, 1, 2], phase: 'pick', res: null }; // 새로 불러온 판 — 섞는 건 못 봤다
     if (!p && shell && !shell.res) shell = null;
@@ -220,8 +244,12 @@ WS.CasinoView = (() => {
   function act(b) {
     const a = b.dataset.act, id = b.dataset.id, c = C();
     switch (a) {
-      case 'cs-open': isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null; intro = c.markVisit(); break;
-      case 'cs-leave': if (pending()) return; isOn = false; intro = false; last = null; shell = null; break;
+      case 'cs-open':
+        isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null;
+        raidN = c.raidDue() ? c.raid() : 0; // 감찰관에게 모른다고 했다면 단속에 걸린다
+        if (raidN) { sfx('door_open', 0.7); sfx('blade', 0.4); intro = false; } else intro = c.markVisit();
+        break;
+      case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; intro = false; last = null; shell = null; break;
       case 'cs-game': if (pending() || (id === 'vip' && !c.vipOpen())) return; game = id; last = null; shell = null; intro = false; break;
       case 'cs-lobby': if (pending()) return; game = null; last = null; shell = null; break;
       case 'cs-chip': {

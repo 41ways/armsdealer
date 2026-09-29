@@ -36,10 +36,11 @@
 | `cs_visits` `cs_rounds` `cs_wager` `cs_won` `cs_lost` | 지하 도박장(카이의 내기를 세 번 받아들여야 열림): 찾은 밤 수 · 판 수 · 건 돈 합 · 딴 돈 · 잃은 돈 | 위험 선호 (평균 판돈=`cs_wager`÷`cs_rounds`) |
 | `cs_allin` · `cs_stop` · `cs_ladder_max` | 금고를 통째로 건 판 수 · 카드 사다리에서 멈추고 가져간 수 · 가장 길게 이은 연속 | 절제·탐욕 |
 | `cs_g_coin` `cs_g_shell` `cs_g_dice` `cs_g_roul` `cs_g_ladder` | 게임별 판 수 | 선호 게임 (동전·주사위=운, 야바위=관찰) |
+| `cs_raid` | 감찰관 단속에 걸린 횟수 (모른다고 한 뒤 도박장에 간 경우, 최대 2) | 규칙 무시 |
 | `cs_days` | 도박장을 찾은 서로 다른 날 수 (3일이면 감찰관 탐문) | 습관 |
 | `cs_shell_hit` · `cs_cheated` | 야바위에서 공 든 컵을 맞힌 수 · 그중 딜러가 속인 수 | 집중력 |
 
-플래그(`data.flags`): `casino_open`(도박장 해금) · `casino_regular`(3판) · `casino_hooked`(6판) · `vip_open` · `kai_lent` · `pro_mercy`/`pro_cruel`/`pro_reported`(서기 에릭에게) · `gambler_pro_accepted` · `casino_days3` · `casino_reported`/`casino_denied`/`casino_evaded`(감찰관 마크에게). 엔딩 `gambler_ruin`(패가망신)·`gambler_pro`(도박사)·`gambler`(마지막 한 판).
+플래그(`data.flags`): `casino_open`(도박장 해금) · `casino_regular`(3판) · `casino_hooked`(6판) · `vip_open` · `kai_lent` · `pro_mercy`/`pro_cruel`/`pro_reported`(서기 에릭에게) · `gambler_pro_accepted` · `casino_days3` · `casino_reported`/`casino_denied`/`casino_evaded`(감찰관 마크에게) · `casino_caught1`/`casino_caught2`(단속) · `casino_guarded`/`casino_quit`(마담의 부름) · `casino_canary`(엔딩 「카나리아」). 엔딩 `gambler_ruin`(패가망신)·`gambler_pro`(도박사)·`gambler`(마지막 한 판).
 
 월드 변수 `gamble_bets` · `gamble_wins`(`data.world`): 노름꾼 카이의 내기(여섯 번 중)를 고른 수 · 딴 수. `choices` 의 `gambler_1..6` 은 `safe`/`bet`/`pass`.
 

@@ -214,6 +214,7 @@ WS.data.config = {
   // 그날 밤 곧바로 끝나는 결말 — 이 가운데 하나라도 맞으면 밤 장면 없이 결말로 간다 (DayManager.endingDue).
   // text: 마감 화면 한 줄 (위에서부터 처음 맞는 것)
   endNow: [
+    { when: { flag: 'casino_canary' }, text: '가게 문을 닫는다. 창밖에서 새 한 마리가 울다 그친다. 이 도시의 밤은 이제 누구도 모르게 지나가지 않는다.' },
     { when: { flag: 'gambler_pro_accepted' }, text: '가게 불을 끈다. 진열대의 칼은 이웃이 가져갔다. 오늘 밤부터 내가 앉을 자리는 지하의 판 위다.' },
     { when: { all: [{ flag: 'bankrupt' }, { flag: 'casino_regular' }] }, text: '금고가 비었다. 어젯밤 지하에서 잃은 돈이 마지막 임대료였다…' },
     { when: { flag: 'smuggle_king_accepted' }, text: '가게 불을 끈다. 뒷문 밖에 짐마차 바퀴 소리가 멎는다. 오늘 밤부터는 다른 장사다.' },

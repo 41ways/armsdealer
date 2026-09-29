@@ -12,6 +12,7 @@
 //   --assort[=K]  지난 7일 두 번 넘게 찾은 물건은 하루 평균 요구량 × K(기본 1.5)를 늘 갖춰 둔다
 //   (품절로 놓친 손님 · 창고 찬 정도는 늘 센다: 9일째부터 새로 온 사러 온 손님 중 요구를 다 못 채운 비율. 약속하고 돌아와 채우면 놓친 게 아니다)
 //   --casino=F:R  카이의 내기 세 번 뒤 열린 지하 도박장에서 매일 밤 금고의 F(0~1) 비율씩 R 판 (동전·주사위·룰렛·카드사다리를 돌려 가며). --gamble=bet|safe|pass  카이의 내기는 늘 그렇게.
+//                 --inspector=deny|report|evade  감찰관 마크의 도박 탐문 (deny 면 두 번 발각 → 엔딩 canary)
 //                 --pro=accept|decline  마담 로자의 초대·마지막 제안 (도박사의 길). 안 주면 다른 손님처럼 정책대로. 세 옵션 모두 기본은 꺼짐
 //   --loan=0  초보의 대출을 끈다 / --midday 초보가 영업 중에도 한 번 더 주문한다 (기본 꺼짐)
 //   --buffer  도매·매입 때 금고에 남길 (임대료+구독료) 일수 (기본 natural·kind 2, merchant 1.5)
@@ -97,6 +98,7 @@ function parseArgs(argv) {
     else if (k === 'casino') { const [f, r] = v.split(':'); o.casino = { frac: +f, rounds: +(r || 3) }; }
     else if (k === 'gamble') o.gamble = v;
     else if (k === 'pro') o.pro = v;
+    else if (k === 'inspector') o.inspector = v;
     else if (k === 'stockcap') o.stockcap = +v;
     else if (k === 'assort') o.assort = v == null ? 1.5 : +v;
   }
@@ -200,6 +202,8 @@ function playRun(seed, opt) {
     // 도박꾼 카이 · 도박사의 길 — 옵션이 있을 때만 정책을 덮는다
     if (c && opt.gamble && /^gambler_\d$/.test(c.tpl || '')) return list.find(ch => ch.id === opt.gamble) || list[0];
     if (c && opt.pro && /^gm_madam/.test(c.tpl || '')) return list.find(ch => ch.id === opt.pro) || list[0];
+    if (c && opt.inspector && c.tpl === 'gm_inspector') return list.find(ch => ch.id === opt.inspector) || list[0];
+    if (c && c.tpl === 'gm_madam_guard' && opt.casino) return list.find(ch => ch.id === 'go') || list[0];
     if (c && opt.pro && c.tpl === 'gm_kai_broke') return list.find(ch => ch.id === 'lend') || list[0];
     if (list.some(ch => !ch.confirm)) list = list.filter(ch => !ch.confirm);
     // 금화를 내는 선택지로 오늘 밤 임대료·구독료를 못 내게 되면 고르지 않는다 (HUD 에 임대료가 늘 보인다) — 다른 게 있을 때만
@@ -532,6 +536,7 @@ function playRun(seed, opt) {
 
   // 지하 도박장 — 판돈은 금고의 opt.casino.frac (최소 10G). 게임은 돌려 가며 (동전 · 주사위 · 룰렛 · 카드 사다리(한 번 맞히면 멈춤))
   function casinoNight() {
+    if (CS.raidDue()) { CS.raid(); return; } // 모른다고 한 뒤 도박장에 가면 단속
     CS.markVisit();
     const c = opt.casino;
     for (let i = 0; i < c.rounds && S().gold >= 10; i++) {

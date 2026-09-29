@@ -864,6 +864,23 @@
    "evade": [
     "neutral"
    ]
+  },
+  "gm_madam_guard": {
+   "go": [
+    "risk",
+    "defy"
+   ],
+   "quit": [
+    "honest"
+   ]
+  },
+  "gm_inspector_canary": {
+   "who": [
+    "neutral"
+   ],
+   "silent": [
+    "neutral"
+   ]
   }
  }
 }

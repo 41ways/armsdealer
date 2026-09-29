@@ -480,5 +480,27 @@ WS.data.endingArt = {
       }
     ],
     "thumb": "assets/ending/hires/gambler_thumb.jpg"
+  },
+  "canary": {
+    "title": "카나리아",
+    "album": [
+      {
+        "file": "assets/ending/hires/canary_album_1.jpg",
+        "caption": "걷어차인 문"
+      },
+      {
+        "file": "assets/ending/hires/canary_album_2.jpg",
+        "caption": "책상 위의 제보서 세 장"
+      },
+      {
+        "file": "assets/ending/hires/canary_album_3.jpg",
+        "caption": "울리지 않은 종"
+      },
+      {
+        "file": "assets/ending/hires/canary_album_4.jpg",
+        "caption": "창턱의 카나리아"
+      }
+    ],
+    "thumb": "assets/ending/hires/canary_thumb.jpg"
   }
 };

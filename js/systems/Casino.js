@@ -15,7 +15,29 @@ WS.sys.Casino = (() => {
   };
   const open = () => !!(S().flags && S().flags.casino_open);
   // 오늘 밤 곧바로 결말로 가는 날(파산 · 압류 · 도박사 수락)에는 도박장에 갈 수 없다
-  const available = () => open() && S().phase === 'closing' && !S().flags.bankrupt && !(WS.sys.Day && WS.sys.Day.endNowLine && WS.sys.Day.endNowLine());
+  // ── 감찰관에게 "모른다"고 한 뒤 (flags.casino_denied — js/data/gambler.js gm_inspector) ──
+  // 첫 발각(casino_caught1)은 봐준다 → 이튿날 마담 로자가 "경비와 종을 세웠다"고 부른다(casino_guarded) → 다시 가면 두 번째 발각(casino_caught2)
+  // → 감찰관이 "다른 이들이 밀고했다"고 알려 준다 (gm_inspector_canary → casino_canary → 엔딩 canary)
+  const raidDue = () => {
+    const f = S().flags;
+    if (f.casino_denied !== undefined && f.casino_caught1 === undefined) return 1;
+    if (f.casino_caught1 !== undefined && f.casino_guarded !== undefined && f.casino_caught2 === undefined) return 2;
+    return 0;
+  };
+  // 문이 닫혀 있다: 첫 발각 뒤 마담의 부름이 있기 전 · 두 번째 발각 뒤 · 마담에게 발을 끊겠다고 한 뒤
+  const shut = () => {
+    const f = S().flags;
+    return (f.casino_caught1 !== undefined && f.casino_guarded === undefined) || f.casino_caught2 !== undefined || f.casino_quit !== undefined;
+  };
+  function raid() {
+    const n = raidDue();
+    if (!n) return 0;
+    S().flags['casino_caught' + n] = S().day;
+    T('cs_raid');
+    if (WS.sys.Save) WS.sys.Save.autosave();
+    return n;
+  }
+  const available = () => open() && !shut() && S().phase === 'closing' && !S().flags.bankrupt && !(WS.sys.Day && WS.sys.Day.endNowLine && WS.sys.Day.endNowLine());
   const VIP_MIN = 200;
   const canBet = (bet, min = MIN_BET) => Number.isInteger(bet) && bet >= min && bet <= S().gold && !stats().pending;
   const clampBet = (n, min = MIN_BET) => Math.max(min, Math.min(Math.floor(Number(n) || 0), S().gold));
@@ -169,5 +191,5 @@ WS.sys.Casino = (() => {
     return first;
   }
 
-  return { MIN_BET, VIP_MIN, vipOpen, vip, open, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
+  return { MIN_BET, VIP_MIN, vipOpen, vip, open, shut, raidDue, raid, available, canBet, clampBet, stats, coin, dice, roulette, shellStart, shellPick, ladderOdds, ladderStart, ladderGuess, ladderCash, colorOf, markVisit };
 })();
