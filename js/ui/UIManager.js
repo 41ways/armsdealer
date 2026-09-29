@@ -107,11 +107,29 @@ WS.UI = (() => {
         <button class="pbtn primary" data-act="new">새 게임</button>
         ${has || (WS.sys.Save.anySlot && WS.sys.Save.anySlot()) ? `<button class="pbtn ts-continue" data-act="menu-page" data-page="load">이어하기${saveLine()}</button>` : ''}
         <button class="pbtn ts-coll" data-act="coll-open">수집품</button>
+        <button class="pbtn ghost ts-about" data-act="about-open">크레딧</button>
       </div>${mute}<p class="ts-credits"><span>Next! · 무기상의 장부</span><i></i><span>Ver ${BUILD}</span></p>`);
+  }
+
+  // ───────── 크레딧 (에셋 출처 표시) — 타이틀의 '크레딧' 버튼. CREDITS.md 내용을 그대로 반영한다 ─────────
+  function about() {
+    return `<div class="coll about"><div class="coll-head">
+        <button class="pbtn ghost coll-back" data-act="about-back">← 뒤로 가기</button>
+        <h2><i class="orn"></i>크레딧<i class="orn"></i></h2>
+      </div><div class="about-body">
+        <ul class="about-list">
+          <li><b>Shikashi's Fantasy Icons Pack v2</b> — Matt Firth (shikashipx), 일부 디자인은 game-icons.net 기반 · <span>CC BY 4.0</span></li>
+          <li><b>Kenney RPG Audio / Interface Sounds</b> — kenney.nl · <span>CC0</span></li>
+          <li><b>손님 그림</b> — ChatGPT · Google Gemini 로 생성</li>
+          <li><b>폰트</b> — Gowun Batang, Noto Sans KR (Google Fonts) · <span>SIL OFL 1.1</span></li>
+        </ul>
+        <p class="about-more">자세한 출처는 <a href="https://github.com/41ways/armsdealer/blob/main/CREDITS.md" target="_blank" rel="noopener noreferrer">CREDITS.md</a> 에.</p>
+      </div></div>`;
   }
 
   // ───────── 수집품 (엔딩 해금 현황) — 타이틀의 '수집품' 버튼. 기록은 WS.sys.EndingLog (이 브라우저에만) ─────────
   let collOpen = false, collSel = null;
+  let aboutOpen = false;
   const collWide = () => window.matchMedia('(min-width: 760px) and (min-aspect-ratio: 1/1)').matches;
   const collThumb = id => {
     const a = WS.data.endingArt && WS.data.endingArt[id];
@@ -2663,7 +2681,7 @@ WS.UI = (() => {
     // 아침에 넘길 쪽이 도매상뿐이면(신문이 오기 전) 바로 도매상으로
     if (!booting && S().phase === 'morning' && morningPages()[0] === 'prep') WS.sys.Day.toPrep();
     const phase = booting ? 'loading' : S().phase;
-    const views = { loading: loadingView, title: () => (collOpen ? collection() : title()), morning, prep, shop, closing, night, ending };
+    const views = { loading: loadingView, title: () => (collOpen ? collection() : aboutOpen ? about() : title()), morning, prep, shop, closing, night, ending };
     if (collOpen && phase !== 'loading') views[phase] = collection; // 개발 패널에서 게임 중에도 수집품 화면을 연다
     // 다시 그려도 스크롤 자리를 지킨다 (도매상에서 수량을 올릴 때 맨 위로 튀지 않게)
     const KEEP = ['.gz-sheet.p1', '.gz-sheet.p2', '.loose-wrap', '.shop-list', '.sheet', '.shelf-body', '.mail-list', '.mail-pane', '.np', '.drawer-body', '.mm-list', '.magnify-overlay', '.bk-sheets', '.bk-page.l .bk-in', '.bk-page.r .bk-in', '.coll-grid'];
@@ -3259,8 +3277,10 @@ WS.UI = (() => {
       case 'seal-close': sealOpen = false; if (tutFocus(c) === 'mag') c.tutIntro = 2; break; // 인장을 보고 닫으면 다음 소개로
       case 'magnify-pass': resolveDocCheck(c, 'pass'); break;
       case 'magnify-accuse': resolveDocCheck(c, 'accuse'); break;
-      case 'to-title': { const rp = S().replay; WS.Game.toTitle(); collOpen = !!rp; break; }
+      case 'to-title': { const rp = S().replay; WS.Game.toTitle(); collOpen = !!rp; aboutOpen = false; break; }
       case 'coll-open': collOpen = true; collSel = null; break;
+      case 'about-open': aboutOpen = true; break;
+      case 'about-back': aboutOpen = false; break;
       case 'coll-sel': collSel = id; if (!collWide() && WS.sys.EndingLog.has(id)) { replayEnding(id); return; } break;
       case 'coll-back': collOpen = false; break;
       case 'coll-view': replayEnding(id); return;
@@ -3406,6 +3426,7 @@ WS.UI = (() => {
       if (e.key === 'Escape' && !e.repeat) {
         e.preventDefault();
         if (collOpen && ph !== 'loading') { collOpen = false; render(); return; }
+        if (aboutOpen) { aboutOpen = false; render(); return; }
         if (menu) { if (menu.page !== 'main' && !(ph === 'title' && menu.page === 'load')) setMenu('main'); else closeMenu(); return; }
         if (!ph || ph === 'loading' || ph === 'ending' || transitioning) return;
         if (prepMail && ph === 'prep') { prepMail = false; mail.compose = null; mail.flash = ''; render(); return; }

@@ -414,7 +414,7 @@ https://41ways.github.io/armsdealer/
 - [`docs/HANDOVER.md`](docs/HANDOVER.md) — 프로젝트 구조 및 개발 인수인계
 - [`docs/BALANCE_HANDOVER.md`](docs/BALANCE_HANDOVER.md) — 게임 경제 및 밸런스 관련 문서
 
-에셋의 출처 및 라이선스 정보는 `CREDITS.md`에서 확인할 수 있습니다.
+에셋의 출처 및 라이선스 정보는 [`CREDITS.md`](CREDITS.md)에서 확인할 수 있습니다 (게임 안에서도 타이틀 화면의 "크레딧" 버튼으로 볼 수 있습니다).
 
 ---
 
@@ -442,7 +442,7 @@ https://41ways.github.io/armsdealer/
 
 ## License
 
-See `CREDITS.md` for asset attribution and licensing information.
+See [`CREDITS.md`](CREDITS.md) for asset attribution and licensing information.
 
 ---
 
