@@ -327,3 +327,52 @@
 .mini.cs-chip.word { width: auto; height: auto; padding: 7px 12px; border-radius: 14px; background: linear-gradient(#f3d48a, #c4913c); color: #2a1808; text-shadow: none; box-shadow: 0 2px 0 #6a4610; }
 .mini.cs-chip:hover:not(:disabled) { border-image: none; filter: brightness(1.15); transform: translateY(-2px); }
 .mini.cs-chip:active:not(:disabled) { border-image: none; transform: translateY(1px); }
+
+/* ── 만화 칸 (v0.9.17) — 컷씬마다: 테두리 두른 그림 한 칸 + 칸 모서리에 걸친 해설 상자 + 칸 아래 말풍선 ── */
+.cs-panel { position: relative; margin: 0; width: 100%; max-width: 1000px; margin-inline: auto; flex-shrink: 0; }
+.cs-panel .cs-scene { border: 3px solid #0a0506; border-radius: 3px; box-shadow: 0 0 0 3px #e9dcc0, 0 0 0 5px #0a0506, 0 10px 24px rgba(0, 0, 0, .7); margin: 5px auto 0; }
+.cs-panel .cs-scene::after { background: linear-gradient(180deg, rgba(0, 0, 0, 0) 70%, rgba(8, 2, 4, .45)); }
+.cs-cap { position: absolute; left: 10px; bottom: -14px; z-index: 5; max-width: min(78%, 560px); margin: 0; padding: 8px 12px; background: #f3e6c4; color: #2a1a10;
+  border: 2px solid #0a0506; box-shadow: 3px 3px 0 #0a0506; font-family: var(--serif, 'Gowun Batang', serif); font-size: 14px; line-height: 1.55; }
+.cs-panel + * { margin-top: 18px; }
+/* 말풍선 — 흰 풍선, 꼬리는 위로 (그림 속 인물 쪽) */
+.casino .cs-say { position: relative; margin: 14px 4px 6px; padding: 10px 14px; background: #fffaf0; color: #1c1210; border: 2.5px solid #0a0506; border-radius: 18px;
+  box-shadow: 3px 4px 0 rgba(10, 5, 6, .8); font-size: 15px; line-height: 1.6; border-left-width: 2.5px; }
+.casino .cs-say::before { content: ''; position: absolute; top: -14px; left: 46px; border: 7px solid transparent; border-bottom: 9px solid #0a0506; }
+.casino .cs-say::after { content: ''; position: absolute; top: -8px; left: 49px; border: 4px solid transparent; border-bottom: 6px solid #fffaf0; }
+.casino .cs-say b { color: #8a2a24; font-size: 12.5px; letter-spacing: .04em; }
+.casino .cs-say .cs-face { width: 54px; border: 2px solid #0a0506; border-radius: 50%; aspect-ratio: 1 / 1 !important; background-color: #3a1a22; }
+.cs-think { margin: 12px 8px 0; font-size: 14px; font-style: italic; color: #e6d3ae; }
+.cs-think::before { content: '— '; opacity: .7; }
+.cs-tap { margin: 6px 0 0; text-align: center; font-size: 12px; color: #b89e78; animation: cs-blink 1.6s ease-in-out infinite; }
+@keyframes cs-blink { 50% { opacity: .35; } }
+/* 효과음 글자 — 만화처럼 기울고 굵게 */
+.cs-panel .cs-scene-title { left: auto; right: 16px; top: 12px; bottom: auto; font-size: 34px; font-weight: 900; color: #ffe08a; transform: rotate(-6deg);
+  -webkit-text-stroke: 2px #0a0506; text-shadow: 4px 4px 0 #0a0506; letter-spacing: .06em; }
+.cs-panel .cs-scene-title.cs-sfx { font-size: 64px; color: #fff4dc; right: auto; left: 50%; top: 40%; transform: translate(-50%, -50%) rotate(-8deg); animation: cs-sfxpop .5s cubic-bezier(.2, 1.6, .4, 1) .15s both; }
+@keyframes cs-sfxpop { from { transform: translate(-50%, -50%) rotate(-8deg) scale(2.2); opacity: 0; } }
+
+/* ── 화면이 바뀔 때만 들어오는 효과 (.cs-in — CasinoView.html) ── */
+.casino.cs-in:not(.cs-cine) > .cs-head, .casino.cs-in:not(.cs-cine) > .cs-seat { animation: cs-fadein .3s ease-out both; }
+.casino.cs-in .cs-hallwrap { animation: cs-hallin .55s ease-out both; }
+.casino.cs-in .cs-table { animation: cs-tablein .38s cubic-bezier(.2, .9, .3, 1) both; }
+.casino.cs-in .cs-stake, .casino.cs-in .cs-foot, .casino.cs-in .cs-ask, .casino.cs-in .cs-swipe { animation: cs-fadein .35s ease-out .12s both; }
+.casino.cs-cine.cs-in .cs-scene img { animation: cs-cinein .7s ease-out both; }
+.casino.cs-cine.cs-in .cs-cap { animation: cs-rise .45s ease-out .35s both; }
+.casino.cs-cine.cs-in .cs-say, .casino.cs-cine.cs-in .cs-think { animation: cs-rise .45s ease-out .75s both; }
+.casino.cs-cine.cs-in .cs-sys, .casino.cs-cine.cs-in .cs-row, .casino.cs-cine.cs-in .cs-foot, .casino.cs-cine.cs-in .cs-tap { animation: cs-rise .4s ease-out 1.05s both; }
+@keyframes cs-fadein { from { opacity: 0; } }
+@keyframes cs-hallin { from { opacity: 0; transform: scale(1.04); filter: brightness(.3); } }
+@keyframes cs-tablein { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+@keyframes cs-cinein { from { opacity: 0; transform: scale(1.06); filter: brightness(.2); } }
+@media (prefers-reduced-motion: reduce) { .casino.cs-in *, .casino.cs-in { animation: none !important; } }
+
+/* ── 들썩임 막기: 결과 자리는 늘 비워 두고, 기록은 높이 고정, 판이 도는 동안 판돈 칸은 잠근다 ── */
+.cs-resslot { min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.cs-resslot .cs-result { width: 100%; }
+.casino > .cs-log { height: 4.9em; overflow: hidden; }
+.cs-stake.locked { opacity: .45; pointer-events: none; filter: saturate(.6); }
+.cs-table.t-ladder { min-height: 462px; }
+.cs-table.t-shell { min-height: 300px; }
+.casino .cs-say::before { left: calc(var(--tail, 9%) - 8px); }
+.casino .cs-say::after { left: calc(var(--tail, 9%) - 5px); }

@@ -35,11 +35,12 @@ WS.CasinoView = (() => {
 
   // ───────── 화면 ─────────
   // ───── 단속 — 감찰관에게 모른다고 한 뒤 도박장에 가면 (Casino.raidDue) ─────
-  // 장면 그림 — 엔딩 앨범 그림을 그대로 쓴다 (js/data/ending_art.js)
+  // 컷씬 그림 — 장면마다 따로 그린 것 (제미나이, tools/casino_scene.py 로 워터마크 지움 · 1280×714)
   const ART = {
-    raid: 'assets/ending/hires/canary_album_1.jpg',   // 걷어차인 문
-    bell: 'assets/ending/hires/canary_album_3.jpg',   // 울리지 않은 종 · 묶인 경비
-    big: 'assets/casino/bigtable.jpg', // 홀 한가운데 판을 둘러싼 손님들
+    raid: 'assets/casino/raid.jpg',     // 첫 단속 — 문간에서 한숨 쉬는 감찰관 마크, 엎어진 탁자
+    bell: 'assets/casino/bell.jpg',     // 줄이 잘린 새 종 · 손이 묶인 경비 둘
+    big: 'assets/casino/bigtable.jpg',  // 큰 판 — 금화 산 너머의 마담 로자
+    burst: 'assets/casino/burst.jpg',   // 급습 — 부서지는 문, 쏟아져 들어오는 병사, 허공의 동전
     guarded: 'assets/casino/entry_guarded.jpg', // 큰 판 날 — 마담이 말한 경비 둘과 새 종이 계단에 (제미나이)
     arrest: 'assets/casino/arrest.jpg',   // 큰 판 앞의 감찰관 마크, 허공의 동전 (제미나이, inspector_theo 외형)
   };
@@ -50,8 +51,12 @@ WS.CasinoView = (() => {
     const n = sh.frames.length, i = Math.max(0, sh.frames.indexOf(frame));
     return `<i class="cs-face" aria-hidden="true" style="background-image:url('${sh.src}');background-size:${n * 100}% 100%;background-position:${(i / (n - 1) * 100).toFixed(3)}% 0;aspect-ratio:${sh.fw} / ${sh.fh}"></i>`;
   }
-  const say = (look, frame, who, line) => `<p class="cs-say has-face">${face(look, frame)}<span><b>${U.esc(who)}</b>${U.esc(line)}</span></p>`;
-  const scene = (src, cls, inner = '') => `<div class="cs-scene ${cls || ''}"><img src="${src}" alt="" draggable="false" onerror="this.remove()">${inner}</div>`;
+  const say = (look, frame, who, line, tail) => `<p class="cs-say has-face" ${tail ? `style="--tail:${tail}%"` : ''}>${face(look, frame)}<span><b>${U.esc(who)}</b>${U.esc(line)}</span></p>`; // 칸 아래 말풍선 (css: .cs-say)
+  // 만화 한 칸: 그림 + (칸 아래 모서리에 걸친) 해설 상자. 대사는 say() 가 칸 아래 말풍선으로
+  // 좁은 화면에서 그림 양옆이 잘릴 때 남길 곳 (가로 %) — 인물이 한쪽에 있는 그림
+  const FOCUS = { 'raid.jpg': 20, 'burst.jpg': 32, 'arrest.jpg': 62, 'bell.jpg': 40, 'entry_door.jpg': 50 };
+  const focus = src => FOCUS[src.split('/').pop()];
+  const scene = (src, cls, inner = '', cap = '') => `<figure class="cs-panel"><div class="cs-scene ${cls || ''}"><img src="${src}" alt="" draggable="false" onerror="this.remove()" ${focus(src) !== undefined ? `style="object-position:${focus(src)}% 50%"` : ''}>${inner}</div>${cap ? `<figcaption class="cs-cap">${U.esc(cap)}</figcaption>` : ''}</figure>`;
   // ───── 입장 — 돌계단을 내려가 문지기를 만난다 (그림: assets/casino/entry_*.jpg, 제미나이) · 문지기 문답은 첫 입장에만 ─────
   const ENTER_LINE = {
     descend: {
@@ -64,22 +69,20 @@ WS.CasinoView = (() => {
     const e = enter, first = e.first;
     if (e.stage === 'guarded') {
       return `<div class="casino cs-cine cs-enter">
-        ${scene(ART.guarded, 'cs-dolly cs-guardshot')}
-        <p class="cs-narr">계단 위쪽 벽에 새 놋쇠 종이 걸려 있다. 창을 세운 경비 둘이 고개를 끄덕인다. 마담 로자의 말대로다 — 오늘 밤은 걱정할 것 없다.</p>
+        ${scene(ART.guarded, 'cs-dolly cs-guardshot', '', '계단 위쪽 벽에 새 놋쇠 종이 걸렸다. 창을 세운 경비 둘이 고개를 끄덕인다.')}
+        <p class="cs-think">마담 로자의 말대로다. 오늘 밤은 걱정할 것 없다.</p>
         <div class="cs-foot"><button class="pbtn wide" data-act="cs-enter-next">→ 내려간다</button></div>
       </div>${host.hud()}`;
     }
     if (e.stage === 'door') {
       return `<div class="casino cs-cine cs-enter cs-enter-door">
-        ${scene('assets/casino/entry_door.jpg', 'cs-dolly')}
-        <p class="cs-narr">${U.esc(ENTER_LINE.door)}</p>
-        <p class="cs-say"><b>문지기</b>“카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</p>
+        ${scene('assets/casino/entry_door.jpg', 'cs-dolly', '', ENTER_LINE.door)}
+        <p class="cs-say"><span><b>문지기</b>“카이가 보냈소? …들어오시오. 판돈은 마음대로, 나갈 때도 마음대로요.”</span></p>
         <div class="cs-foot"><button class="pbtn wide" data-act="cs-enter-next">→ 들어선다</button></div>
       </div>${host.hud()}`;
     }
     return `<div class="casino cs-cine cs-enter cs-enter-descend ${first ? '' : 'quick'}" ${first ? '' : 'data-act="cs-enter-next"'}>
-      ${scene('assets/casino/entry_stairs.jpg', 'cs-dolly')}
-      <p class="cs-narr">${U.esc(first ? ENTER_LINE.descend.first : ENTER_LINE.descend.more)}</p>
+      ${scene('assets/casino/entry_stairs.jpg', 'cs-dolly', '', first ? ENTER_LINE.descend.first : ENTER_LINE.descend.more)}
       ${first ? `<div class="cs-foot"><button class="pbtn wide" data-act="cs-enter-next">→ 내려간다</button></div>` : ''}
     </div>${host.hud()}`;
   }
@@ -97,7 +100,7 @@ WS.CasinoView = (() => {
 
   const RAID = {
     1: {
-      narr: '지하 도박장의 문이 걷어차여 열린다. 딜러가 판을 엎고, 손님들이 벽을 타고 흩어진다. 촛불 사이로 감찰관 마크가 걸어 들어온다.',
+      narr: '문이 걷어차여 열린다. 딜러가 판을 엎고, 손님들이 벽을 타고 흩어진다. 문간에 감찰관 마크가 서 있다.',
       who: '감찰관 마크',
       line: '“…밤엔 문 닫고 자서 모른다더니, 자네였군.” (한숨을 쉰다) “이번 한 번은 못 본 걸로 해 주겠소. 다음엔 없소.”',
     },
@@ -105,9 +108,8 @@ WS.CasinoView = (() => {
   function raidView() {
     const r = RAID[raidN];
     return `<div class="casino cs-cine cs-raidscene cs-stagger">
-      ${scene(ART.raid, 'shake', '<b class="cs-scene-title">단속!</b>')}
-      <p class="cs-narr">${U.esc(r.narr)}</p>
-      ${say('inspector_theo', 'angry', r.who, r.line)}
+      ${scene(ART.raid, 'shake', '<b class="cs-scene-title">단속!</b>', r.narr)}
+      ${say('inspector_theo', 'angry', r.who, r.line, 17)}
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">잠자리로 돌아간다 →</button></div>
     </div>${host.hud()}`;
   }
@@ -118,9 +120,8 @@ WS.CasinoView = (() => {
     const coin = cls => `<div class="cs-coin big ${b.face === "tails" ? "tails" : ""} ${cls}">${b.face === 'tails' ? '뒤' : '앞'}</div>`;
     if (b.stage === 'intro') {
       return `<div class="casino cs-cine cs-big">
-        ${scene(ART.big, 'dim', `<b class="cs-scene-title">큰 판</b>${coin('idle on-scene')}`)}
-        <p class="cs-narr">홀 한가운데 금화가 산처럼 쌓인 탁자. 손님들이 숨을 죽이고 둘러서 있고, 딜러의 손이 떨린다.</p>
-        ${say('madam', 'happy', '마담 로자', '“판돈은 당신의 전부예요. 한 번 던져서, 끝내요.”')}
+        ${scene(ART.big, '', '<b class="cs-scene-title">큰 판</b>', '홀 한가운데, 금화가 산처럼 쌓인 탁자. 손님들이 숨을 죽이고 둘러섰다.')}
+        ${say('madam', 'happy', '마담 로자', '“판돈은 당신의 전부예요. 한 번 던져서, 끝내요.”', 48)}
         <p class="cs-sys">승리하면 승리 엔딩, 패배하면 패배 엔딩으로 이어집니다.</p>
         <div class="cs-row">${btn('앞면', 'heads', 'gold')}${btn('뒷면', 'tails', 'gold')}</div>
         <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-back">…아직 이르다</button></div>
@@ -128,26 +129,24 @@ WS.CasinoView = (() => {
     }
     if (b.stage === 'toss') {
       return `<div class="casino cs-cine cs-big tossing">
-        ${scene(ART.big, 'dim heart', coin('air on-scene'))}
-        <p class="cs-narr cs-center">동전이 허공으로 튕긴다…</p>
+        ${scene(ART.big, 'dim heart', coin('air on-scene'), '동전이 허공으로 튕긴다…')}
       </div>${host.hud()}`;
     }
     if (b.stage === 'burst') {
       return `<div class="casino cs-cine cs-big burst">
-        ${scene(ART.raid, 'flash shake')}
+        ${scene(ART.burst, 'flash shake burstshot', '<b class="cs-scene-title cs-sfx">콰직</b>')}
       </div>${host.hud()}`;
     }
     // 계단의 종 — 마담이 세웠다던 경비와 종. 경비는 이미 묶여 있고, 종은 울리지 않았다 (엔딩 앨범 그림)
     if (b.stage === 'bell') {
       return `<div class="casino cs-cine cs-big bell" data-act="cs-big-next">
-        ${scene(ART.bell, 'cs-bellshot')}
-        <p class="cs-narr">골목 끝의 종은 끝내 울리지 않았다. 마담이 세웠다던 경비들은 벌써 묶인 채 벽에 기대앉아 있었다.</p>
+        ${scene(ART.bell, 'cs-bellshot', '', '종은 끝내 울리지 않았다. 마담이 세웠다던 경비들은 벌써 손이 묶인 채 벽에 기대앉아 있었다.')}
+        <p class="cs-tap">눌러서 넘기기</p>
       </div>${host.hud()}`;
     }
     return `<div class="casino cs-cine cs-big arrest cs-stagger">
-      ${scene(ART.arrest, '', '<b class="cs-scene-title">현행범</b>')}
-      <p class="cs-narr">감찰청 병사들이 홀을 채운다. 손님들은 벽에 바짝 붙었다. 동전은 허공에 뜬 채, 아무도 그것을 보지 않는다.</p>
-      ${say('inspector_theo', 'angry', '감찰관 마크', '“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “당신이 운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도 다른 이들은 아니었소.”')}
+      ${scene(ART.arrest, '', '<b class="cs-scene-title">현행범</b>', '병사들이 홀을 채웠다. 동전은 허공에 뜬 채, 이제 아무도 그것을 보지 않는다.')}
+      ${say('inspector_theo', 'angry', '감찰관 마크', '“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도, 다른 이들은 아니었소.”', 60)}
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-end">끌려간다</button></div>
     </div>${host.hud()}`;
   }
@@ -156,10 +155,20 @@ WS.CasinoView = (() => {
     sfx('latch', 0.5);
     setTimeout(() => { if (big !== b) return; b.stage = 'burst'; sfx('door_open', 0.9); sfx('blade', 0.6); host.render(); }, 2300);
     setTimeout(() => { if (big !== b) return; b.stage = 'bell'; host.render(); }, 3700);
-    setTimeout(() => { if (big !== b || b.stage !== 'bell') return; b.stage = 'arrest'; host.render(); }, 7200);
+    setTimeout(() => { if (big !== b || b.stage !== 'bell') return; b.stage = 'arrest'; host.render(); }, 9000); // 종 장면은 해설을 읽을 만큼 (눌러서 넘길 수 있다)
   }
 
+  // 지금 그리는 화면 이름 — 바뀐 첫 그리기에서만 들어오는 효과(.cs-in)를 붙인다 (칩·판돈을 누를 때마다 효과가 다시 돌지 않게)
+  let viewKey = '', lastKey = '';
+  const viewOf = () => (raidN ? 'raid' : big ? `big:${big.stage}` : enter ? `enter:${enter.stage}` : game === null && !pending() ? 'lobby' : `table:${pending() ? pending().game : game}`);
   function html() {
+    viewKey = viewOf();
+    const out = htmlInner();
+    const fresh = viewKey !== lastKey;
+    lastKey = viewKey;
+    return fresh ? out.replace('<div class="casino', '<div class="cs-in casino') : out;
+  }
+  function htmlInner() {
     if (raidN) return raidView();
     if (big) return bigView();
     if (enter) return enterView();
@@ -171,8 +180,8 @@ WS.CasinoView = (() => {
     if (game === null) return lobby();
     const g = GAMES.find(x => x.id === game);
     const seat = `<div class="cs-seat"><button class="mini" data-act="cs-lobby" ${p ? 'disabled' : ''}>← 홀로</button><img src="assets/casino/table_${g.id}.png" alt="" draggable="false" onerror="this.remove()"><b>${g.icon} ${U.esc(g.name)}</b></div>`;
-    const body = panel(p);
     const f = fx; fx = null;
+    const body = panel(p, !!f);
     const res = last ? resultLine(last, !!f) : '';
     return `<div class="casino ${f ? `fx-${f.kind}` : ''}" style="--fxd:${f ? f.delay : 0}s">
       <div class="cs-head">
@@ -182,9 +191,9 @@ WS.CasinoView = (() => {
       ${seat}
       <p class="cs-hint">${U.esc(g.hint)}</p>
       <div class="cs-table t-${game}">${body}${f ? fxHtml(f) : ''}</div>
-      ${res}
+      <div class="cs-resslot">${res}</div>
       ${stakeBox(p)}
-      ${log.length ? `<ul class="cs-log">${log.slice(-6).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>` : ''}
+      <ul class="cs-log">${log.slice(-4).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave" ${p ? 'disabled' : ''}>${p ? '판이 끝나야 나갈 수 있다' : '도박장을 나선다 (다음 날로) →'}</button></div>
     </div>${host.hud()}`;
   }
@@ -223,37 +232,39 @@ WS.CasinoView = (() => {
   }
 
   function stakeBox(p) {
-    if (p || (shell && shell.res)) return '';
     const st = S();
+    const lock = !!p || !!(shell && !shell.res); // 판이 도는 동안에도 칸은 그대로 두고 잠근다 — 아래가 들썩이지 않게
     const min = C().MIN_BET;
     if (st.gold < min) return `<div class="cs-stake"><p class="cs-broke">판돈으로 걸 돈이 없다. 이 테이블은 최소 ${min}G다.</p></div>`;
     const b = C().clampBet(bet, min);
-    const chip = (label, id) => `<button class="mini cs-chip ${/^\d+$/.test(id) ? 'c' + id : 'word'}" data-act="cs-chip" data-id="${id}">${label}</button>`;
-    return `<div class="cs-stake">
+    const dis = lock ? 'disabled' : '';
+    const chip = (label, id) => `<button class="mini cs-chip ${/^\d+$/.test(id) ? 'c' + id : 'word'}" data-act="cs-chip" data-id="${id}" ${dis}>${label}</button>`;
+    return `<div class="cs-stake ${lock ? 'locked' : ''}">
       <label for="cs-bet">판돈</label>
-      <input id="cs-bet" type="number" inputmode="numeric" min="${min}" max="${st.gold}" step="10" value="${b}"> <span>G</span>
+      <input id="cs-bet" type="number" inputmode="numeric" min="${min}" max="${st.gold}" step="10" value="${lock && p ? p.bet : b}" ${dis}> <span>G</span>
       <div class="cs-chips">${chip('10', '10')}${chip('50', '50')}${chip('100', '100')}${chip('500', '500')}${chip('절반', 'half')}${chip('전부', 'all')}</div>
     </div>`;
   }
 
   const btn = (label, id, cls = '') => `<button class="pbtn cs-play ${cls}" data-act="cs-play" data-id="${id}">${label}</button>`;
-  function panel(p) {
+  function panel(p, fresh) {
     const r = last && last.game === game && !p ? last : null;
+    const an = c => (fresh ? c : ''); // 방금 나온 결과에만 굴러가는 애니메이션 — 칩을 눌러 다시 그릴 때 또 돌지 않게
     if (game === 'coin') {
-      const face = r ? `<div class="cs-coin ${r.face} flip">${r.face === 'heads' ? '앞' : '뒤'}</div>` : '<div class="cs-coin idle">?</div>';
+      const face = r ? `<div class="cs-coin ${r.face} ${an('flip')}">${r.face === 'heads' ? '앞' : '뒤'}</div>` : '<div class="cs-coin idle">?</div>';
       return `${face}<div class="cs-row">${btn('앞면 ×2', 'heads')}${btn('뒷면 ×2', 'tails')}</div>`;
     }
     if (game === 'dice') {
-      const dice = r ? `<div class="cs-dice">${r.dice.map(d => `<span class="cs-die roll">${DIE[d]}</span>`).join('')}<b>${r.sum}</b></div>` : '<div class="cs-dice"><span class="cs-die">⚀</span><span class="cs-die">⚁</span></div>';
+      const dice = r ? `<div class="cs-dice">${r.dice.map(d => `<span class="cs-die ${an('roll')}">${DIE[d]}</span>`).join('')}<b>${r.sum}</b></div>` : '<div class="cs-dice"><span class="cs-die">⚀</span><span class="cs-die">⚁</span></div>';
       return `${dice}<div class="cs-row">${btn('낮음 2~6 ×2', 'low')}${btn('럭키 7 ×5', 'seven', 'gold')}${btn('높음 8~12 ×2', 'high')}</div>`;
     }
     if (game === 'roul') {
-      const wheel = r ? `<div class="cs-ball-num ${r.color} spin">${r.n}</div>` : '<div class="cs-ball-num idle">·</div>';
+      const wheel = r ? `<div class="cs-ball-num ${r.color} ${an('spin')}">${r.n}</div>` : '<div class="cs-ball-num idle">·</div>';
       return `${wheel}<div class="cs-row">${btn('빨강 ×2', 'red', 'red')}${btn('검정 ×2', 'black', 'black')}${btn('홀 ×2', 'odd')}${btn('짝 ×2', 'even')}</div>
         <div class="cs-row cs-num"><label for="cs-n">숫자 하나에 ×36</label><input id="cs-n" type="number" min="0" max="36" value="${last && last.game === 'roul' && last.pick.startsWith('n:') ? last.pick.slice(2) : 7}">${btn('이 숫자에 건다', 'num', 'gold')}</div>`;
     }
     if (game === 'shell') return shellPanel(p);
-    return ladderPanel(p);
+    return ladderPanel(p, fresh);
   }
 
   // ───── 야바위 ─────
@@ -328,7 +339,7 @@ WS.CasinoView = (() => {
     const more = h.length > 6 ? `<span class="ud-more">+${h.length - 6}</span>` : '';
     return `<div class="ud-trail">${more}${h.slice(-6).map(x => udCard(x.n, x.s, 'mini')).join('<i class="ud-step">›</i>')}</div>`;
   };
-  function ladderPanel(p) {
+  function ladderPanel(p, fresh) {
     const l = p && p.game === 'ladder' ? p : null;
     if (!l) {
       const r = last && last.game === 'ladder' ? last : null;
@@ -336,7 +347,7 @@ WS.CasinoView = (() => {
       if (r && r.over) {
         const h = r.hist || [];
         const cur = h[h.length - 1] || { n: r.from, s: 0 };
-        board = `${udTrail(h, h.length - 1)}<div class="ud-main">${udCard(cur.n, cur.s)}<span class="ud-vs lose">${r.dir === 'hi' ? '▲' : '▼'}</span>${udCard(r.next, r.nextSuit || 0, 'flip bust')}</div>`;
+        board = `${udTrail(h, h.length - 1)}<div class="ud-main">${udCard(cur.n, cur.s)}<span class="ud-vs lose">${r.dir === 'hi' ? '▲' : '▼'}</span>${udCard(r.next, r.nextSuit || 0, fresh ? 'flip bust' : 'bust')}</div>`;
       } else if (r && r.cashed) {
         board = `${udTrail(r.hist, (r.hist || []).length)}<p class="ud-cashed">✋ 연속 ${r.steps}번 · ×${r.mult} 에서 멈췄다</p>`;
       } else board = `<div class="ud-main">${udBack('deck')}</div>`;
