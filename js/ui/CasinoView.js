@@ -24,6 +24,8 @@ WS.CasinoView = (() => {
   const SUIT = ['♠', '♥', '♦', '♣'];
   const sfx = (n, v) => { try { WS.Sfx.play(n, v); } catch (e) { /* 소리가 없어도 진행 */ } };
   const pending = () => C().stats().pending;
+  // 마지막 밤(30일째)에는 나서면 곧장 결말이다
+  const leaveLabel = () => `도박장을 나선다 (${WS.sys.Day.lastNight && WS.sys.Day.lastNight() ? '결말로' : '다음 날로'}) →`;
   const money = n => `${n < 0 ? '−' : '+'}${Math.abs(n)}G`;
 
   function init(h) {
@@ -194,7 +196,7 @@ WS.CasinoView = (() => {
       <div class="cs-resslot">${res}</div>
       ${stakeBox(p)}
       <ul class="cs-log">${log.slice(-4).reverse().map(l => `<li class="${l.net > 0 ? 'w' : l.net < 0 ? 'l' : ''}">${U.esc(l.text)}</li>`).join('')}</ul>
-      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave" ${p ? 'disabled' : ''}>${p ? '판이 끝나야 나갈 수 있다' : '도박장을 나선다 (다음 날로) →'}</button></div>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave" ${p ? 'disabled' : ''}>${p ? '판이 끝나야 나갈 수 있다' : leaveLabel()}</button></div>
     </div>${host.hud()}`;
   }
 
@@ -227,7 +229,7 @@ WS.CasinoView = (() => {
       ${call ? say('madam', 'happy', '마담 로자', '(홀 한가운데서 손짓한다) “마침 잘 왔어요. 오늘 밤 큰 판이 있어요. 당신도 끼지 않겠어요?”') : ''}
       <p class="cs-swipe">← 옆으로 밀어 홀을 둘러본다 →</p>
       <p class="cs-ask">앉을 테이블을 누른다</p>
-      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">도박장을 나선다 (다음 날로) →</button></div>
+      <div class="cs-foot"><button class="pbtn wide" data-act="cs-leave">${leaveLabel()}</button></div>
     </div>${host.hud()}`;
   }
 
