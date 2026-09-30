@@ -51,6 +51,8 @@ a{color:var(--gold)}
   <div class="tiles" id="tiles"></div>
   <div id="notice"></div>
   <h2>엔딩 분포</h2><div class="bars" id="endings"></div>
+  <h2>중간에 멈춘 판</h2><p class="sub">엔딩까지 못 가고 탭을 떠난 판 (이틀째부터 · 같은 판은 가장 멀리 간 날 하나로). 몇째 날에서 손을 놓았는지.</p>
+  <div class="bars" id="quits"></div>
   <h2>몇 번째 판인가</h2><p class="sub">이 브라우저에서 끝낸 순서 기준 — 처음 하는 사람과 여러 번 한 사람의 결말이 어떻게 다른지.</p>
   <div class="cols" id="byrun"></div>
   <h2>굵직한 결정</h2><p class="sub">전체 판 중 그 플래그가 켜진 비율.</p>
@@ -100,6 +102,13 @@ a{color:var(--gold)}
     var ids = Object.keys(L.endings); Object.keys(seen).forEach(function (k) { if (ids.indexOf(k) < 0) ids.push(k); });
     ids.sort(function (a, b) { return (seen[b] || 0) - (seen[a] || 0); });
     ids.forEach(function (id) { $('endings').appendChild(bar(L.endings[id] || id, seen[id] || 0, total, !seen[id])); });
+
+    // 중간에 멈춘 판 — 닷새씩 묶어서
+    var qs = d.quits || [], qt = 0, qb = {};
+    qs.forEach(function (x) { qt += x.n; var k = x.days <= 5 ? '2~5일' : x.days <= 10 ? '6~10일' : x.days <= 15 ? '11~15일' : x.days <= 20 ? '16~20일' : x.days <= 25 ? '21~25일' : '26~30일'; qb[k] = (qb[k] || 0) + x.n; });
+    tiles.appendChild(tile(qt, '중간에 멈춘 판'));
+    if (!qt) $('quits').appendChild(el('div', 'sub', '아직 없음'));
+    else ['2~5일', '6~10일', '11~15일', '16~20일', '21~25일', '26~30일'].forEach(function (k) { $('quits').appendChild(bar(k + '에 멈춤', qb[k] || 0, qt, !qb[k])); });
 
     // 몇 번째 판
     var buckets = { '1': {}, '2-3': {}, '4+': {} }, bt = { '1': 0, '2-3': 0, '4+': 0 };

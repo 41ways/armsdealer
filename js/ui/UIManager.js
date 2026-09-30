@@ -122,7 +122,7 @@ WS.UI = (() => {
           <li><b>손님 그림 · 아이콘</b> — ChatGPT · Google Gemini 로 생성</li>
           <li><b>폰트</b> — Gowun Batang, Noto Sans KR (Google Fonts) · <span>SIL OFL 1.1</span></li>
         </ul>
-        <p class="about-more">엔딩까지 간 판마다 엔딩·고른 선택·플레이 시간·행동 횟수 같은 요약이 이름·기기 정보 없이 익명으로 한 번 전송됩니다 (밸런스 조정과 분석용). 방문 수(쿠키 없는 GoatCounter)와 화면에서 난 오류도 익명으로 모읍니다.</p>
+        <p class="about-more">엔딩까지 간 판마다(중간에 그만두면 그때까지) 엔딩·고른 선택·플레이 시간·행동 횟수 같은 요약이 이름·기기 정보 없이 익명으로 전송됩니다 (밸런스 조정과 분석용). 방문 수(쿠키 없는 GoatCounter)와 화면에서 난 오류도 익명으로 모읍니다.</p>
         <p class="about-more">자세한 출처는 <a href="https://github.com/41ways/armsdealer/blob/main/CREDITS.md" target="_blank" rel="noopener noreferrer">CREDITS.md</a> 에.</p>
       </div></div>`;
   }

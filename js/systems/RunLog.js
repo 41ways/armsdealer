@@ -1,4 +1,5 @@
 // 한 판이 끝날 때 그 판의 요약(엔딩·선택·세력 관계)을 익명으로 한 번 보낸다 — 밸런스와 선택 경향을 보려는 것.
+// 엔딩까지 못 가고 탭을 떠나면(숨기거나 닫으면) 그때까지의 요약을 ending 'quit' 로 보낸다 — 워커가 같은 판이면 더 멀리 간 것으로 덮어쓰고, 나중에 끝까지 가면 지운다.
 // 개인을 가려낼 정보는 없다: 브라우저가 만든 무작위 sid, 몇 번째로 끝낸 판인지(run) 뿐.
 // 받는 곳은 norara-errors 워커의 /run (저장소 41ways/norara 의 errors/). localhost 에서 돌린 판은 보내지도 않고 워커도 버린다.
 // 결과 보기: https://41ways.github.io/armsdealer/stats/
@@ -46,16 +47,36 @@ WS.sys.RunLog = (() => {
     };
   }
 
+  const local = () => /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:';
+  function beacon(payload) {
+    const body = JSON.stringify(payload);
+    const ok = navigator.sendBeacon && navigator.sendBeacon(URL_RUN, new Blob([body], { type: 'text/plain' }));
+    if (!ok) fetch(URL_RUN, { method: 'POST', body, keepalive: true, mode: 'no-cors' }).catch(() => {});
+  }
+  // 중간에 떠난 판 — 이틀째부터, 판이 진행 중일 때만. run 은 10000 + 지금까지 끝낸 판 수 (끝낸 판의 번호와 겹치지 않게)
+  let quitDay = -1;
+  function snapshot() {
+    try {
+      const st = WS.Game && WS.Game.state;
+      if (!st || st.replay || st.ending || local()) return;
+      if (!['morning', 'prep', 'shop', 'closing', 'night'].includes(st.phase) || st.day < 2 || quitDay === st.day) return;
+      quitDay = st.day; // 같은 날 여러 번 숨겼다 켜도 한 번만
+      beacon({ ...build(st), ending: 'quit', how: 'quit', run: 10000 + (+ls.get('ad_runs') || 0) });
+    } catch (e) { /* 통계 때문에 게임이 막히면 안 된다 */ }
+  }
+  if (typeof addEventListener === 'function' && typeof document !== 'undefined') {
+    addEventListener('pagehide', snapshot);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') snapshot(); });
+  }
+
   function report(st) {
     try {
       if (!st || st.replay || !st.ending) return;
-      if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || location.protocol === 'file:') return;
-      const body = JSON.stringify(build(st));
-      const ok = navigator.sendBeacon && navigator.sendBeacon(URL_RUN, new Blob([body], { type: 'text/plain' }));
-      if (!ok) fetch(URL_RUN, { method: 'POST', body, keepalive: true, mode: 'no-cors' }).catch(() => {});
+      if (local()) return;
+      beacon(build(st));
       ls.set('ad_runs', String((+ls.get('ad_runs') || 0) + 1));
     } catch (e) { /* 통계 때문에 엔딩이 막히면 안 된다 */ }
   }
 
-  return { report, build };
+  return { report, build, snapshot };
 })();
