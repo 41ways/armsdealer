@@ -370,7 +370,7 @@
 /* ── 들썩임 막기: 결과 자리는 늘 비워 두고, 기록은 높이 고정, 판이 도는 동안 판돈 칸은 잠근다 ── */
 .cs-resslot { min-height: 44px; display: flex; align-items: center; justify-content: center; }
 .cs-resslot .cs-result { width: 100%; }
-.casino > .cs-log { height: 4.9em; overflow: hidden; }
+.casino > .cs-log { height: 6.2em; overflow: hidden; }
 .cs-stake.locked { opacity: .45; pointer-events: none; filter: saturate(.6); }
 .cs-table.t-ladder { min-height: 462px; }
 .cs-table.t-shell { min-height: 300px; }
