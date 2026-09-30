@@ -38,7 +38,7 @@
 | `css/casino.css` | 도박장 스타일 전부 (뒤로 갈수록 나중에 덮은 규칙) |
 | `js/data/endings.js` | `gambling_end`(quote 필드), `gambler_ruin` |
 | `js/ui/UIManager.js` | 마감 화면 버튼, `cs-` 동작을 CasinoView 로 넘김(`next-day` 반환 시 다음 날), 엔딩 인용구(`e.quote`) |
-| `assets/casino/` | 입장(`entry_stairs.jpg`·`entry_door.jpg`·큰 판 날 `entry_guarded.jpg`)·체포(`arrest.jpg`)( `tools/casino_scene.py` 로 워터마크 지움)·홀·테이블 6종·소품(컵·구슬·동전 앞뒤·카드 뒷면)·큰 판 그림(`bigtable.jpg`) |
+| `assets/casino/` | 입장(`entry_stairs.jpg`·`entry_door.jpg`·큰 판 날 `entry_guarded.jpg`)·체포(`arrest.jpg`)( `tools/casino_scene.py` 로 워터마크 지움)·홀·테이블 5종·소품(컵·구슬·동전 앞뒤·카드 뒷면)·큰 판 그림(`bigtable.jpg`) |
 | `assets/ending/hires/canary_album_*.jpg` | 「도박의 끝」 앨범 4장 (급습·제보서·종·카나리아) |
 | `assets/sprites/gambler.png`, `madam.png` | 카이·마담 로자 표정 시트 (`tools/make_sprite_sheet.py`) |
 
