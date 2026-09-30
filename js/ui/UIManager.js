@@ -122,7 +122,7 @@ WS.UI = (() => {
           <li><b>손님 그림 · 아이콘</b> — ChatGPT · Google Gemini 로 생성</li>
           <li><b>폰트</b> — Gowun Batang, Noto Sans KR (Google Fonts) · <span>SIL OFL 1.1</span></li>
         </ul>
-        <p class="about-more">엔딩까지 간 판마다 엔딩·고른 선택·플레이 시간·행동 횟수 같은 요약이 이름·기기 정보 없이 익명으로 한 번 전송됩니다 (밸런스 조정과 분석용).</p>
+        <p class="about-more">엔딩까지 간 판마다 엔딩·고른 선택·플레이 시간·행동 횟수 같은 요약이 이름·기기 정보 없이 익명으로 한 번 전송됩니다 (밸런스 조정과 분석용). 방문 수(쿠키 없는 GoatCounter)와 화면에서 난 오류도 익명으로 모읍니다.</p>
         <p class="about-more">자세한 출처는 <a href="https://github.com/41ways/armsdealer/blob/main/CREDITS.md" target="_blank" rel="noopener noreferrer">CREDITS.md</a> 에.</p>
       </div></div>`;
   }
@@ -2748,7 +2748,7 @@ WS.UI = (() => {
     goldFx(samePage);
     if (phase === 'ending') {
       const st = S();
-      if (!st.replay && st.endingLogged !== st.ending) { st.endingLogged = st.ending; WS.sys.EndingLog.record(st.ending, st.day, st.gold); WS.sys.RunLog.report(st); } // 수집품 기록 + 익명 판 요약 (엔딩이 시작될 때 한 번)
+      if (!st.replay && st.endingLogged !== st.ending) { st.endingLogged = st.ending; WS.sys.EndingLog.record(st.ending, st.day, st.gold); WS.sys.RunLog.report(st); if (window.norara) window.norara.ev('end', { n: 1, sec: Math.round((st.tele && st.tele.sec) || 0) }); } // 수집품 기록 + 익명 판 요약 (엔딩이 시작될 때 한 번)
       wireAlbum(); playCinema(); buildBook(); armCover();
     }
     renderDebug();
@@ -3185,7 +3185,7 @@ WS.UI = (() => {
     const toMorning = () => { paperNote = ''; crowTutStep = 0; cartBlock = null; prepMail = false; D.nextDay(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = true; };
     const morningCard = () => ({ day: S().day });
     const curtained = {
-      new: [() => { WS.Scene.reset(); WS.Game.newGame(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; visited = {}; nav = { place: null, sub: null }; dawnPending = true; },
+      new: [() => { WS.Scene.reset(); WS.Game.newGame(); if (window.norara) window.norara.ev('start', { n: 1 }); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; visited = {}; nav = { place: null, sub: null }; dawnPending = true; },
         () => ({ day: 1 }), 0, 'kd'],
       continue: [() => { WS.Scene.reset(); if (!WS.Game.continueGame()) WS.Game.newGame(); resetDealState(); morningSub = null; doorReady = false; turnDir = ''; mail.flash = ''; dawnPending = S().phase === 'morning'; },
         () => ({ day: S().day }), 0, 'kd'],
