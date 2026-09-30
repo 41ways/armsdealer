@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""마젠타 배경 위에 4열 x 2행으로 그린 표정 시트(8컷) → 손님 스프라이트 시트 (assets/sprites/<look>.png + js/data/sheets.js 항목).
+"""마젠타 배경 위에 4열 x 2행으로 그린 표정 시트(8컷) → 손님 스프라이트 시트 (assets/sprites/<look>.webp + js/data/sheets.js 항목).
 쓰는 법: python3 tools/make_sprite_sheet.py <원본.png> <look id> [--fw 78]
 컷 순서는 sheets.js 의 frames: idle · breathe · blink · talk · talk2 · happy · angry · surprised.
 """
@@ -52,8 +52,8 @@ def main():
         crop = im.crop(b)
         cell.alpha_composite(crop, ((W - crop.width) // 2, H - crop.height))  # 아래 맞춤 · 가운데 맞춤
         sheet.paste(cell.resize((fw, fh), Image.LANCZOS), (i * fw, 0))
-    out = f'assets/sprites/{look}.png'
-    sheet.save(out, optimize=True)
+    out = f'assets/sprites/{look}.webp'
+    sheet.save(out, 'WEBP', lossless=True, method=6, exact=True)  # 무손실 WebP — PNG 보다 40% 작다
     print(out, sheet.size, 'fw', fw, 'fh', fh)
     js = open('js/data/sheets.js').read()
     entry = json.dumps({'src': out, 'fw': fw, 'fh': fh, 'frames': FRAMES}, ensure_ascii=False, indent=2).replace('\n', '\n  ')

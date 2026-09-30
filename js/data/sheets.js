@@ -2,7 +2,7 @@
 // 이 외형을 가진 손님은 코드로 그린 초상 대신 이 시트로 애니메이션된다.
 WS.data.sheets = {
   "goblin_trader": {
-    "src": "assets/sprites/goblin_trader.png",
+    "src": "assets/sprites/goblin_trader.webp",
     "fw": 78,
     "fh": 81,
     "frames": [
@@ -17,7 +17,7 @@ WS.data.sheets = {
     ]
   },
   "knight": {
-    "src": "assets/sprites/knight.png",
+    "src": "assets/sprites/knight.webp",
     "fw": 78,
     "fh": 73,
     "frames": [
@@ -32,7 +32,7 @@ WS.data.sheets = {
     ]
   },
   "dwarf": {
-    "src": "assets/sprites/dwarf.png",
+    "src": "assets/sprites/dwarf.webp",
     "fw": 78,
     "fh": 81,
     "frames": [
@@ -47,7 +47,7 @@ WS.data.sheets = {
     ]
   },
   "goblin_raider": {
-    "src": "assets/sprites/goblin_raider.png",
+    "src": "assets/sprites/goblin_raider.webp",
     "fw": 78,
     "fh": 79,
     "frames": [
@@ -62,7 +62,7 @@ WS.data.sheets = {
     ]
   },
   "soldier": {
-    "src": "assets/sprites/soldier.png",
+    "src": "assets/sprites/soldier.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -77,7 +77,7 @@ WS.data.sheets = {
     ]
   },
   "adventurer": {
-    "src": "assets/sprites/adventurer.png",
+    "src": "assets/sprites/adventurer.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -92,7 +92,7 @@ WS.data.sheets = {
     ]
   },
   "elder": {
-    "src": "assets/sprites/elder.png",
+    "src": "assets/sprites/elder.webp",
     "fw": 78,
     "fh": 96,
     "frames": [
@@ -107,7 +107,7 @@ WS.data.sheets = {
     ]
   },
   "inspector": {
-    "src": "assets/sprites/inspector.png",
+    "src": "assets/sprites/inspector.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -122,7 +122,7 @@ WS.data.sheets = {
     ]
   },
   "hooded": {
-    "src": "assets/sprites/hooded.png",
+    "src": "assets/sprites/hooded.webp",
     "fw": 78,
     "fh": 103,
     "frames": [
@@ -137,7 +137,7 @@ WS.data.sheets = {
     ]
   },
   "demon": {
-    "src": "assets/sprites/demon.png",
+    "src": "assets/sprites/demon.webp",
     "fw": 78,
     "fh": 103,
     "frames": [
@@ -152,7 +152,7 @@ WS.data.sheets = {
     ]
   },
   "demon_herald": {
-    "src": "assets/sprites/demon_herald.png",
+    "src": "assets/sprites/demon_herald.webp",
     "fw": 78,
     "fh": 76,
     "frames": [
@@ -167,7 +167,7 @@ WS.data.sheets = {
     ]
   },
   "noble": {
-    "src": "assets/sprites/noble.png",
+    "src": "assets/sprites/noble.webp",
     "fw": 78,
     "fh": 98,
     "frames": [
@@ -182,7 +182,7 @@ WS.data.sheets = {
     ]
   },
   "hunter": {
-    "src": "assets/sprites/hunter.png",
+    "src": "assets/sprites/hunter.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -197,7 +197,7 @@ WS.data.sheets = {
     ]
   },
   "hero": {
-    "src": "assets/sprites/hero.png",
+    "src": "assets/sprites/hero.webp",
     "fw": 78,
     "fh": 107,
     "frames": [
@@ -212,7 +212,7 @@ WS.data.sheets = {
     ]
   },
   "demon_noble": {
-    "src": "assets/sprites/demon_noble.png",
+    "src": "assets/sprites/demon_noble.webp",
     "fw": 78,
     "fh": 99,
     "frames": [
@@ -227,7 +227,7 @@ WS.data.sheets = {
     ]
   },
   "demon_soldier": {
-    "src": "assets/sprites/demon_soldier.png",
+    "src": "assets/sprites/demon_soldier.webp",
     "fw": 78,
     "fh": 95,
     "frames": [
@@ -242,7 +242,7 @@ WS.data.sheets = {
     ]
   },
   "goblin_envoy": {
-    "src": "assets/sprites/goblin_envoy.png",
+    "src": "assets/sprites/goblin_envoy.webp",
     "fw": 78,
     "fh": 103,
     "frames": [
@@ -257,7 +257,7 @@ WS.data.sheets = {
     ]
   },
   "demon_king": {
-    "src": "assets/sprites/demon_king.png",
+    "src": "assets/sprites/demon_king.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -272,7 +272,7 @@ WS.data.sheets = {
     ]
   },
   "mage": {
-    "src": "assets/sprites/mage.png",
+    "src": "assets/sprites/mage.webp",
     "fw": 78,
     "fh": 104,
     "frames": [
@@ -287,7 +287,7 @@ WS.data.sheets = {
     ]
   },
   "paladin": {
-    "src": "assets/sprites/paladin.png",
+    "src": "assets/sprites/paladin.webp",
     "fw": 78,
     "fh": 97,
     "frames": [
@@ -302,7 +302,7 @@ WS.data.sheets = {
     ]
   },
   "fairy": {
-    "src": "assets/sprites/fairy.png",
+    "src": "assets/sprites/fairy.webp",
     "fw": 78,
     "fh": 96,
     "frames": [
@@ -317,7 +317,7 @@ WS.data.sheets = {
     ]
   },
   "fairy_queen": {
-    "src": "assets/sprites/fairy_queen.png",
+    "src": "assets/sprites/fairy_queen.webp",
     "fw": 78,
     "fh": 98,
     "frames": [
@@ -332,7 +332,7 @@ WS.data.sheets = {
     ]
   },
   "guild_mage": {
-    "src": "assets/sprites/guild_mage.png",
+    "src": "assets/sprites/guild_mage.webp",
     "fw": 78,
     "fh": 94,
     "frames": [
@@ -347,7 +347,7 @@ WS.data.sheets = {
     ]
   },
   "mercenary": {
-    "src": "assets/sprites/mercenary.png",
+    "src": "assets/sprites/mercenary.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -362,7 +362,7 @@ WS.data.sheets = {
     ]
   },
   "kobold": {
-    "src": "assets/sprites/kobold.png",
+    "src": "assets/sprites/kobold.webp",
     "fw": 78,
     "fh": 107,
     "frames": [
@@ -377,7 +377,7 @@ WS.data.sheets = {
     ]
   },
   "skeleton": {
-    "src": "assets/sprites/skeleton.png",
+    "src": "assets/sprites/skeleton.webp",
     "fw": 78,
     "fh": 96,
     "frames": [
@@ -392,7 +392,7 @@ WS.data.sheets = {
     ]
   },
   "vampire_count": {
-    "src": "assets/sprites/vampire_count.png",
+    "src": "assets/sprites/vampire_count.webp",
     "fw": 78,
     "fh": 95,
     "frames": [
@@ -407,7 +407,7 @@ WS.data.sheets = {
     ]
   },
   "necromancer": {
-    "src": "assets/sprites/necromancer.png",
+    "src": "assets/sprites/necromancer.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -422,7 +422,7 @@ WS.data.sheets = {
     ]
   },
   "lodge_hunter": {
-    "src": "assets/sprites/lodge_hunter.png",
+    "src": "assets/sprites/lodge_hunter.webp",
     "fw": 78,
     "fh": 97,
     "frames": [
@@ -437,7 +437,7 @@ WS.data.sheets = {
     ]
   },
   "merc_captain": {
-    "src": "assets/sprites/merc_captain.png",
+    "src": "assets/sprites/merc_captain.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -452,7 +452,7 @@ WS.data.sheets = {
     ]
   },
   "vampire": {
-    "src": "assets/sprites/vampire.png",
+    "src": "assets/sprites/vampire.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -467,7 +467,7 @@ WS.data.sheets = {
     ]
   },
   "guild_merchant": {
-    "src": "assets/sprites/guild_merchant.png",
+    "src": "assets/sprites/guild_merchant.webp",
     "fw": 78,
     "fh": 104,
     "frames": [
@@ -482,7 +482,7 @@ WS.data.sheets = {
     ]
   },
   "fence": {
-    "src": "assets/sprites/fence.png",
+    "src": "assets/sprites/fence.webp",
     "fw": 78,
     "fh": 93,
     "frames": [
@@ -497,7 +497,7 @@ WS.data.sheets = {
     ]
   },
   "syndicate_boss": {
-    "src": "assets/sprites/syndicate_boss.png",
+    "src": "assets/sprites/syndicate_boss.webp",
     "fw": 78,
     "fh": 99,
     "frames": [
@@ -512,7 +512,7 @@ WS.data.sheets = {
     ]
   },
   "priest": {
-    "src": "assets/sprites/priest.png",
+    "src": "assets/sprites/priest.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -527,7 +527,7 @@ WS.data.sheets = {
     ]
   },
   "inquisitor": {
-    "src": "assets/sprites/inquisitor.png",
+    "src": "assets/sprites/inquisitor.webp",
     "fw": 78,
     "fh": 97,
     "frames": [
@@ -542,7 +542,7 @@ WS.data.sheets = {
     ]
   },
   "noble_lord": {
-    "src": "assets/sprites/noble_lord.png",
+    "src": "assets/sprites/noble_lord.webp",
     "fw": 78,
     "fh": 98,
     "frames": [
@@ -557,7 +557,7 @@ WS.data.sheets = {
     ]
   },
   "noble_lady": {
-    "src": "assets/sprites/noble_lady.png",
+    "src": "assets/sprites/noble_lady.webp",
     "fw": 78,
     "fh": 117,
     "frames": [
@@ -572,7 +572,7 @@ WS.data.sheets = {
     ]
   },
   "prince": {
-    "src": "assets/sprites/prince.png",
+    "src": "assets/sprites/prince.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -587,7 +587,7 @@ WS.data.sheets = {
     ]
   },
   "princess": {
-    "src": "assets/sprites/princess.png",
+    "src": "assets/sprites/princess.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -602,7 +602,7 @@ WS.data.sheets = {
     ]
   },
   "bandit": {
-    "src": "assets/sprites/bandit.png",
+    "src": "assets/sprites/bandit.webp",
     "fw": 78,
     "fh": 101,
     "frames": [
@@ -617,7 +617,7 @@ WS.data.sheets = {
     ]
   },
   "bandit_chief": {
-    "src": "assets/sprites/bandit_chief.png",
+    "src": "assets/sprites/bandit_chief.webp",
     "fw": 78,
     "fh": 79,
     "frames": [
@@ -632,7 +632,7 @@ WS.data.sheets = {
     ]
   },
   "orc": {
-    "src": "assets/sprites/orc.png",
+    "src": "assets/sprites/orc.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -647,7 +647,7 @@ WS.data.sheets = {
     ]
   },
   "orc_chief": {
-    "src": "assets/sprites/orc_chief.png",
+    "src": "assets/sprites/orc_chief.webp",
     "fw": 78,
     "fh": 99,
     "frames": [
@@ -662,7 +662,7 @@ WS.data.sheets = {
     ]
   },
   "pirate": {
-    "src": "assets/sprites/pirate.png",
+    "src": "assets/sprites/pirate.webp",
     "fw": 78,
     "fh": 99,
     "frames": [
@@ -677,7 +677,7 @@ WS.data.sheets = {
     ]
   },
   "pirate_captain": {
-    "src": "assets/sprites/pirate_captain.png",
+    "src": "assets/sprites/pirate_captain.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -692,7 +692,7 @@ WS.data.sheets = {
     ]
   },
   "alchemist": {
-    "src": "assets/sprites/alchemist.png",
+    "src": "assets/sprites/alchemist.webp",
     "fw": 78,
     "fh": 96,
     "frames": [
@@ -707,7 +707,7 @@ WS.data.sheets = {
     ]
   },
   "golem_smith": {
-    "src": "assets/sprites/golem_smith.png",
+    "src": "assets/sprites/golem_smith.webp",
     "fw": 78,
     "fh": 97,
     "frames": [
@@ -722,7 +722,7 @@ WS.data.sheets = {
     ]
   },
   "golem": {
-    "src": "assets/sprites/golem.png",
+    "src": "assets/sprites/golem.webp",
     "fw": 78,
     "fh": 91,
     "frames": [
@@ -737,7 +737,7 @@ WS.data.sheets = {
     ]
   },
   "traveler": {
-    "src": "assets/sprites/traveler.png",
+    "src": "assets/sprites/traveler.webp",
     "fw": 78,
     "fh": 96,
     "frames": [
@@ -752,7 +752,7 @@ WS.data.sheets = {
     ]
   },
   "stranger": {
-    "src": "assets/sprites/stranger.png",
+    "src": "assets/sprites/stranger.webp",
     "fw": 78,
     "fh": 107,
     "frames": [
@@ -767,7 +767,7 @@ WS.data.sheets = {
     ]
   },
   "dragon": {
-    "src": "assets/sprites/dragon.png",
+    "src": "assets/sprites/dragon.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -782,7 +782,7 @@ WS.data.sheets = {
     ]
   },
   "kessel": {
-    "src": "assets/sprites/kessel.png",
+    "src": "assets/sprites/kessel.webp",
     "fw": 78,
     "fh": 91,
     "frames": [
@@ -797,7 +797,7 @@ WS.data.sheets = {
     ]
   },
   "liga_member": {
-    "src": "assets/sprites/liga_member.png",
+    "src": "assets/sprites/liga_member.webp",
     "fw": 78,
     "fh": 95,
     "frames": [
@@ -812,7 +812,7 @@ WS.data.sheets = {
     ]
   },
   "physician": {
-    "src": "assets/sprites/physician.png",
+    "src": "assets/sprites/physician.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -827,7 +827,7 @@ WS.data.sheets = {
     ]
   },
   "dwarf_elder": {
-    "src": "assets/sprites/dwarf_elder.png",
+    "src": "assets/sprites/dwarf_elder.webp",
     "fw": 78,
     "fh": 94,
     "frames": [
@@ -842,7 +842,7 @@ WS.data.sheets = {
     ]
   },
   "dwarf_smith": {
-    "src": "assets/sprites/dwarf_smith.png",
+    "src": "assets/sprites/dwarf_smith.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -857,7 +857,7 @@ WS.data.sheets = {
     ]
   },
   "thrall": {
-    "src": "assets/sprites/thrall.png",
+    "src": "assets/sprites/thrall.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -872,7 +872,7 @@ WS.data.sheets = {
     ]
   },
   "knight_official": {
-    "src": "assets/sprites/knight_official.png",
+    "src": "assets/sprites/knight_official.webp",
     "fw": 78,
     "fh": 73,
     "frames": [
@@ -887,7 +887,7 @@ WS.data.sheets = {
     ]
   },
   "smuggle_lord": {
-    "src": "assets/sprites/smuggle_lord.png",
+    "src": "assets/sprites/smuggle_lord.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -902,7 +902,7 @@ WS.data.sheets = {
     ]
   },
   "herbalist": {
-    "src": "assets/sprites/herbalist.png",
+    "src": "assets/sprites/herbalist.webp",
     "fw": 78,
     "fh": 85,
     "frames": [
@@ -917,7 +917,7 @@ WS.data.sheets = {
     ]
   },
   "noble_courier": {
-    "src": "assets/sprites/noble_courier.png",
+    "src": "assets/sprites/noble_courier.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -932,7 +932,7 @@ WS.data.sheets = {
     ]
   },
   "noble_quartermaster": {
-    "src": "assets/sprites/noble_quartermaster.png",
+    "src": "assets/sprites/noble_quartermaster.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -947,7 +947,7 @@ WS.data.sheets = {
     ]
   },
   "star_visitor": {
-    "src": "assets/sprites/star_visitor.png",
+    "src": "assets/sprites/star_visitor.webp",
     "fw": 78,
     "fh": 73,
     "frames": [
@@ -962,7 +962,7 @@ WS.data.sheets = {
     ]
   },
   "star_keeper": {
-    "src": "assets/sprites/star_keeper.png",
+    "src": "assets/sprites/star_keeper.webp",
     "fw": 78,
     "fh": 100,
     "frames": [
@@ -977,7 +977,7 @@ WS.data.sheets = {
     ]
   },
   "inspector_pila": {
-    "src": "assets/sprites/inspector_pila.png",
+    "src": "assets/sprites/inspector_pila.webp",
     "fw": 78,
     "fh": 85,
     "frames": [
@@ -992,7 +992,7 @@ WS.data.sheets = {
     ]
   },
   "wall_captain": {
-    "src": "assets/sprites/wall_captain.png",
+    "src": "assets/sprites/wall_captain.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -1007,7 +1007,7 @@ WS.data.sheets = {
     ]
   },
   "inspector_theo": {
-    "src": "assets/sprites/inspector_theo.png",
+    "src": "assets/sprites/inspector_theo.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -1022,7 +1022,7 @@ WS.data.sheets = {
     ]
   },
   "soldier2": {
-    "src": "assets/sprites/soldier2.png",
+    "src": "assets/sprites/soldier2.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -1037,7 +1037,7 @@ WS.data.sheets = {
     ]
   },
   "goblin_raider2": {
-    "src": "assets/sprites/goblin_raider2.png",
+    "src": "assets/sprites/goblin_raider2.webp",
     "fw": 78,
     "fh": 85,
     "frames": [
@@ -1052,7 +1052,7 @@ WS.data.sheets = {
     ]
   },
   "guild_agent": {
-    "src": "assets/sprites/guild_agent.png",
+    "src": "assets/sprites/guild_agent.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -1067,7 +1067,7 @@ WS.data.sheets = {
     ]
   },
   "puppeteer": {
-    "src": "assets/sprites/puppeteer.png",
+    "src": "assets/sprites/puppeteer.webp",
     "fw": 78,
     "fh": 85,
     "frames": [
@@ -1082,7 +1082,7 @@ WS.data.sheets = {
     ]
   },
   "dwarf2": {
-    "src": "assets/sprites/dwarf2.png",
+    "src": "assets/sprites/dwarf2.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -1097,7 +1097,7 @@ WS.data.sheets = {
     ]
   },
   "hunter_scout": {
-    "src": "assets/sprites/hunter_scout.png",
+    "src": "assets/sprites/hunter_scout.webp",
     "fw": 78,
     "fh": 84,
     "frames": [
@@ -1112,7 +1112,7 @@ WS.data.sheets = {
     ]
   },
   "kassim": {
-    "src": "assets/sprites/kassim.png",
+    "src": "assets/sprites/kassim.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -1127,7 +1127,7 @@ WS.data.sheets = {
     ]
   },
   "gem_thief": {
-    "src": "assets/sprites/gem_thief.png",
+    "src": "assets/sprites/gem_thief.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -1142,7 +1142,7 @@ WS.data.sheets = {
     ]
   },
   "fake_knight": {
-    "src": "assets/sprites/fake_knight.png",
+    "src": "assets/sprites/fake_knight.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -1157,7 +1157,7 @@ WS.data.sheets = {
     ]
   },
   "disguised_buyer": {
-    "src": "assets/sprites/disguised_buyer.png",
+    "src": "assets/sprites/disguised_buyer.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -1172,7 +1172,7 @@ WS.data.sheets = {
     ]
   },
   "court_poisoner": {
-    "src": "assets/sprites/court_poisoner.png",
+    "src": "assets/sprites/court_poisoner.webp",
     "fw": 78,
     "fh": 103,
     "frames": [
@@ -1187,7 +1187,7 @@ WS.data.sheets = {
     ]
   },
   "militia_forager": {
-    "src": "assets/sprites/militia_forager.png",
+    "src": "assets/sprites/militia_forager.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -1202,7 +1202,7 @@ WS.data.sheets = {
     ]
   },
   "liga_hooded": {
-    "src": "assets/sprites/liga_hooded.png",
+    "src": "assets/sprites/liga_hooded.webp",
     "fw": 78,
     "fh": 102,
     "frames": [
@@ -1217,7 +1217,7 @@ WS.data.sheets = {
     ]
   },
   "marga": {
-    "src": "assets/sprites/marga.png",
+    "src": "assets/sprites/marga.webp",
     "fw": 78,
     "fh": 90,
     "frames": [
@@ -1232,7 +1232,7 @@ WS.data.sheets = {
     ]
   },
   "pin": {
-    "src": "assets/sprites/pin.png",
+    "src": "assets/sprites/pin.webp",
     "fw": 78,
     "fh": 86,
     "frames": [
@@ -1247,7 +1247,7 @@ WS.data.sheets = {
     ]
   },
   "crow_keeper": {
-    "src": "assets/sprites/crow_keeper.png",
+    "src": "assets/sprites/crow_keeper.webp",
     "fw": 78,
     "fh": 85,
     "frames": [
@@ -1262,7 +1262,7 @@ WS.data.sheets = {
     ]
   },
   "goth": {
-    "src": "assets/sprites/goth.png",
+    "src": "assets/sprites/goth.webp",
     "fw": 78,
     "fh": 94,
     "frames": [
@@ -1277,7 +1277,7 @@ WS.data.sheets = {
     ]
   },
   "widow_eda": {
-    "src": "assets/sprites/widow_eda.png",
+    "src": "assets/sprites/widow_eda.webp",
     "fw": 78,
     "fh": 99,
     "frames": [
@@ -1292,7 +1292,7 @@ WS.data.sheets = {
     ]
   },
   "oswin": {
-    "src": "assets/sprites/oswin.png",
+    "src": "assets/sprites/oswin.webp",
     "fw": 78,
     "fh": 94,
     "frames": [
@@ -1307,7 +1307,7 @@ WS.data.sheets = {
     ]
   },
   "caravan_master": {
-    "src": "assets/sprites/caravan_master.png",
+    "src": "assets/sprites/caravan_master.webp",
     "fw": 78,
     "fh": 104,
     "frames": [
@@ -1322,7 +1322,7 @@ WS.data.sheets = {
     ]
   },
   "redford_orto": {
-    "src": "assets/sprites/redford_orto.png",
+    "src": "assets/sprites/redford_orto.webp",
     "fw": 78,
     "fh": 105,
     "frames": [
@@ -1337,7 +1337,7 @@ WS.data.sheets = {
     ]
   },
   "gambler": {
-    "src": "assets/sprites/gambler.png",
+    "src": "assets/sprites/gambler.webp",
     "fw": 78,
     "fh": 88,
     "frames": [
@@ -1352,7 +1352,7 @@ WS.data.sheets = {
     ]
   },
   "madam": {
-    "src": "assets/sprites/madam.png",
+    "src": "assets/sprites/madam.webp",
     "fw": 78,
     "fh": 82,
     "frames": [
