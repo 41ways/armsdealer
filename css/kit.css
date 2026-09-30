@@ -260,7 +260,7 @@
 .act-grid .pbtn.danger { min-width: 88px; }
 .act-grid .pbtn.ghost { border-color: transparent; }
 .action-bar .warn-line { background: none; text-shadow: 0 1px 2px #000; }
-.say { background: url(../assets/ui/kit/paper_letter.png) center / 220px auto, var(--paper); background-blend-mode: multiply; border: 2px solid #1a0f08; box-shadow: 0 4px 0 rgba(0, 0, 0, .5), inset 0 0 0 2px rgba(150, 110, 60, .35); }
+.say { background: url(../assets/ui/kit/paper_letter.webp) center / 220px auto, var(--paper); background-blend-mode: multiply; border: 2px solid #1a0f08; box-shadow: 0 4px 0 rgba(0, 0, 0, .5), inset 0 0 0 2px rgba(150, 110, 60, .35); }
 .say.p { background: #2f3f28; box-shadow: 0 4px 0 rgba(0, 0, 0, .5), inset 0 0 0 2px rgba(150, 200, 120, .2); }
 
 /* ── 서신 (까마귀 창가) ── */
@@ -286,7 +286,7 @@
 .mail-item.on { outline: 0; filter: brightness(1.2); transform: translateX(6px); }
 .mail-item.on::before { content: '▸'; position: absolute; left: -12px; top: 50%; margin-top: -9px; color: var(--brass-hi); font-size: 16px; }
 .letter {
-  position: relative; border: 0; background: url(../assets/ui/kit/paper_letter.png) top center / 100% auto repeat-y, var(--parch); background-blend-mode: multiply;
+  position: relative; border: 0; background: url(../assets/ui/kit/paper_letter.webp) top center / 100% auto repeat-y, var(--parch); background-blend-mode: multiply;
   box-shadow: inset 0 0 34px rgba(120, 80, 30, .28), 0 5px 0 rgba(0, 0, 0, .55), 0 10px 22px rgba(0, 0, 0, .45); padding: 16px 16px 14px;
   clip-path: polygon(0 1%, 2% 0, 98% 1%, 100% 0, 99% 99%, 100% 100%, 1% 99%, 0 100%);
 }
@@ -346,7 +346,7 @@ button.cell:hover, .cell.leaf:hover:not(.none) { transform: translateY(-2px); fi
 .tut-hint { font-family: var(--serif); }
 
 /* 인상서 · 수배 */
-.poster { background: url(../assets/ui/kit/paper_wanted.png) center / 300px auto, #e6d7b4; background-blend-mode: multiply; box-shadow: inset 0 0 36px rgba(110, 70, 20, .35), 0 12px 26px rgba(0, 0, 0, .6); border: 0; clip-path: polygon(0 1%, 1.5% 0, 98% .8%, 100% 0, 99% 99%, 100% 100%, 1% 99.3%, 0 100%); position: relative; }
+.poster { background: url(../assets/ui/kit/paper_wanted.webp) center / 300px auto, #e6d7b4; background-blend-mode: multiply; box-shadow: inset 0 0 36px rgba(110, 70, 20, .35), 0 12px 26px rgba(0, 0, 0, .6); border: 0; clip-path: polygon(0 1%, 1.5% 0, 98% .8%, 100% 0, 99% 99%, 100% 100%, 1% 99.3%, 0 100%); position: relative; }
 .poster::before { content: ''; position: absolute; top: 4px; left: 50%; margin-left: -14px; width: 28px; height: 28px; background: url(../assets/ui/kit/nail.png) center / contain no-repeat; image-rendering: pixelated; z-index: 2; }
 .poster-top { padding-top: 22px; }
 .poster-wrap .poster { animation: posterIn .4s var(--ease-out) both; }
@@ -381,13 +381,13 @@ button.cell:hover, .cell.leaf:hover:not(.none) { transform: translateY(-2px); fi
 #stage[data-phase="loading"]::before, #stage[data-phase="title"]::before { display: none; }
 #stage[data-phase="title"] #ui > .title-scene, #stage[data-phase="loading"] #ui > .title-scene { align-self: stretch; width: 100%; }
 .title-scene { position: absolute; inset: 0; overflow: hidden; background: #05070c; isolation: isolate; }
-.ts-back { position: absolute; inset: -20px; background: url(../assets/ui/kit/title_bg.png) 50% 70% / cover; filter: blur(7px) brightness(.4) saturate(.8); z-index: -3; }
+.ts-back { position: absolute; inset: -20px; background: url(../assets/ui/kit/title_bg.webp) 50% 70% / cover; filter: blur(7px) brightness(.4) saturate(.8); z-index: -3; }
 .ts-col { position: absolute; top: 0; bottom: 0; left: 50%; width: min(100%, 480px); transform: translateX(-50%); overflow: hidden; }
 @media (min-width: 560px) { .ts-col { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); } }
 .ts-sky { position: absolute; inset: 0; background: linear-gradient(180deg, #05070c 0%, #070b13 40%, #0a0f18 100%); z-index: -2; }
 .ts-art {
   position: absolute; left: 50%; bottom: 0; height: 76%; aspect-ratio: 424 / 632; transform: translateX(-50%);
-  background: url(../assets/ui/kit/title_bg.png) center bottom / cover no-repeat; image-rendering: pixelated;
+  background: url(../assets/ui/kit/title_bg.webp) center bottom / cover no-repeat; image-rendering: pixelated;
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 9%); mask-image: linear-gradient(180deg, transparent 0, #000 9%);
   animation: tsArtIn 1.6s ease-out both;
 }
@@ -451,7 +451,7 @@ button.cell:hover, .cell.leaf:hover:not(.none) { transform: translateY(-2px); fi
    신문 (대륙 일보)
    ============================================================ */
 .np {
-  background: url(../assets/ui/kit/paper_news.png) center top / 340px auto, #e8e0c9; background-blend-mode: multiply;
+  background: url(../assets/ui/kit/paper_news.webp) center top / 340px auto, #e8e0c9; background-blend-mode: multiply;
   padding: 14px 22px 18px; transform: rotate(-.35deg);
   box-shadow: 0 1px 0 #fff8 inset, inset 0 0 60px rgba(120, 90, 40, .28), 0 18px 40px rgba(0, 0, 0, .65), 0 3px 0 rgba(0, 0, 0, .35);
   clip-path: polygon(0 .6%, 1.2% 0, 40% .5%, 100% 0, 99.6% 42%, 100% 100%, 60% 99.5%, 0 100%, .4% 60%);
@@ -583,7 +583,7 @@ button.cell:hover, .cell.leaf:hover:not(.none) { transform: translateY(-2px); fi
 /* 결말 두루마리 — 가운데 늘어난 구름무늬가 글자 뒤에서 어지럽지 않게 종이색 베일을 한 겹 */
 .ending { padding: 6px 22px 16px; }
 .ending::before { display: block; content: ''; position: absolute; inset: 4px 3px; z-index: 0; pointer-events: none; opacity: 1; mix-blend-mode: normal;
-  background: url(../assets/ui/kit/paper_letter.png) center top / 260px auto, rgba(238, 224, 186, .86); background-blend-mode: multiply; box-shadow: inset 0 0 26px rgba(120, 80, 30, .3); }.ts-moonglow i { left: -80px; top: -80px; width: 160px; height: 160px; background: radial-gradient(circle, rgba(220, 230, 255, .26), rgba(150, 175, 230, .08) 45%, transparent 68%); }
+  background: url(../assets/ui/kit/paper_letter.webp) center top / 260px auto, rgba(238, 224, 186, .86); background-blend-mode: multiply; box-shadow: inset 0 0 26px rgba(120, 80, 30, .3); }.ts-moonglow i { left: -80px; top: -80px; width: 160px; height: 160px; background: radial-gradient(circle, rgba(220, 230, 255, .26), rgba(150, 175, 230, .08) 45%, transparent 68%); }
 .ts-menu { width: min(68%, 230px); }
 .ts-torch.l { left: -52px; } .ts-torch.r { right: -52px; }
 .ts-menu .pbtn.primary { font-size: 23px; }

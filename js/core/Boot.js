@@ -33,9 +33,11 @@ WS.Boot = (() => {
       if (spr) tasks.push(imgReady(spr.img));
     }
     WS.Sprites.artList().forEach(img => tasks.push(imgReady(img)));
-    [...KIT_EARLY, ...KIT_UI].forEach(n => tasks.push(loadImg(`assets/ui/kit/${n}.png`)));
+    // 큰 바탕 그림은 WebP (PNG 의 1/5 크기) — 나머지는 PNG
+    const WEBP = new Set(['title_bg', 'morning_bg', 'dawn_bg', 'title_wide', 'morning_wide', 'dawn_wide', 'paper_news', 'paper_wanted', 'paper_letter']);
+    [...KIT_EARLY, ...KIT_UI].forEach(n => tasks.push(loadImg(`assets/ui/kit/${n}.${WEBP.has(n) ? 'webp' : 'png'}`)));
     // 2차: 가로 화면이면 파노라마 타이틀을, 종이·가죽 바탕은 작아서 함께. 나머지(도장·리본·반짝이 …)는 CSS 가 그 화면에서 처음 쓸 때 받는다
-    if (window.matchMedia && matchMedia('(min-width: 760px) and (min-aspect-ratio: 1/1)').matches) tasks.push(loadImg('assets/ui/kit/title_wide.png'));
+    if (window.matchMedia && matchMedia('(min-width: 760px) and (min-aspect-ratio: 1/1)').matches) tasks.push(loadImg('assets/ui/kit/title_wide.webp'));
     ['paper_tile', 'leather_tile'].forEach(n => tasks.push(loadImg(`assets/ui/kit/${n}.png`)));
     UI_ICONS.forEach(n => tasks.push(loadImg(`assets/ui/${n}.png`)));
     // door_night · door_knock_1~5(스톱모션 두드림 프레임): 밤중 문 두드림 장면 (없으면 404 — loadImg 가 그냥 넘어가고, 장면은 CSS 로 그린 문을 쓴다)

@@ -377,26 +377,26 @@
 
 /* ── 아침(신문)·도매상: 새벽 거리 위에서 처리 — 날짜 전환(킹덤식)과 같은 그림이라 이음매 없이 밝아진다 ── */
 #stage[data-phase="morning"], #stage[data-phase="prep"] {
-  background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/morning_bg.png) center bottom / cover no-repeat;
+  background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/morning_bg.webp) center bottom / cover no-repeat;
 }
 #stage[data-phase="morning"] #scene, #stage[data-phase="prep"] #scene { display: none; }
 #curtain.kd::before {
-  background: linear-gradient(180deg, rgba(5, 8, 20, .86), rgba(8, 12, 28, .8)), #060a16 url(../assets/ui/kit/dawn_bg.png) center bottom / cover no-repeat;
+  background: linear-gradient(180deg, rgba(5, 8, 20, .86), rgba(8, 12, 28, .8)), #060a16 url(../assets/ui/kit/dawn_bg.webp) center bottom / cover no-repeat;
 }
 @media (min-width: 760px) and (min-aspect-ratio: 1/1) {
   #stage[data-phase="morning"], #stage[data-phase="prep"] {
-    background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/morning_wide.png) center / cover no-repeat;
+    background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/morning_wide.webp) center / cover no-repeat;
   }
   #curtain.kd::before {
-    background: linear-gradient(180deg, rgba(5, 8, 20, .86), rgba(8, 12, 28, .8)), #060a16 url(../assets/ui/kit/dawn_wide.png) center / cover no-repeat;
+    background: linear-gradient(180deg, rgba(5, 8, 20, .86), rgba(8, 12, 28, .8)), #060a16 url(../assets/ui/kit/dawn_wide.webp) center / cover no-repeat;
   }
 }
 
 /* 아침 거리: 새벽 그림이 걷히며 아침 그림(무대 배경)이 드러나고, 그 뒤에 신문·도매상 버튼 */
 #stage[data-phase="morning"] #ui { isolation: isolate; }
 #stage:not([data-phase="shop"]) #ui > .street-scene { position: absolute; inset: 0; width: auto; z-index: -1; pointer-events: none; }
-.street-dawn { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/dawn_bg.png) center bottom / cover no-repeat; opacity: 1; }
-@media (min-width: 760px) and (min-aspect-ratio: 1/1) { .street-dawn { background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/dawn_wide.png) center / cover no-repeat; } }
+.street-dawn { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/dawn_bg.webp) center bottom / cover no-repeat; opacity: 1; }
+@media (min-width: 760px) and (min-aspect-ratio: 1/1) { .street-dawn { background: linear-gradient(180deg, rgba(8, 10, 18, .18), rgba(8, 6, 6, .42)), #151a24 url(../assets/ui/kit/dawn_wide.webp) center / cover no-repeat; } }
 .street-scene.go .street-dawn { opacity: 0; transition: opacity 1200ms ease-in-out; }
 .street-gap { flex: 1; pointer-events: none; }
 .street-scene:not(.go) ~ .page-bar { opacity: 0; visibility: hidden; }

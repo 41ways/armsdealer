@@ -63,7 +63,7 @@
 .letter .pbtn[data-act="mail-send"]:not(:disabled) { animation: waxBreath 2.8s ease-in-out infinite; }
 @keyframes waxBreath { 50% { filter: brightness(1.12) drop-shadow(0 0 8px rgba(220, 70, 50, .55)); } }
 /* 편지지 — 접힌 자국 · 줄 */
-.letter:not(.empty):not(.crow-guide) { background-image: linear-gradient(180deg, transparent 47%, rgba(90, 55, 20, .10) 50%, transparent 53%), url(../assets/ui/kit/paper_letter.png); background-size: 100% 100%, 100% auto; background-repeat: no-repeat, repeat-y; background-color: var(--parch); background-blend-mode: normal, multiply; }
+.letter:not(.empty):not(.crow-guide) { background-image: linear-gradient(180deg, transparent 47%, rgba(90, 55, 20, .10) 50%, transparent 53%), url(../assets/ui/kit/paper_letter.webp); background-size: 100% 100%, 100% auto; background-repeat: no-repeat, repeat-y; background-color: var(--parch); background-blend-mode: normal, multiply; }
 .letter > p { line-height: 1.75; background: repeating-linear-gradient(180deg, transparent 0 calc(1.75em - 1px), rgba(120, 80, 30, .16) calc(1.75em - 1px) 1.75em); }
 .letter.compose .param > small { font: 700 11px var(--serif); letter-spacing: .08em; color: #7a3a1c; }
 .letter .quote { border: 0; padding: 10px 12px; background: rgba(120, 80, 30, .12); box-shadow: inset 0 0 0 1px rgba(120, 80, 30, .3); font-style: italic; }
@@ -73,7 +73,7 @@
 .letter.empty { text-align: center; padding: 34px 18px; }
 .letter.empty .ei-crow { display: block; width: 74px; height: 58px; margin: 0 auto 8px; animation: crowIdle 3.6s ease-in-out infinite; }
 @keyframes crowIdle { 0%, 88%, 100% { transform: none; } 92% { transform: translateY(-4px) rotate(-3deg); } 96% { transform: translateY(0) rotate(2deg); } }
-.mail-flash { position: relative; padding: 8px 12px 8px 36px; background: url(../assets/ui/kit/paper_letter.png) center / 200px auto, var(--parch); background-blend-mode: multiply; color: #2b1808; border: 0; box-shadow: 0 3px 0 rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(120, 80, 30, .4); font-family: var(--serif); font-weight: 700; }
+.mail-flash { position: relative; padding: 8px 12px 8px 36px; background: url(../assets/ui/kit/paper_letter.webp) center / 200px auto, var(--parch); background-blend-mode: multiply; color: #2b1808; border: 0; box-shadow: 0 3px 0 rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(120, 80, 30, .4); font-family: var(--serif); font-weight: 700; }
 .mail-flash::before { content: ''; position: absolute; left: 7px; top: 50%; width: 22px; height: 22px; margin-top: -11px; background: url(../assets/ui/kit/wax_seal_red.png) center / contain no-repeat; image-rendering: pixelated; }
 
 /* 까마귀가 창밖을 가로지른다 */
@@ -86,7 +86,7 @@
 /* ── 맞춤 툴팁 (title 대신) ── */
 #tip { position: fixed; z-index: 400; max-width: 240px; padding: 9px 12px; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity 120ms, transform 120ms var(--ease-out);
   font: 700 12.5px/1.4 var(--serif); color: #2b1808; word-break: keep-all;
-  background: url(../assets/ui/kit/paper_letter.png) center / 200px auto, #e9d9b3; background-blend-mode: multiply; box-shadow: 0 6px 16px rgba(0, 0, 0, .55), inset 0 0 0 2px rgba(90, 55, 20, .55), inset 0 0 14px rgba(120, 80, 30, .3); }
+  background: url(../assets/ui/kit/paper_letter.webp) center / 200px auto, #e9d9b3; background-blend-mode: multiply; box-shadow: 0 6px 16px rgba(0, 0, 0, .55), inset 0 0 0 2px rgba(90, 55, 20, .55), inset 0 0 14px rgba(120, 80, 30, .3); }
 #tip.on { opacity: 1; transform: none; }
 
 /* ── 스크롤바 — 철 레일 + 가죽 손잡이 ── */
@@ -128,7 +128,7 @@
     linear-gradient(90deg, transparent calc(50% - 1px), rgba(70, 45, 15, .22) 50%, rgba(255, 250, 230, .35) calc(50% + 1px), transparent calc(50% + 3px)),
     linear-gradient(180deg, transparent calc(46% - 1px), rgba(70, 45, 15, .16) 46%, rgba(255, 250, 230, .3) calc(46% + 1px), transparent calc(46% + 3px)),
     radial-gradient(ellipse at 50% 0, rgba(255, 246, 214, .55), transparent 65%),
-    url(../assets/ui/kit/paper_news.png);
+    url(../assets/ui/kit/paper_news.webp);
   background-size: 100% 100%, 100% 100%, 100% 100%, 340px auto; background-repeat: no-repeat, no-repeat, no-repeat, repeat; background-attachment: local, local, scroll, local; background-color: #e6dcc0; background-blend-mode: normal, normal, normal, multiply; }.np-extra { position: absolute; z-index: 4; right: 16px; top: 20px; padding: 5px 22px 6px 26px; transform: rotate(7deg); color: #fff0dc; font: 800 19px/1 'Nanum Myeongjo', var(--serif); letter-spacing: .14em; text-shadow: 0 2px 0 #4a0c10; background: linear-gradient(180deg, #b52a30, #8e1f2a); filter: drop-shadow(0 3px 2px rgba(0, 0, 0, .5)); clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%); animation: extraPop .5s var(--ease-pop) .7s both; }
 @keyframes extraPop { from { opacity: 0; transform: rotate(7deg) scale(1.8); } }@keyframes paperFlipR { from { opacity: .2; transform: rotateY(-64deg) translateX(16%); filter: brightness(.6); } 60% { opacity: 1; } to { transform: rotate(-.35deg); } }
 @keyframes paperFlipL { from { opacity: .2; transform: rotateY(64deg) translateX(-16%); filter: brightness(.6); } 60% { opacity: 1; } to { transform: rotate(-.35deg); } }
@@ -181,7 +181,7 @@
   .ts-wide { display: block; position: absolute; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; animation: tsArtInR 1.6s ease-out both;
     -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 85%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 85%, transparent 100%); }
   .tw-img { position: absolute; left: -5%; width: 110%; aspect-ratio: 960 / 536; top: 44%; transform: translateY(-44%);
-    background: url(../assets/ui/kit/title_wide.png) center / 100% 100% no-repeat; }
+    background: url(../assets/ui/kit/title_wide.webp) center / 100% 100% no-repeat; }
   .tw-glow { position: absolute; border-radius: 50%; mix-blend-mode: screen; pointer-events: none; }
   .tw-glow.moon { left: 31.6%; top: 14%; width: 22%; height: 39%; margin: -19.5% 0 0 -11%; background: radial-gradient(circle, rgba(200, 215, 255, .30), rgba(150, 175, 230, .08) 50%, transparent 70%); animation: moonPulse 6s ease-in-out infinite; }
   .tw-glow.lamp { left: 38.5%; top: 53.5%; width: 16%; height: 28%; margin: -14% 0 0 -8%; background: radial-gradient(circle, rgba(255, 170, 70, .5), rgba(255, 130, 40, .12) 50%, transparent 70%); animation: winFlick 2.3s ease-in-out infinite; }
