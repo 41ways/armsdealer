@@ -159,6 +159,22 @@ a{color:var(--gold)}
       ['기별(손님에게 알림)', per('l_notify') + '회'], ['소문 확인 의뢰', per('l_rumor') + '회'],
       ['수배서 받아 둔 것', per('poster_sent') + '장'],
     ]);
+    // 도박 (노름꾼 카이 → 지하 도박장 → 감찰관) — 도박장이 열린 판만 분모로
+    var op = fl.casino_open || 0, perOpen = function (k) { return op ? fmt(g(k) / op) : '—'; };
+    var kaiBet = 0, kaiAll = 0; (d.choices || []).forEach(function (c) { if (/^gambler_\d$/.test(c.tpl)) { kaiAll += c.n; if (c.action === 'bet') kaiBet += c.n; } });
+    card('도박 (위험 선호)', [
+      ['카이의 내기를 건 비율', ratio(kaiBet, kaiAll)],
+      ['도박장이 열린 판', ratio(op, total)],
+      ['도박장 찾은 날 (열린 판당)', perOpen('cs_days') + '일'],
+      ['판 수 (열린 판당)', perOpen('cs_rounds') + '판'],
+      ['평균 판돈', g('cs_rounds') ? fmt(g('cs_wager') / g('cs_rounds')) + 'G' : '—'],
+      ['순손익 (열린 판당)', op ? fmt((g('cs_won') - g('cs_lost')) / op) + 'G' : '—'],
+      ['금고를 통째로 건 판', perOpen('cs_allin') + '회'],
+      ['카드 업다운 멈추고 가져감', ratio(g('cs_stop'), g('cs_g_ladder'))],
+      ['야바위 공을 좇은 비율', ratio(g('cs_shell_hit'), g('cs_g_shell'))],
+      ['감찰관에게 신고 · 모른다 · 소문만', (fl.casino_reported || 0) + ' · ' + (fl.casino_denied || 0) + ' · ' + (fl.casino_evaded || 0)],
+      ['단속에 걸림 · 큰 판에서 체포', g('cs_raid') + ' · ' + (fl.casino_arrested || 0)],
+    ]);
     var lat = (d.lat || []).filter(function (x) { return x.n >= 3; }).sort(function (a, b) { return b.avg - a.avg; }).slice(0, 10);
     if (lat.length) card('오래 고민한 갈림길 (평균 초, 3회 이상)', lat.map(function (x) { var i = L.customers[x.tpl]; return [(i && i.name) || x.tpl, fmt(x.avg) + '초 · ' + x.n + '명']; }));
 
