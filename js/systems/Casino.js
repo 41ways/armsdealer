@@ -35,6 +35,9 @@ WS.sys.Casino = (() => {
     const n = raidDue();
     if (!n) return 0;
     S().flags['casino_caught' + n] = S().day;
+    // 저장·불러오기로 판이 걸린 채 남아 있었다면 — 단속 통에 판돈은 날아간다 (나가기가 막히지 않게)
+    const c = stats();
+    if (c.pending) { c.lost += c.pending.bet; T('cs_lost', c.pending.bet); c.pending = null; }
     T('cs_raid');
     if (WS.sys.Save) WS.sys.Save.autosave();
     return n;

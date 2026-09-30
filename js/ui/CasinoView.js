@@ -5,6 +5,7 @@ WS.CasinoView = (() => {
   const C = () => WS.sys.Casino;
   const S = () => WS.Game.state;
   let host = { render() {}, hud: () => '' };
+  let rouletteN = 7; // 룰렛 숫자 칸 — 칩을 눌러 다시 그려도 적어 둔 숫자가 남게
   let isOn = false, ctx = null, raidN = 0, big = null, game = null, bet = 50, last = null, shell = null;
   let fx = null; // 승패 연출 — record() 가 켜고 다음 한 번의 그리기에서 쓴다 {kind:'win'|'jackpot'|'lose'|'push', delay}
   let enter = null; // 입장 연출 — {stage:'descend'|'door', first} · 문지기 문답은 첫 입장에만
@@ -30,7 +31,10 @@ WS.CasinoView = (() => {
 
   function init(h) {
     host = h;
-    document.addEventListener('input', e => { if (e.target && e.target.id === 'cs-bet') bet = Number(e.target.value) || 0; });
+    document.addEventListener('input', e => {
+      if (e.target && e.target.id === 'cs-bet') bet = Number(e.target.value) || 0;
+      if (e.target && e.target.id === 'cs-n') rouletteN = Math.max(0, Math.min(36, Math.floor(Number(e.target.value) || 0)));
+    });
   }
   // 열어 둔 판(state)·날이 바뀌면 저절로 닫힌다 — 새 판·다음 날에 도박장이 남아 있지 않게
   const on = () => isOn && !!ctx && ctx.st === S() && ctx.day === S().day && (!!raidN || !!big || C().available());
@@ -97,7 +101,7 @@ WS.CasinoView = (() => {
   function enterAutoRun() {
     const e = enter;
     sfx('creak', 0.35);
-    setTimeout(() => { if (enter !== e) return; enterAdvance(); host.render(); }, 900);
+    setTimeout(() => { if (enter !== e || !on()) return; enterAdvance(); host.render(); }, 900);
   }
 
   const RAID = {
@@ -148,16 +152,16 @@ WS.CasinoView = (() => {
     }
     return `<div class="casino cs-cine cs-big arrest cs-stagger">
       ${scene(ART.arrest, '', '<b class="cs-scene-title">현행범</b>', '병사들이 홀을 채웠다. 동전은 허공에 뜬 채, 이제 아무도 그것을 보지 않는다.')}
-      ${say('inspector_theo', 'angry', '감찰관 마크', '“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “운이 나빠서 걸린 줄 아십니까? 당신은 함구했을지라도, 다른 이들은 아니었소.”', 60)}
+      ${say('inspector_theo', 'angry', '감찰관 마크', '“움직이지 마시오. 현행범이오.” (수갑을 꺼낸다) “운이 나빠서 걸린 줄 아시오? 당신은 함구했을지라도, 다른 이들은 아니었소.”', 60)}
       <div class="cs-foot"><button class="pbtn wide" data-act="cs-big-end">끌려간다</button></div>
     </div>${host.hud()}`;
   }
   function bigRun(face) {
     const b = big = { stage: 'toss', face };
     sfx('latch', 0.5);
-    setTimeout(() => { if (big !== b) return; b.stage = 'burst'; sfx('door_open', 0.9); sfx('blade', 0.6); host.render(); }, 2300);
-    setTimeout(() => { if (big !== b) return; b.stage = 'bell'; host.render(); }, 3700);
-    setTimeout(() => { if (big !== b || b.stage !== 'bell') return; b.stage = 'arrest'; host.render(); }, 9000); // 종 장면은 해설을 읽을 만큼 (눌러서 넘길 수 있다)
+    setTimeout(() => { if (big !== b || !on()) return; b.stage = 'burst'; sfx('door_open', 0.9); sfx('blade', 0.6); host.render(); }, 2300);
+    setTimeout(() => { if (big !== b || !on()) return; b.stage = 'bell'; host.render(); }, 3700);
+    setTimeout(() => { if (big !== b || b.stage !== 'bell' || !on()) return; b.stage = 'arrest'; host.render(); }, 9000); // 종 장면은 해설을 읽을 만큼 (눌러서 넘길 수 있다)
   }
 
   // 지금 그리는 화면 이름 — 바뀐 첫 그리기에서만 들어오는 효과(.cs-in)를 붙인다 (칩·판돈을 누를 때마다 효과가 다시 돌지 않게)
@@ -177,7 +181,7 @@ WS.CasinoView = (() => {
     const st = S(), c = C(), p = pending();
     if (p && p.game === 'shell' && !shell) shell = { bet: p.bet, ball: p.ball, swaps: p.swaps, slot: [0, 1, 2], phase: 'pick', res: null }; // 새로 불러온 판 — 섞는 건 못 봤다
     if (!p && shell && !shell.res) shell = null;
-    const rent = WS.sys.Day.rent();
+    const rent = WS.sys.Day.rentTomorrow();
     if (p) game = p.game; // 불러온 판이 진행 중이면 그 테이블에 앉은 채로
     if (game === null) return lobby();
     const g = GAMES.find(x => x.id === game);
@@ -212,7 +216,7 @@ WS.CasinoView = (() => {
   const BIG_SPOT = [42, 33, 13, 24]; // 큰 판 — 홀 한가운데, 마담 로자가 서 있는 자리
   function lobby() {
     const st = S(), c = C();
-    const rent = WS.sys.Day.rent();
+    const rent = WS.sys.Day.rentTomorrow();
     const call = c.bigCallDue();
     const pos = (l, t, w, h) => `left:${l}%;top:${t}%;width:${w}%;height:${h}%`;
     const spots = HALL.map(([id, l, t, w, h]) => {
@@ -263,7 +267,7 @@ WS.CasinoView = (() => {
     if (game === 'roul') {
       const wheel = r ? `<div class="cs-ball-num ${r.color} ${an('spin')}">${r.n}</div>` : '<div class="cs-ball-num idle">·</div>';
       return `${wheel}<div class="cs-row">${btn('빨강 ×2', 'red', 'red')}${btn('검정 ×2', 'black', 'black')}${btn('홀 ×2', 'odd')}${btn('짝 ×2', 'even')}</div>
-        <div class="cs-row cs-num"><label for="cs-n">숫자 하나에 ×36</label><input id="cs-n" type="number" min="0" max="36" value="${last && last.game === 'roul' && last.pick.startsWith('n:') ? last.pick.slice(2) : 7}">${btn('이 숫자에 건다', 'num', 'gold')}</div>`;
+        <div class="cs-row cs-num"><label for="cs-n">숫자 하나에 ×36</label><input id="cs-n" type="number" min="0" max="36" value="${rouletteN}">${btn('이 숫자에 건다', 'num', 'gold')}</div>`;
     }
     if (game === 'shell') return shellPanel(p);
     return ladderPanel(p, fresh);
@@ -304,7 +308,7 @@ WS.CasinoView = (() => {
   function shellRun() {
     const s = shell, MS = 380;
     const step = () => {
-      if (shell !== s || s.res) return;
+      if (shell !== s || s.res || !on()) return;
       if (s.phase === 'show') { s.phase = 'shuffle'; s.i = 0; shellApply(); setTimeout(step, 550); return; }
       if (s.i < s.swaps.length) {
         const [a, b] = s.swaps[s.i++];
@@ -351,7 +355,7 @@ WS.CasinoView = (() => {
         const cur = h[h.length - 1] || { n: r.from, s: 0 };
         board = `${udTrail(h, h.length - 1)}<div class="ud-main">${udCard(cur.n, cur.s)}<span class="ud-vs lose">${r.dir === 'hi' ? '▲' : '▼'}</span>${udCard(r.next, r.nextSuit || 0, fresh ? 'flip bust' : 'bust')}</div>`;
       } else if (r && r.cashed) {
-        board = `${udTrail(r.hist, (r.hist || []).length)}<p class="ud-cashed">✋ 연속 ${r.steps}번 · ×${r.mult} 에서 멈췄다</p>`;
+        board = `${udTrail(r.hist, (r.hist || []).length)}<p class="ud-cashed">✋ 연속 ${r.steps}번 · ×${r.mult}에서 멈췄다</p>`;
       } else board = `<div class="ud-main">${udBack('deck')}</div>`;
       return `<div class="ud">${board}</div>
         <div class="cs-row">${btn(r ? '다시 뽑는다' : '카드를 뽑는다', 'start', 'gold')}</div>
@@ -379,6 +383,7 @@ WS.CasinoView = (() => {
     win: ['오늘은 당신 날이군.', '…운이 좋소.', '한 판 더 하시겠소?', '딜러가 이를 간다.'],
     jackpot: ['홀이 술렁인다. 옆 테이블 손님들이 고개를 돌린다.', '딜러가 입을 다물지 못한다.', '딜러가 금화를 세는 손이 떨린다.'],
     lose: ['아깝게 됐소.', '판은 원래 그런 거요.', '다음엔 되겠지.', '딜러가 슬쩍 웃는다.'],
+    push: ['본전이오. 한 판 더?', '딴 것도 잃은 것도 없소.'],
   };
   const pickSay = w => SAY[w][Math.floor(Math.random() * SAY[w].length)];
   const isJackpot = r => r.net > 0 && (r.payout >= r.bet * 5 || r.net >= 300);
@@ -392,7 +397,7 @@ WS.CasinoView = (() => {
     if (r.game === 'roul') extra = ` 구슬은 ${r.n}번 (${r.color === 'red' ? '빨강' : r.color === 'black' ? '검정' : '초록'}).`;
     if (r.game === 'ladder' && r.over) extra = ` ${RANK(r.from)} 다음은 ${RANK(r.next)}.`;
     if (r.game === 'ladder' && r.cashed) extra = ` 연속 ${r.steps}번 맞히고 손을 뗐다 (×${r.mult}).`;
-    return `<p class="cs-result ${win ? 'w' : r.net < 0 ? 'l' : ''} ${pop ? 'pop' : ''}"><b>${money(r.net)}</b>${U.esc(extra)} ${U.esc(pickSay(isJackpot(r) ? 'jackpot' : win ? 'win' : 'lose'))}</p>`;
+    return `<p class="cs-result ${win ? 'w' : r.net < 0 ? 'l' : ''} ${pop ? 'pop' : ''}"><b>${r.net === 0 ? '본전' : money(r.net)}</b>${U.esc(extra)} ${U.esc(pickSay(isJackpot(r) ? 'jackpot' : win ? 'win' : r.net === 0 ? 'push' : 'lose'))}</p>`;
   }
   function record(r) {
     last = r;
@@ -430,17 +435,23 @@ WS.CasinoView = (() => {
     const v = C().clampBet(el ? el.value : bet, min);
     return S().gold >= min ? v : 0;
   };
+  let lockUntil = 0; // 결과가 나온 직후 잠깐은 판 버튼을 받지 않는다 — 두 번 눌러 두 판이 걸리지 않게
   function act(b) {
     const a = b.dataset.act, id = b.dataset.id, c = C();
+    if (/^cs-(play|guess|cup|cash)$/.test(a)) {
+      if (Date.now() < lockUntil) return;
+      lockUntil = Date.now() + 450;
+    }
     switch (a) {
       case 'cs-open':
-        isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null; enter = null;
+        if (!ctx || ctx.st !== S()) log = []; // 새 판이면 기록도 새로
+        isOn = true; ctx = { st: S(), day: S().day }; game = null; last = null; shell = null; enter = null; big = null; fx = null;
         raidN = c.raidDue() ? c.raid() : 0; // 감찰관에게 모른다고 했다면 단속에 걸린다
         if (raidN) { sfx('door_open', 0.7); sfx('blade', 0.4); }
         else {
           const first = c.markVisit();
           enter = c.bigCallDue() ? { stage: 'guarded', first } : { stage: 'descend', first }; // 큰 판 날은 경비와 종이 선 계단
-          if (!first) { host.render(); enterAutoRun(); return; } // 다음 입장부터는 문지기 문답 없이 계단만 짧게
+          if (!first && enter.stage === 'descend') { host.render(); enterAutoRun(); return; } // 다음 입장부터는 문지기 문답 없이 계단만 짧게 (큰 판 날의 경비 장면은 눌러서 넘긴다)
         }
         break;
       case 'cs-enter-next': enterAdvance(); break;
@@ -448,7 +459,7 @@ WS.CasinoView = (() => {
       case 'cs-big-back': big = null; break;
       case 'cs-big-next': if (big && big.stage === 'bell') big.stage = 'arrest'; else return; break;
       case 'cs-big-end': big = null; isOn = false; return 'next-day';
-      case 'cs-leave': if (pending()) return; raidN = 0; isOn = false; enter = null; last = null; shell = null; return 'next-day'; // 도박장을 나서면 곧장 잠자리로 — 다음 날
+      case 'cs-leave': if (pending() && !raidN) return; raidN = 0; isOn = false; enter = null; last = null; shell = null; return 'next-day'; // 도박장을 나서면 곧장 잠자리로 — 다음 날
       case 'cs-game': if (pending() || !GAMES.some(g => g.id === id)) return; game = id; last = null; shell = null; break;
       case 'cs-lobby': if (pending()) return; game = null; last = null; shell = null; break;
       case 'cs-chip': {
@@ -475,7 +486,8 @@ WS.CasinoView = (() => {
         else if (game === 'dice') r = c.dice(bet, id);
         else if (game === 'roul') {
           const n = document.getElementById('cs-n');
-          r = c.roulette(bet, id === 'num' ? `n:${Math.max(0, Math.min(36, Math.floor(Number(n && n.value) || 0)))}` : id);
+          if (n) rouletteN = Math.max(0, Math.min(36, Math.floor(Number(n.value) || 0)));
+          r = c.roulette(bet, id === 'num' ? `n:${rouletteN}` : id);
         }
         if (!r) return;
         record(r);

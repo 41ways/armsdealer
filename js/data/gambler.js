@@ -64,7 +64,7 @@
     {
       id: 'gm_madam_guard', ...MADAM,
       spawn: { when: { all: [{ flag: 'casino_caught1' }, { noFlag: 'casino_guarded' }, { noFlag: 'casino_quit' }, { since: { flag: 'casino_caught1', days: 1 } }] }, pinned: true },
-      ask: { tag: '다시 문 열기', note: '경비와 종을 세웠다' },
+      ask: { tag: '다시 문 열기', note: '경비를 세우고 종을 달았다' },
       greet: '어젯밤엔 놀랐죠? 걱정 마요. 이번에는 경비를 세웠고 골목 끝에 종도 달았어요. 감찰관 발소리가 나면 종이 울려요. 걸릴 일 없어요. 오늘 밤에 다시 와요.',
       choices: [
         { id: 'go', label: '알겠소, 가 보겠소', reply: '그래야죠. 판은 당신을 기다려요.', effects: { flags: ['casino_guarded'] } },

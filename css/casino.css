@@ -376,3 +376,5 @@
 .cs-table.t-shell { min-height: 300px; }
 .casino .cs-say::before { left: calc(var(--tail, 9%) - 8px); }
 .casino .cs-say::after { left: calc(var(--tail, 9%) - 5px); }
+/* 세로 화면: 홀 그림은 양옆 여백 없이 가장자리까지 (위의 .casino > * 가 음수 여백을 덮던 것) */
+@media (max-aspect-ratio: 1/1) { .casino > .cs-hallwrap { width: calc(100% + 28px); max-width: none; margin-inline: -14px; } }

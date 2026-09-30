@@ -49,8 +49,11 @@ WS.sys.Day = (() => {
   const GUILD_RESCUE_CUSHION = 40; // 모자란 임대료에 얹어 주는 여유 (이틀치)
   // 그날의 기본 임대료 (config.rentSchedule) × 조건별 보정 (rentMods)
   // from 은 실제 날짜 (v0.9.3 — 이야기일이 아니다. 예고 기사 events.js rent_notice_* 도 실제 날짜)
-  const baseRent = () => (cfg().rentSchedule || []).filter(r => S().day >= r.from).reduce((v, r) => r.rent, cfg().rent);
-  const rent = () => Math.round((cfg().rentMods || []).reduce((m, r) => (WS.sys.Conditions.check(r.when) ? m * r.mult : m), baseRent()));
+  const baseRent = (day = S().day) => (cfg().rentSchedule || []).filter(r => day >= r.from).reduce((v, r) => r.rent, cfg().rent);
+  const rentFor = day => Math.round((cfg().rentMods || []).reduce((m, r) => (WS.sys.Conditions.check(r.when) ? m * r.mult : m), baseRent(day)));
+  const rent = () => rentFor(S().day);
+  // 마감 화면·도박장의 「내일 밤 임대료」 — 임대료가 오르는 날 전날에도 오른 값을 보여 준다
+  const rentTomorrow = () => rentFor(S().day + 1);
 
   function toPrep() {
     S().phase = 'prep';
@@ -347,7 +350,7 @@ WS.sys.Day = (() => {
     startDay();
   }
 
-  return { startDay, rent, toPrep, cartPreview, cartAdjust, confirmCart, openShop, current, waiting, nextCustomer, closeShop, nextDay, repayGuild,
+  return { startDay, rent, rentTomorrow, toPrep, cartPreview, cartAdjust, confirmCart, openShop, current, waiting, nextCustomer, closeShop, nextDay, repayGuild,
     nightDue, startNight, nightState, nightChoose, rollWhisper, whisperPending, startWhisper, endingDue, endNowLine, lastNight };
 })();
 

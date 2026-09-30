@@ -2007,7 +2007,7 @@ WS.UI = (() => {
   // 금고 사정 — 내일 밤 임대료를 낼 수 있는지 마감 때마다 알려 준다
   function safeBox() {
     const st = S();
-    const rent = WS.sys.Day.rent();
+    const rent = WS.sys.Day.rentTomorrow();
     const days = rent > 0 ? Math.floor(st.gold / rent) : 99;
     const level = st.gold < rent ? 'danger' : days < 3 ? 'warn' : 'ok';
     const msg = level === 'danger'
