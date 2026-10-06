@@ -49,11 +49,13 @@ WS.Cinematic = (() => {
     'smuggle_king', 'bankrupt', 'red_ford_again', 'double_dealer', 'demonlord_dominion', 'dragon_ash', 'grey_march', 'night_court',
     'goblin_nation', 'dragon_nest', 'dragonfall', 'moonlit_market', 'star_guests', 'forest_benefactor', 'informant', 'perfect_ledger',
     'balance_keeper', 'pin_heir', 'iron_king', 'candle_queen', 'golem_age', 'thunder_age', 'knight_commander', 'kingdom_armory',
-    'steel_age', 'fairy_friend', 'neutral', 'opportunist',
+    'steel_age', 'fairy_friend', 'neutral', 'opportunist', 'gambling_end', 'gambler_ruin', // 도박 결말도 제목 자막부터 (그림은 사진첩)
   ];
   const ART_ALIAS = { candle_queen: 'queen', opportunist: 'double_dealer' }; // opportunist: 새 그림이 나오기 전까지 박쥐 그림을 임시로
+  // 사진첩 그림(js/data/ending_art.js album)이 있는 엔딩은 예전 세 장을 쓰지 않는다 — 그 파일들은 지웠다
+  const hasAlbum = id => { const a = WS.data && WS.data.endingArt && WS.data.endingArt[id]; return !!(a && a.album && a.album.length); };
   const outcomeFor = id => {
-    if (!OUTCOME_IDS.includes(id)) return null;
+    if (!OUTCOME_IDS.includes(id) || hasAlbum(id)) return null;
     const name = ART_ALIAS[id] || id;
     return { id, frames: [1, 2, 3].map(n => `assets/ending/${name}_outcome_${n}.png`) };
   };
@@ -70,7 +72,7 @@ WS.Cinematic = (() => {
     return it && Array.isArray(it.frames) && it.frames.length >= 1 && it.line ? it : null;
   };
   // 이 결말에서 틀 컷신이 있는가 (1단계 정체 드러내기 또는 그 뒤 컷)
-  const available = (id, revealId) => !!(SCRIPTS[revealId] || outcomeFor(id) || introFor(id));
+  const available = (id, revealId) => !!(SCRIPTS[revealId] || OUTCOME_IDS.includes(id) || introFor(id)); // 제목 자막 컷신은 예전처럼 (그림이 사진첩으로 옮겨 가도)
 
   const SHARED = [BG, 'assets/scene/hand_L.png', 'assets/scene/hand_R.png', 'assets/scene/magnifier.png'];
   const srcsOf = sc => [...new Set(SHARED.concat(sc.cuts.filter(c => c.fig).map(c => c.fig.src)))];

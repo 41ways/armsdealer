@@ -330,8 +330,6 @@ WS.CasinoView = (() => {
     setTimeout(step, 1300);
   }
 
-  // ───── 카드 사다리 ─────
-  const cardHtml = (n, k, cls = '') => `<div class="cs-card ${cls} ${[1, 2].includes(k % 4) ? 'red' : ''}"><b>${RANK(n)}</b><i>${SUIT[k % 4]}</i></div>`;
   // ───── 카드 업다운 ─────
   let udFlash = ''; // 방금 맞혔다 — 새 카드를 한 번 빛낸다
   const udCard = (n, st, cls = '') => {

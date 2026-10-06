@@ -4,12 +4,12 @@ WS.Boot = (() => {
   const UI_ICONS = ['gold', 'ledger', 'map', 'news', 'stock', 'time']; // 제미나이로 직접 뽑은 그림
 
   // 새 UI 키트(assets/ui/kit) — 첫 화면과 버튼·액자·HUD 에 쓰이는 것만 미리. 없으면 404 로 그냥 넘어간다 (나머지 신문 삽화·서신 그림은 CSS 가 필요할 때 받는다)
-  const KIT_EARLY = ['title_bg', 'title_fog', 'title_logo_frame', 'title_sign', 'title_torch_1', 'title_torch_2', 'title_torch_3', 'title_moon', 'lantern', 'iron_bar', 'chain', 'crow_idle', 'crow_flap1', 'crow_flap2'];
+  const KIT_EARLY = ['title_bg', 'title_fog', 'title_logo_frame', 'title_torch_1', 'title_torch_2', 'title_torch_3', 'lantern', 'iron_bar', 'chain', 'crow_idle', 'crow_flap1', 'crow_flap2'];
   const KIT_UI = [
     ...['primary', 'secondary', 'danger', 'ghost'].flatMap(k => ['normal', 'hover', 'pressed', 'disabled'].map(s => `btn_${k}_${s}`)),
     'frame_wood', 'frame_brass', 'frame_iron', 'frame_parchment', 'vignette_frame', 'curtain_left', 'curtain_right', 'letter_tab',
     'icon_close', 'icon_prev', 'icon_next', 'divider_1', 'divider_2', 'divider_3', 'corner_ornament_tl', 'corner_ornament_tr', 'corner_ornament_bl', 'corner_ornament_br',
-    'hud_day', 'hud_time', 'hud_gold', 'hud_stock', 'hud_ledger', 'hud_news', 'hud_map', 'hud_sound_on', 'hud_sound_off', 'wax_seal_red', 'np_masthead', 'np_rule', 'paper_letter', 'paper_news',
+    'hud_day', 'hud_time', 'hud_gold', 'hud_stock', 'hud_ledger', 'hud_news', 'hud_map', 'hud_sound_on', 'hud_sound_off', 'wax_seal_red', 'paper_letter', 'paper_news',
   ];
 
   const loadImg = src => new Promise(res => {

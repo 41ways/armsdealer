@@ -9,8 +9,6 @@
 .cs-purse b { font-size: 22px; color: #ffe08a; }
 .cs-purse em { font-style: normal; font-size: 12px; color: #cdb48a; }
 .cs-purse em.bad { color: #ff9a86; }
-.cs-door { margin: 0; font-size: 13.5px; line-height: 1.6; color: #e9d6b0; font-style: italic; }
-.cs-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
 .cs-tab { flex: 1 1 auto; min-width: 84px; padding: 9px 8px; border: 2px solid #5a2a34; border-radius: 4px; background: #2c1018; color: #e6d3ae; font: inherit; font-weight: 700; cursor: pointer; }
 .cs-tab i { font-style: normal; margin-right: 5px; }
 .cs-tab.on { background: #6a2434; border-color: #e3b04e; color: #fff0c8; }
@@ -60,17 +58,6 @@
 .cs-ball-num.spin { animation: cs-spin 1s ease-out; }
 @keyframes cs-spin { 0% { transform: rotate(-720deg) scale(.4); opacity: 0; } 100% { transform: none; opacity: 1; } }
 /* 카드 */
-.cs-cards { display: flex; align-items: center; gap: 10px; }
-.cs-arrow { font-size: 26px; color: #cdb48a; }
-.cs-card { width: 84px; height: 120px; border-radius: 8px; background: #fbf3e0; color: #1c1a1e; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 900; border: 3px solid #7a5a2a; box-shadow: 0 5px 12px rgba(0, 0, 0, .5); }
-.cs-card b { font-size: 40px; line-height: 1; } .cs-card i { font-style: normal; font-size: 30px; line-height: 1.1; }
-.cs-card.red { color: #b02a2a; }
-.cs-card.small { width: 48px; height: 68px; opacity: .7; } .cs-card.small b { font-size: 22px; } .cs-card.small i { font-size: 17px; }
-.cs-card.idle { background: url(../assets/casino/card_back.png) center / 100% 100% no-repeat; border: 0; color: transparent; image-rendering: pixelated; }
-.cs-card.flip { animation: cs-cardflip .5s ease-out; }
-@keyframes cs-cardflip { from { transform: rotateY(90deg); } to { transform: none; } }
-.cs-mult { margin: 0; font-size: 14px; color: #e6d3ae; text-align: center; }
-.cs-mult b { color: #ffe08a; font-size: 18px; }
 /* 야바위 */
 .cs-shell { position: relative; width: min(320px, 92%); height: 130px; }
 .cs-slot { position: absolute; bottom: 0; left: calc(var(--slot) * 33.333% + 3%); width: 27%; height: 100%; transition: left .3s ease-in-out; }
@@ -82,28 +69,11 @@
 .cs-slot.mine .cs-cup { outline: 0; filter: drop-shadow(0 0 8px #ffe08a); }
 .cs-ball { position: absolute; left: 50%; bottom: 4px; width: 30px; height: 30px; margin-left: -15px; background: url(../assets/casino/ball.png) center / contain no-repeat; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .5)); image-rendering: pixelated; }
 .cs-shell-msg { min-height: 1.4em; }
-@media (prefers-reduced-motion: reduce) { .cs-coin.flip, .cs-die.roll, .cs-ball-num.spin, .cs-card.flip { animation: none; } .cs-slot { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .cs-coin.flip, .cs-die.roll, .cs-ball-num.spin { animation: none; } .cs-slot { transition: none; } }
 .bottom-bar .pbtn[data-act="cs-open"] { white-space: nowrap; flex: 0 0 auto; }
 
 /* 로비 · 테이블 고르기 */
-.cs-banner { position: relative; height: 150px; margin: -4px -6px 0; border-radius: 8px; overflow: hidden; border: 2px solid #7a5a2a; background: #1e0a10; }
-.cs-banner img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; display: block; }
-.cs-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 5, 8, .1), rgba(12, 5, 8, .75)); }
-.cs-banner h2 { position: absolute; left: 14px; bottom: 8px; z-index: 1; margin: 0; font-size: 26px; letter-spacing: .08em; color: #f0c766; text-shadow: 0 2px 0 #000, 0 0 14px rgba(0, 0, 0, .8); }
-.cs-banner h2 small { font-size: 13px; color: #e6d3ae; letter-spacing: .04em; }
-.cs-purse-l { justify-content: flex-end; }
 .cs-ask { margin: 0; font-size: 16px; font-weight: 700; color: #f0c766; }
-.cs-tcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-.cs-tcard { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px 9px; border: 2px solid #5a2a34; border-radius: 6px; background: #2c1018; color: #f0e3cc; font: inherit; cursor: pointer; text-align: center; }
-.cs-tcard:hover:not(:disabled) { border-color: #e3b04e; background: #421622; transform: translateY(-2px); }
-.cs-tcard b { font-size: 15px; color: #ffe08a; }
-.cs-tcard small { font-size: 12px; color: #cdb48a; min-height: 2.4em; line-height: 1.25; }
-.cs-tcard em { font-style: normal; font-size: 11.5px; color: #b89e78; }
-.cs-timg { position: relative; width: 100%; height: 84px; display: grid; place-items: center; }
-.cs-timg img { max-width: 100%; max-height: 84px; image-rendering: pixelated; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .5)); }
-.cs-timg i { font-style: normal; font-size: 40px; position: absolute; }
-.cs-timg img + i { display: none; }
-.cs-tcard.locked { opacity: .5; cursor: default; filter: grayscale(.6); }
 .cs-seat { display: flex; align-items: center; gap: 10px; }
 .cs-seat b { color: #ffe08a; font-size: 16px; }
 /* 해금 알림 */
@@ -116,22 +86,15 @@
 .casino > * { flex-shrink: 0; }
 
 /* 단속 */
-.cs-raid-banner img { filter: sepia(.6) saturate(1.8) hue-rotate(-25deg) brightness(.8); animation: cs-shake .5s 2; }
-.cs-raid-banner h2 { color: #ff9a86; }
-.cs-narr { margin: 6px 2px; font-size: 14.5px; line-height: 1.7; color: #e6d3ae; font-style: italic; }
 .cs-say { margin: 4px 2px 10px; font-size: 15.5px; line-height: 1.7; color: #fff0c8; padding: 10px 12px; border-left: 3px solid #e3b04e; background: rgba(0, 0, 0, .28); }
 .cs-say b { display: block; color: #ffe08a; font-size: 13px; margin-bottom: 2px; }
 @keyframes cs-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
 /* 큰 판 — 분위기가 다르다: 검붉은 어둠, 심장 뛰는 진동 */
 .casino.cs-big { background: radial-gradient(ellipse at 50% 35%, #3a0810 0%, #14030a 65%, #050103 100%); align-items: center; }
-.cs-big-banner img { filter: brightness(.55) saturate(1.6); }
-.cs-big-banner h2 { color: #ff9a86; letter-spacing: .2em; }
 .cs-sys { margin: 4px 0; padding: 12px 16px; text-align: center; font-size: 16px; font-weight: 700; color: #ffe08a; border: 2px solid #e3b04e; border-radius: 4px; background: rgba(0, 0, 0, .55); letter-spacing: .02em; animation: cs-pulse 1.4s ease-in-out infinite; }
 @keyframes cs-pulse { 0%, 100% { box-shadow: 0 0 0 rgba(227, 176, 78, 0); } 50% { box-shadow: 0 0 18px rgba(227, 176, 78, .55); } }
 .cs-coin.big { width: 132px; height: 138px; }
-.cs-center { text-align: center; }
-.cs-bigstage { height: 300px; width: 100%; display: grid; place-items: center; position: relative; overflow: hidden; }
 .cs-coin.big.air { animation: cs-air 2.3s cubic-bezier(.2, .7, .3, 1) forwards; }
 .cs-coin.big.air.frozen { animation: none; transform: translateY(-110px) rotateX(35deg); }
 @keyframes cs-air { 0% { transform: translateY(120px) rotateX(0); } 60% { transform: translateY(-110px) rotateX(1440deg); } 100% { transform: translateY(-110px) rotateX(2160deg); } }
@@ -139,7 +102,6 @@
 @keyframes cs-heart { 0%, 100% { background-color: #050103; } 50% { background-color: #1a0308; } }
 .casino.cs-big.burst { background: #fff; animation: cs-flash .5s ease-out forwards; }
 @keyframes cs-flash { 0% { background: #fff; } 100% { background: #3a0810; } }
-.cs-slam { margin: 0; font-size: 56px; font-weight: 900; color: #ff5a44; text-shadow: 0 4px 0 #000; animation: cs-shake .35s 3; }
 
 /* ── 홀 · 장면 (v2) — 도박장 안에 들어선 느낌: 홀 그림을 배경으로 깔고, 그림 속 테이블을 눌러 앉는다 ── */
 .casino { background: linear-gradient(rgba(14, 5, 9, .88), rgba(10, 3, 6, .94)), url(../assets/casino/lobby.jpg) center / cover no-repeat, #0c0508; }
@@ -166,7 +128,6 @@
 @keyframes cs-flashout { to { opacity: 0; } }
 .cs-scene-title { position: absolute; left: 16px; bottom: 10px; z-index: 3; font-size: 30px; letter-spacing: .12em; color: #ff9a86; text-shadow: 0 3px 0 #000, 0 0 16px rgba(0, 0, 0, .9); }
 .cs-scene .on-scene { position: absolute; left: 50%; top: 50%; z-index: 3; margin: -69px 0 0 -66px; }
-.cs-scene .cs-slam { position: absolute; left: 0; right: 0; bottom: 18%; z-index: 3; text-align: center; }
 .casino.cs-big.burst { background: #0c0508; animation: none; }
 
 /* ── 입장 — 돌계단 → 문지기 (그림은 제미나이) ── */
@@ -289,16 +250,13 @@
 .cs-say.has-face > span { flex: 1; min-width: 0; }
 .cs-face { flex: none; width: 64px; border-radius: 4px; background-repeat: no-repeat; image-rendering: pixelated; background-color: #1a0a10;
   box-shadow: 0 0 0 2px #7a5a2a, 0 3px 8px rgba(0, 0, 0, .6); }
-.cs-stagger .cs-narr { animation: cs-rise .5s ease-out .9s both; }
 .cs-stagger .cs-say { animation: cs-rise .5s ease-out 1.7s both; }
 .cs-stagger .cs-foot { animation: cs-rise .4s ease-out 2.3s both; }
 @keyframes cs-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .cs-scene.cs-bellshot img { object-position: 50% 24%; animation: cs-bell-pan 3.4s ease-out both; }
 @keyframes cs-bell-pan { from { object-position: 50% 12%; filter: brightness(.35); } to { object-position: 50% 24%; filter: none; } }
 .casino.cs-big.bell { cursor: pointer; }
-.casino.cs-big.bell .cs-narr { animation: cs-rise .6s ease-out 1s both; }
-@media (prefers-reduced-motion: reduce) {
-  .cs-stagger .cs-narr, .cs-stagger .cs-say, .cs-stagger .cs-foot, .casino.cs-big.bell .cs-narr, .cs-scene.cs-bellshot img { animation: none; }
+@media (prefers-reduced-motion: reduce) { .cs-stagger .cs-say, .cs-stagger .cs-foot, .cs-scene.cs-bellshot img { animation: none; }
 }
 .cs-scene.cs-guardshot img { object-position: 66% 50%; } /* 좁은 화면에서도 오른쪽 위의 종이 잘리지 않게 */
 /* 도박장 층(.casino, 화면 전체)이 HUD 를 덮어 날짜·금고 숫자가 안 보이던 것 — HUD 를 그 위로 */
