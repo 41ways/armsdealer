@@ -285,7 +285,7 @@ WS.sys.Customers = (() => {
     const plain = G().isPlainDay();
     const want = U.weightedPick(wants, w => (w.w || 1) * (!plain && st.trend && w.item && C(st.trend.item) === C(w.item) && fx.f.trendBonus ? 4 : 1));
     const E = G().early();
-    // 초반: 수량은 1~3, 값은 시세 근처, 모자라면 있는 만큼도 산다, 외상 없음 (Papers, Please 첫 며칠처럼)
+    // 초반: 수량은 1~3, 값은 시세 근처, 모자라면 있는 만큼도 산다, 외상 없음
     const qty = plain ? U.clamp(U.range(want.qty), E.plainQty[0], E.plainQty[1]) : U.range(want.qty);
     const c = baseCustomer(fx, a, 'buy');
     if (plain) {

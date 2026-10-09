@@ -245,7 +245,7 @@ WS.sys.Trade = (() => {
     return U.pick(G.lines);
   }
 
-  // 흥정 기능은 제거되었다 (Papers, Please 스타일 두 책상 개편 — 사용자 결정).
+  // 흥정 기능은 제거되었다 (두 책상 개편 — 사용자 결정).
   // factions.js 의 haggle: {tolerance, patience} 필드는 더는 쓰이지 않지만, 데이터 전체를
   // 건드리는 대규모 편집을 피하기 위해 이번 단계에서는 그대로 남겨 둔다 (죽은 설정값).
 

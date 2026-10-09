@@ -43,7 +43,7 @@
 // startPlaces: 첫날 아침부터 물건을 들일 수 있는 자리 (시작 재고 · 1일째 도매상). 문은 레온이 오면 열린다.
 // schedule: 새벽(DayManager.startDay)에 한 번만 일어나는 일. day 가 되었고 when(조건)이 맞는 첫 새벽에 일어난다.
 //   places 는 튜토리얼 손님을 끝내 못 만났을 때를 위한 안전장치뿐이다.
-// early: 초반 장사를 Papers, Please 첫 며칠처럼 단순하게 — CustomerManager 가 쓴다.
+// early: 초반 장사를 단순하게 — CustomerManager 가 쓴다.
 WS.data.progress = {
   places: ['weapon', 'defense', 'ore', 'goods', 'potion', 'gem', 'docs', 'crow', 'special'],
   startPlaces: ['weapon'],

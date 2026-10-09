@@ -320,7 +320,7 @@ WS.Scene = (() => {
     ctx.restore();
   }
 
-  // 테이블 위 물건 — 개수를 셀 수 있게 한 개씩 줄지어 놓는다 (Papers, Please 책상 위 서류처럼).
+  // 테이블 위 물건 — 개수를 셀 수 있게 한 개씩 줄지어 놓는다.
   // 많을수록 작게 놓아서 테이블 안에 다 들어가게 한다.
   function tableLayout(qty) {
     const { counterTop } = lay();

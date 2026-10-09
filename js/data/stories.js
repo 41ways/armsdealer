@@ -1,7 +1,7 @@
 // v0.9.3: 30일 캠페인. 이 머리말의 날짜는 옛 40일 눈금(이야기일)이다 — 조건 { day } 도 이야기일. spawn.day 와 수금일(DEBT_DAYS)만 실제 날짜.
 //   실제 ↔ 이야기 날짜 표는 js/data/progress.js 맨 위.
 // 인물 이야기 네 편 — 같은 얼굴이 몇 번이고 다시 찾아오고, 그때 한 선택이 나중 얼굴·편지·신문·엔딩에 드러난다.
-// (Papers, Please 의 단골들처럼.) 데이터만 — 손님은 WS.data.customers, 사건은 WS.data.events 에 덧붙인다.
+// 데이터만 — 손님은 WS.data.customers, 사건은 WS.data.events 에 덧붙인다.
 // 이 파일은 customers.js · events.js · news.js · letters.js · config.js 뒤에 읽혀야 한다 (index.html 데이터 칸).
 //
 // ① 레온 (d1_knight 의 뒷이야기)

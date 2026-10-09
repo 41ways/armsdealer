@@ -1,4 +1,4 @@
-// 엔딩 화면 "그 뒤의 이야기" — 가게를 거쳐 간 사람들이 어떻게 되었는지 한 줄씩 (Papers, Please 의 마지막 장처럼).
+// 엔딩 화면 "그 뒤의 이야기" — 가게를 거쳐 간 사람들이 어떻게 되었는지 한 줄씩.
 // WS.data.epilogues = [{ id, who, icon, variants: [{ when, text }] }]
 //   variants 는 위에서부터 조건(Conditions DSL)이 맞는 첫 줄 하나만 보인다. 맞는 줄이 없으면 그 사람은 나오지 않는다.
 //   text 는 60자 안쪽. 인물 이야기의 흐름은 js/data/stories.js 머리말.
